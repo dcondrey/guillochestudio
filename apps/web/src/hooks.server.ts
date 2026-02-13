@@ -16,10 +16,7 @@ import {
   extractRequestId,
   generateRequestId,
 } from '$lib/utils/logger';
-import {
-  createPerformanceMonitor,
-  type PerformanceMonitor,
-} from '$lib/utils/performance';
+import { createPerformanceMonitor } from '$lib/utils/performance';
 import { getMetricsCollector, getOperationTracker } from '$lib/utils/metrics';
 
 // =============================================================================
@@ -89,7 +86,10 @@ const RATE_LIMITS = {
   default: { requests: 200, windowMs: 60_000 }, // 200 req/min for default
 } as const;
 
-function getRateLimitKey(ip: string, path: string): { key: string; limit: (typeof RATE_LIMITS)[keyof typeof RATE_LIMITS] } {
+function getRateLimitKey(
+  ip: string,
+  path: string
+): { key: string; limit: (typeof RATE_LIMITS)[keyof typeof RATE_LIMITS] } {
   if (path.startsWith('/api/auth') || path.startsWith('/auth')) {
     return { key: `auth:${ip}`, limit: RATE_LIMITS.auth };
   }
@@ -105,7 +105,10 @@ function getRateLimitKey(ip: string, path: string): { key: string; limit: (typeo
   return { key: `default:${ip}`, limit: RATE_LIMITS.default };
 }
 
-function checkRateLimit(key: string, limit: { requests: number; windowMs: number }): { allowed: boolean; remaining: number; resetAt: number } {
+function checkRateLimit(
+  key: string,
+  limit: { requests: number; windowMs: number }
+): { allowed: boolean; remaining: number; resetAt: number } {
   const now = Date.now();
   const entry = rateLimitStore.get(key);
 
@@ -152,16 +155,35 @@ const securityHeaders: Record<string, string> = {
 function getCSP(nonce: string): string {
   const directives = [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' https://plausible.io https://js.stripe.com ${dev ? "'unsafe-eval'" : ''}`,
-    `style-src 'self' 'unsafe-inline'`, // Tailwind requires inline styles
+    // Scripts: self, nonces for inline, external services, WASM support
+    `script-src 'self' 'nonce-${nonce}' 'wasm-unsafe-eval' https://plausible.io https://js.stripe.com ${dev ? "'unsafe-eval'" : ''}`,
+    // Styles: self, inline (Tailwind), Google Fonts
+    `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
+    // Images: self, data URIs, blobs, Supabase storage, Stripe
     "img-src 'self' data: blob: https://*.supabase.co https://*.stripe.com",
-    "font-src 'self' data:",
-    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://plausible.io",
+    // Fonts: self, data URIs, Google Fonts
+    "font-src 'self' data: https://fonts.gstatic.com",
+    // Connections: self, Supabase (REST + realtime), Stripe, analytics
+    "connect-src 'self' blob: https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://plausible.io",
+    // Frames: self, Stripe checkout
     "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
+    // Workers: self for service worker
+    "worker-src 'self' blob:",
+    // Child sources: self and blobs for workers/iframes
+    "child-src 'self' blob:",
+    // Manifest: self for PWA manifest
+    "manifest-src 'self'",
+    // Media: self and blobs
+    "media-src 'self' blob:",
+    // Object/embed: none for security
     "object-src 'none'",
+    // Base URI: self only
     "base-uri 'self'",
+    // Form actions: self only
     "form-action 'self'",
+    // Frame ancestors: self only (clickjacking protection)
     "frame-ancestors 'self'",
+    // Upgrade HTTP to HTTPS in production
     dev ? '' : 'upgrade-insecure-requests',
   ].filter(Boolean);
 
@@ -183,9 +205,10 @@ const handleSecurity: Handle = async ({ event, resolve }) => {
   event.locals.requestId = requestId;
 
   // Get client IP
-  const ip = event.request.headers.get('cf-connecting-ip') ||
-             event.request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-             event.getClientAddress();
+  const ip =
+    event.request.headers.get('cf-connecting-ip') ||
+    event.request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    event.getClientAddress();
 
   // Create request-scoped logger
   const logger = createRequestLogger(event.request, { ip });
@@ -287,25 +310,15 @@ const handleSecurity: Handle = async ({ event, resolve }) => {
   }
 
   // Log response
-  logger.response(
-    event.request.method,
-    event.url.pathname,
-    response.status,
-    duration,
-    {
-      userId: event.locals.user?.id,
-      ...performanceMonitor.getSummary(),
-    }
-  );
+  logger.response(event.request.method, event.url.pathname, response.status, duration, {
+    userId: event.locals.user?.id,
+    ...performanceMonitor.getSummary(),
+  });
 
   // Record metrics
   const metrics = getMetricsCollector();
   metrics.recordRequest(
-    performanceMonitor.getMetrics(
-      event.request.method,
-      event.url.pathname,
-      response.status
-    )
+    performanceMonitor.getMetrics(event.request.method, event.url.pathname, response.status)
   );
 
   return response;
@@ -421,10 +434,13 @@ export const handleError: HandleServerError = async ({ error, event, status, mes
         timestamp: new Date().toISOString(),
         userId: event.locals.user?.id,
         requestId: event.locals.requestId,
-        error: error instanceof Error ? {
-          name: error.name,
-          message: error.message,
-        } : String(error),
+        error:
+          error instanceof Error
+            ? {
+                name: error.name,
+                message: error.message,
+              }
+            : String(error),
       };
 
       // Use platform.context.waitUntil if available for non-blocking logging

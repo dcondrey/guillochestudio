@@ -12,6 +12,74 @@ export type CurveFamily =
   | 'fermat'
   | 'liss3d';
 
+/**
+ * Pattern Mode - determines how the base curve is arranged
+ * - 'curve': Single curve with symmetry (default, current behavior)
+ * - 'rosette': Closed circular patterns with envelope
+ * - 'border': Linear repeating patterns for edges/frames
+ * - 'grid': 2D repeating background patterns
+ */
+export type PatternMode = 'curve' | 'rosette' | 'border' | 'grid';
+
+/**
+ * Rosette envelope shape for rosette mode
+ */
+export type RosetteEnvelope = 'circle' | 'ellipse' | 'polygon' | 'star';
+
+/**
+ * Border corner handling for border mode
+ */
+export type BorderCornerStyle = 'miter' | 'round' | 'continue' | 'none';
+
+/**
+ * Grid tile type for grid mode
+ */
+export type GridTileType = 'square' | 'hex' | 'triangle' | 'diamond';
+
+/**
+ * Rosette-specific configuration
+ */
+export interface RosetteConfig {
+  envelope: RosetteEnvelope;
+  innerRadius: number; // 0-1, percentage of outer radius
+  outerRadius: number; // Actual radius in canvas units
+  fillDensity: number; // 1-20, number of concentric rings
+  envelopeSides: number; // For polygon/star: 3-12 sides
+  starPointiness: number; // For star: 0-1, how pointy
+  radialWave: number; // 0-1, waviness of radial lines
+  spiralTwist: number; // Degrees of spiral twist per ring
+}
+
+/**
+ * Border-specific configuration
+ */
+export interface BorderConfig {
+  length: number; // Total border length
+  width: number; // Border width/height
+  cornerStyle: BorderCornerStyle;
+  waveAmplitude: number; // 0-50, baseline wave height
+  waveFrequency: number; // 1-20, waves per unit length
+  repeatCount: number; // Number of pattern repeats
+  mirrorAlternate: boolean; // Mirror every other repeat
+  taper: number; // 0-1, taper at ends
+}
+
+/**
+ * Grid-specific configuration
+ */
+export interface GridConfig {
+  tileType: GridTileType;
+  tileWidth: number; // Width of each tile
+  tileHeight: number; // Height of each tile
+  rows: number; // Number of rows
+  cols: number; // Number of columns
+  spacing: number; // Gap between tiles
+  stagger: number; // 0-1, horizontal stagger for brick-like patterns
+  rotateAlternate: boolean; // Rotate every other tile
+  scaleVariation: number; // 0-0.5, random scale variation
+  angle: number; // Overall grid rotation
+}
+
 export type BlendMode =
   | 'normal'
   | 'multiply'
@@ -27,6 +95,9 @@ export type SubscriptionTier = 'free' | 'pro' | 'enterprise';
 export type ExportFormat = 'svg' | 'png' | 'pdf' | 'dxf' | 'gcode' | 'hpgl';
 
 export interface PatternParams {
+  // Pattern mode (determines arrangement)
+  mode: PatternMode;
+
   // Curve parameters
   family: CurveFamily;
   R: number; // Outer radius
@@ -62,6 +133,11 @@ export interface PatternParams {
   noise: number;
   vignette: boolean;
   blendMode: BlendMode;
+
+  // Mode-specific configurations
+  rosette?: RosetteConfig;
+  border?: BorderConfig;
+  grid?: GridConfig;
 }
 
 export interface PatternLayer {

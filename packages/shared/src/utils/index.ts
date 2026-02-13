@@ -131,6 +131,7 @@ export function pointFor(
  */
 export function getDefaultParams(): PatternParams {
   return {
+    mode: 'curve',
     family: 'hypo',
     R: 240,
     r: 79,

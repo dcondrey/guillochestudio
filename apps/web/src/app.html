@@ -7,15 +7,15 @@
 
     <!-- Primary Meta Tags -->
     <title>Guilloche Studio - Create Intricate Mathematical Patterns</title>
-    <meta
-      name="title"
-      content="Guilloche Studio - Create Intricate Mathematical Patterns"
-    />
+    <meta name="title" content="Guilloche Studio - Create Intricate Mathematical Patterns" />
     <meta
       name="description"
       content="Create intricate ornamental patterns with Guilloche Studio. Design stunning mathematical art for security printing, decorative design, certificates, and digital art. Export to SVG, PNG, PDF, and G-code."
     />
-    <meta name="keywords" content="guilloche, pattern generator, mathematical art, security printing, spirograph, hypotrochoid, epitrochoid, SVG patterns, decorative design, certificate design" />
+    <meta
+      name="keywords"
+      content="guilloche, pattern generator, mathematical art, security printing, spirograph, hypotrochoid, epitrochoid, SVG patterns, decorative design, certificate design"
+    />
     <meta name="author" content="Guilloche Studio" />
     <meta name="robots" content="index, follow" />
     <meta name="googlebot" content="index, follow" />
@@ -55,7 +55,10 @@
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Guilloche Studio - Create Intricate Mathematical Patterns" />
+    <meta
+      name="twitter:title"
+      content="Guilloche Studio - Create Intricate Mathematical Patterns"
+    />
     <meta
       name="twitter:description"
       content="Create intricate ornamental patterns with Guilloche Studio. Design stunning mathematical art for security printing, decorative design, and digital art."
@@ -139,7 +142,7 @@
     %sveltekit.head%
 
     <!-- Performance timing markers -->
-    <script>
+    <script nonce="%sveltekit.nonce%">
       if (window.performance && window.performance.mark) {
         window.performance.mark('app-init-start');
       }
@@ -165,14 +168,15 @@
         <div class="text-center max-w-md">
           <h1 class="text-2xl font-bold mb-4">JavaScript Required</h1>
           <p class="text-gray-300">
-            Guilloche Studio requires JavaScript to run. Please enable JavaScript in your browser settings to use this application.
+            Guilloche Studio requires JavaScript to run. Please enable JavaScript in your browser
+            settings to use this application.
           </p>
         </div>
       </div>
     </noscript>
 
     <!-- Idle-time preloading of heavy chunks -->
-    <script>
+    <script nonce="%sveltekit.nonce%">
       if ('requestIdleCallback' in window) {
         requestIdleCallback(
           function () {
