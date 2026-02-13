@@ -9,7 +9,7 @@ import { browser } from '$app/environment';
 
 // AI Worker URL (set via environment variable)
 const AI_WORKER_URL = browser
-  ? (import.meta.env.VITE_AI_WORKER_URL || 'https://guilloche-ai.workers.dev')
+  ? import.meta.env.VITE_AI_WORKER_URL || 'https://guilloche-ai.workers.dev'
   : '';
 
 export interface ParameterSuggestion {
@@ -164,18 +164,18 @@ async function fileToBase64(file: File): Promise<string> {
 
 // Fallback: Local keyword-based suggestions
 const LOCAL_PRESETS: Record<string, Partial<PatternParams>> = {
-  'elegant': { family: 'rose', k: 8, m: 0.15, symmetry: 8, lw: 1.5 },
-  'classic': { family: 'hypo', k: 13, m: 0.22, symmetry: 1, lw: 1 },
-  'modern': { family: 'liss', k: 4, m: 0.1, symmetry: 1, lw: 1.2 },
-  'intricate': { family: 'hypo', k: 29, m: 0.4, symmetry: 8, lw: 0.6 },
-  'simple': { family: 'rose', k: 3, m: 0, symmetry: 3, lw: 2 },
-  'organic': { family: 'epi', k: 5, m: 0.3, symmetry: 5, lw: 1.5 },
-  'geometric': { family: 'rose', k: 8, m: 0, symmetry: 8, lw: 1.5 },
-  'spiral': { family: 'fermat', k: 8, m: 0.2, symmetry: 1, lw: 1 },
-  'mandala': { family: 'rose', k: 12, m: 0.15, symmetry: 12, lw: 1 },
-  'security': { family: 'hypo', k: 17, m: 0.25, symmetry: 1, lw: 0.5 },
-  'gold': { startColor: '#FFD700', endColor: '#B8860B', bgColor: '#1a1a2e', useGradient: true },
-  'neon': { startColor: '#00FF00', endColor: '#FF00FF', bgColor: '#000000', useGradient: true },
+  elegant: { family: 'rose', k: 8, m: 0.15, symmetry: 8, lw: 1.5 },
+  classic: { family: 'hypo', k: 13, m: 0.22, symmetry: 1, lw: 1 },
+  modern: { family: 'liss', k: 4, m: 0.1, symmetry: 1, lw: 1.2 },
+  intricate: { family: 'hypo', k: 29, m: 0.4, symmetry: 8, lw: 0.6 },
+  simple: { family: 'rose', k: 3, m: 0, symmetry: 3, lw: 2 },
+  organic: { family: 'epi', k: 5, m: 0.3, symmetry: 5, lw: 1.5 },
+  geometric: { family: 'rose', k: 8, m: 0, symmetry: 8, lw: 1.5 },
+  spiral: { family: 'fermat', k: 8, m: 0.2, symmetry: 1, lw: 1 },
+  mandala: { family: 'rose', k: 12, m: 0.15, symmetry: 12, lw: 1 },
+  security: { family: 'hypo', k: 17, m: 0.25, symmetry: 1, lw: 0.5 },
+  gold: { startColor: '#FFD700', endColor: '#B8860B', bgColor: '#1a1a2e', useGradient: true },
+  neon: { startColor: '#00FF00', endColor: '#FF00FF', bgColor: '#000000', useGradient: true },
 };
 
 function fallbackSuggest(keywords: string[]): ParameterSuggestion[] {
@@ -191,12 +191,14 @@ function fallbackSuggest(keywords: string[]): ParameterSuggestion[] {
   }
 
   if (matches.length === 0) {
-    return [{
-      params: LOCAL_PRESETS['classic'] || {},
-      confidence: 0.3,
-      keywords,
-      description: 'Default pattern (no matches found)',
-    }];
+    return [
+      {
+        params: LOCAL_PRESETS['classic'] || {},
+        confidence: 0.3,
+        keywords,
+        description: 'Default pattern (no matches found)',
+      },
+    ];
   }
 
   // Merge matches
@@ -205,20 +207,26 @@ function fallbackSuggest(keywords: string[]): ParameterSuggestion[] {
     Object.assign(merged, match);
   }
 
-  return [{
-    params: merged,
-    confidence: 0.7,
-    keywords,
-    description: `Pattern based on: ${keywords.join(', ')}`,
-  }];
+  return [
+    {
+      params: merged,
+      confidence: 0.7,
+      keywords,
+      description: `Pattern based on: ${keywords.join(', ')}`,
+    },
+  ];
 }
 
 function fallbackTextToPattern(prompt: string): TextToPatternResult {
   // Extract keywords from prompt
-  const words = prompt.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+  const words = prompt
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((w) => w.length > 2);
   const suggestions = fallbackSuggest(words);
 
   const defaultParams: PatternParams = {
+    mode: 'curve',
     family: 'hypo',
     R: 200,
     r: 60,

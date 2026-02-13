@@ -1,4 +1,85 @@
-import type { SubscriptionPlan, CurveFamily } from './types/index.js';
+import type {
+  SubscriptionPlan,
+  CurveFamily,
+  PatternMode,
+  RosetteConfig,
+  BorderConfig,
+  GridConfig,
+} from './types/index.js';
+
+/**
+ * Pattern Modes - how the base curve is arranged
+ */
+export const PATTERN_MODES: { value: PatternMode; label: string; description: string; icon: string }[] = [
+  {
+    value: 'curve',
+    label: 'Single Curve',
+    description: 'Classic guilloche with rotational symmetry',
+    icon: '◎',
+  },
+  {
+    value: 'rosette',
+    label: 'Rosette',
+    description: 'Closed circular security patterns',
+    icon: '✿',
+  },
+  {
+    value: 'border',
+    label: 'Border',
+    description: 'Linear repeating edge patterns',
+    icon: '▬',
+  },
+  {
+    value: 'grid',
+    label: 'Grid',
+    description: 'Tiled background patterns',
+    icon: '▦',
+  },
+];
+
+/**
+ * Default configuration for rosette mode
+ */
+export const DEFAULT_ROSETTE_CONFIG: RosetteConfig = {
+  envelope: 'circle',
+  innerRadius: 0.15,
+  outerRadius: 200,
+  fillDensity: 8,
+  envelopeSides: 6,
+  starPointiness: 0.5,
+  radialWave: 0,
+  spiralTwist: 0,
+};
+
+/**
+ * Default configuration for border mode
+ */
+export const DEFAULT_BORDER_CONFIG: BorderConfig = {
+  length: 800,
+  width: 100,
+  cornerStyle: 'miter',
+  waveAmplitude: 0,
+  waveFrequency: 1,
+  repeatCount: 4,
+  mirrorAlternate: true,
+  taper: 0,
+};
+
+/**
+ * Default configuration for grid mode
+ */
+export const DEFAULT_GRID_CONFIG: GridConfig = {
+  tileType: 'square',
+  tileWidth: 100,
+  tileHeight: 100,
+  rows: 4,
+  cols: 4,
+  spacing: 10,
+  stagger: 0,
+  rotateAlternate: false,
+  scaleVariation: 0,
+  angle: 0,
+};
 
 export const CURVE_FAMILIES: { value: CurveFamily; label: string; description: string }[] = [
   { value: 'hypo', label: 'Hypotrochoid', description: 'Circle rolling inside another circle' },
