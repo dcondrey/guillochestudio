@@ -35,7 +35,7 @@
   "dependencies": {
     "@guilloche/core": "workspace:*",
     "@guilloche/shared": "workspace:*",
-    "@sentry/sveltekit": "^7.100.0",
+    "@sentry/sveltekit": "^10.38.0",
     "@stripe/stripe-js": "^3.0.0",
     "@supabase/ssr": "^0.1.0",
     "@supabase/supabase-js": "^2.42.0",
