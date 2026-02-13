@@ -37,7 +37,7 @@
     "@guilloche/shared": "workspace:*",
     "@sentry/sveltekit": "^7.100.0",
     "@stripe/stripe-js": "^3.0.0",
-    "@supabase/ssr": "^0.1.0",
+    "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.42.0",
     "jszip": "^3.10.1",
     "qrcode": "^1.5.4",
