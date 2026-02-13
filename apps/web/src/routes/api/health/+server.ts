@@ -54,7 +54,9 @@ const APP_VERSION = '1.0.0';
 // Helper Functions
 // =============================================================================
 
-async function checkSupabase(locals: App.Locals): Promise<{ service: ServiceStatus; isHealthy: boolean }> {
+async function checkSupabase(
+  locals: App.Locals
+): Promise<{ service: ServiceStatus; isHealthy: boolean }> {
   const startMs = Date.now();
 
   if (!locals.supabase) {
@@ -130,8 +132,8 @@ function checkCloudflareAI(platform: App.Platform | undefined): ServiceStatus {
 }
 
 function determineOverallStatus(services: ServiceStatus[]): HealthStatus['status'] {
-  const hasDown = services.some(s => s.status === 'down' && s.name === 'supabase');
-  const hasDegraded = services.some(s => s.status === 'degraded');
+  const hasDown = services.some((s) => s.status === 'down' && s.name === 'supabase');
+  const hasDegraded = services.some((s) => s.status === 'degraded');
 
   if (hasDown) return 'unhealthy';
   if (hasDegraded) return 'degraded';
@@ -191,12 +193,7 @@ export const GET: RequestHandler = async ({ platform, locals }) => {
 
   const aiStatus = checkCloudflareAI(platform);
 
-  const services: ServiceStatus[] = [
-    supabaseResult.service,
-    kvStatus,
-    r2Status,
-    aiStatus,
-  ];
+  const services: ServiceStatus[] = [supabaseResult.service, kvStatus, r2Status, aiStatus];
 
   const overallStatus = determineOverallStatus(services);
 

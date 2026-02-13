@@ -37,11 +37,19 @@ function successResponse<T>(data: T, status = 200): Response {
   return json(response, { status });
 }
 
-function errorResponse(code: string, message: string, status: number, details?: Array<{ path: string; message: string }>): never {
-  throw error(status, JSON.stringify({
-    success: false,
-    error: { code, message, details },
-  }));
+function errorResponse(
+  code: string,
+  message: string,
+  status: number,
+  details?: Array<{ path: string; message: string }>
+): never {
+  throw error(
+    status,
+    JSON.stringify({
+      success: false,
+      error: { code, message, details },
+    })
+  );
 }
 
 // =============================================================================

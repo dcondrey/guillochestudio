@@ -12,17 +12,17 @@ export const load: LayoutLoad = async ({ data, depends }) => {
   const supabase = createSupabaseClient();
 
   const {
-    data: { session }
+    data: { session },
   } = await supabase.auth.getSession();
 
   const {
-    data: { user }
+    data: { user },
   } = await supabase.auth.getUser();
 
   return {
     ...data,
     supabase,
     session,
-    user
+    user,
   };
 };

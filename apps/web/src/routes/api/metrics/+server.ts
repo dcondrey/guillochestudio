@@ -53,9 +53,10 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 
     // Check database connectivity (simplified - in production, actually ping DB)
     if (snapshot.database.queryCount > 0) {
-      const avgQueryTime = snapshot.database.queryCount > 0
-        ? snapshot.database.totalTime / snapshot.database.queryCount
-        : 0;
+      const avgQueryTime =
+        snapshot.database.queryCount > 0
+          ? snapshot.database.totalTime / snapshot.database.queryCount
+          : 0;
 
       checks.push({
         name: 'database',

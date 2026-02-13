@@ -43,7 +43,12 @@
       <p class="text-3xl font-bold text-gray-900">{formatPrice(earnings.total_earnings_cents)}</p>
       <p class="text-sm text-green-600 mt-2">
         <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 10l7-7m0 0l7 7m-7-7v18"
+          />
         </svg>
         All time
       </p>
@@ -63,7 +68,7 @@
 
     <div class="bg-white rounded-xl border border-gray-200 p-6">
       <p class="text-sm text-gray-500 mb-1">Listed Patterns</p>
-      <p class="text-3xl font-bold text-gray-900">{patterns.filter(p => p.is_listed).length}</p>
+      <p class="text-3xl font-bold text-gray-900">{patterns.filter((p) => p.is_listed).length}</p>
       <p class="text-sm text-gray-500 mt-2">of {patterns.length} total</p>
     </div>
   </div>
@@ -75,8 +80,18 @@
 
       {#if earnings.monthly_earnings.length === 0}
         <div class="text-center py-12 text-gray-500">
-          <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          <svg
+            class="w-12 h-12 mx-auto mb-4 text-gray-300"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+            />
           </svg>
           <p>No sales data yet</p>
           <p class="text-sm mt-1">List your first pattern to start earning!</p>
@@ -84,7 +99,7 @@
       {:else}
         <div class="space-y-3">
           {#each earnings.monthly_earnings as month}
-            {@const maxEarnings = Math.max(...earnings.monthly_earnings.map(m => m.earnings))}
+            {@const maxEarnings = Math.max(...earnings.monthly_earnings.map((m) => m.earnings))}
             <div class="flex items-center gap-4">
               <div class="w-20 text-sm text-gray-500">{formatMonth(month.month)}</div>
               <div class="flex-1">
@@ -93,7 +108,8 @@
                     class="bg-gradient-to-r from-indigo-500 to-purple-600 h-full rounded-full flex items-center justify-end pr-2"
                     style="width: {Math.max((month.earnings / maxEarnings) * 100, 10)}%"
                   >
-                    <span class="text-xs text-white font-medium">{formatPrice(month.earnings)}</span>
+                    <span class="text-xs text-white font-medium">{formatPrice(month.earnings)}</span
+                    >
                   </div>
                 </div>
               </div>
@@ -115,16 +131,22 @@
       {:else}
         <div class="space-y-4">
           {#each recentSales.slice(0, 10) as sale}
-            <div class="flex items-start justify-between pb-4 border-b border-gray-100 last:border-0 last:pb-0">
+            <div
+              class="flex items-start justify-between pb-4 border-b border-gray-100 last:border-0 last:pb-0"
+            >
               <div>
                 <p class="font-medium text-gray-900 text-sm">{sale.pattern_name}</p>
                 <p class="text-xs text-gray-500 capitalize">{sale.license_type} license</p>
                 <p class="text-xs text-gray-400 mt-1">{formatDate(sale.created_at)}</p>
               </div>
               <div class="text-right">
-                <p class="font-semibold text-green-600">{formatPrice(sale.price_cents - sale.royalty_paid_cents)}</p>
+                <p class="font-semibold text-green-600">
+                  {formatPrice(sale.price_cents - sale.royalty_paid_cents)}
+                </p>
                 {#if sale.royalty_paid_cents > 0}
-                  <p class="text-xs text-gray-400">-{formatPrice(sale.royalty_paid_cents)} royalty</p>
+                  <p class="text-xs text-gray-400">
+                    -{formatPrice(sale.royalty_paid_cents)} royalty
+                  </p>
                 {/if}
               </div>
             </div>
@@ -145,12 +167,25 @@
 
     {#if patterns.length === 0}
       <div class="text-center py-12 text-gray-500">
-        <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+        <svg
+          class="w-16 h-16 mx-auto mb-4 text-gray-300"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.5"
+            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+          />
         </svg>
         <p class="text-lg font-medium">No patterns yet</p>
         <p class="text-sm mt-1">Create your first pattern to start selling</p>
-        <a href="/studio" class="inline-block mt-4 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+        <a
+          href="/studio"
+          class="inline-block mt-4 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+        >
           Open Studio
         </a>
       </div>
@@ -174,11 +209,25 @@
                   <div class="flex items-center gap-3">
                     <div class="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                       {#if pattern.thumbnail_url}
-                        <img src={pattern.thumbnail_url} alt="" class="w-full h-full object-cover" />
+                        <img
+                          src={pattern.thumbnail_url}
+                          alt=""
+                          class="w-full h-full object-cover"
+                        />
                       {:else}
                         <div class="w-full h-full flex items-center justify-center text-gray-400">
-                          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          <svg
+                            class="w-6 h-6"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="1"
+                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
                           </svg>
                         </div>
                       {/if}
@@ -191,12 +240,16 @@
                 </td>
                 <td class="py-4">
                   {#if pattern.is_listed}
-                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                    <span
+                      class="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full"
+                    >
                       <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
                       Listed
                     </span>
                   {:else}
-                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
+                    <span
+                      class="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full"
+                    >
                       Draft
                     </span>
                   {/if}

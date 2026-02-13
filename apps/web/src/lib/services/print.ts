@@ -6,17 +6,17 @@
 export interface PaperSize {
   id: string;
   name: string;
-  width: number;   // mm
-  height: number;  // mm
+  width: number; // mm
+  height: number; // mm
   category: 'standard' | 'photo' | 'large' | 'custom';
 }
 
 export interface PrintSettings {
   paperSize: PaperSize;
   orientation: 'portrait' | 'landscape';
-  bleed: number;           // mm
-  margin: number;          // mm
-  scale: number;           // 1 = 100%
+  bleed: number; // mm
+  margin: number; // mm
+  scale: number; // 1 = 100%
   fitToPage: boolean;
   centerOnPage: boolean;
   colorProfile: ColorProfile;
@@ -40,7 +40,7 @@ export interface TileSettings {
   enabled: boolean;
   rows: number;
   cols: number;
-  overlap: number;    // mm
+  overlap: number; // mm
   showTileNumbers: boolean;
   showCutLines: boolean;
 }
@@ -294,24 +294,26 @@ function generateRegistrationMarks(
 /**
  * Generate color bars SVG
  */
-function generateColorBars(
-  width: number,
-  height: number,
-  bleed: number,
-  barHeight = 5
-): string {
+function generateColorBars(width: number, height: number, bleed: number, barHeight = 5): string {
   const colors = [
-    '#FFFFFF', '#000000', // White, Black
-    '#FF0000', '#00FF00', '#0000FF', // RGB
-    '#00FFFF', '#FF00FF', '#FFFF00', // CMY
-    '#808080', '#C0C0C0', // Grays
+    '#FFFFFF',
+    '#000000', // White, Black
+    '#FF0000',
+    '#00FF00',
+    '#0000FF', // RGB
+    '#00FFFF',
+    '#FF00FF',
+    '#FFFF00', // CMY
+    '#808080',
+    '#C0C0C0', // Grays
   ];
 
   const barWidth = (width - bleed * 2) / colors.length;
   const y = bleed - barHeight - 5;
 
-  const bars = colors.map((color, i) =>
-    `<rect x="${bleed + i * barWidth}" y="${y}" width="${barWidth}" height="${barHeight}" fill="${color}" stroke="#000000" stroke-width="0.1"/>`
+  const bars = colors.map(
+    (color, i) =>
+      `<rect x="${bleed + i * barWidth}" y="${y}" width="${barWidth}" height="${barHeight}" fill="${color}" stroke="#000000" stroke-width="0.1"/>`
   );
 
   return `<g>${bars.join('')}</g>`;
@@ -320,11 +322,7 @@ function generateColorBars(
 /**
  * Generate page info text
  */
-function generatePageInfo(
-  settings: PrintSettings,
-  pageNumber: number,
-  totalPages: number
-): string {
+function generatePageInfo(settings: PrintSettings, pageNumber: number, totalPages: number): string {
   const { paperSize, colorProfile, dpi } = settings;
   const y = settings.paperSize.height + settings.bleed * 2 - 2;
 
@@ -469,7 +467,9 @@ export function generatePrintSVG(
   // Tile number indicator
   if (tileInfo && DEFAULT_TILE_SETTINGS.showTileNumbers) {
     const tileLabel = `Tile ${tileInfo.row + 1}-${tileInfo.col + 1}`;
-    svgParts.push(`<text x="${width - 5}" y="${height - 2}" font-family="Helvetica" font-size="6" fill="#666666" text-anchor="end">${tileLabel}</text>`);
+    svgParts.push(
+      `<text x="${width - 5}" y="${height - 2}" font-family="Helvetica" font-size="6" fill="#666666" text-anchor="end">${tileLabel}</text>`
+    );
   }
 
   svgParts.push('</svg>');
@@ -499,13 +499,7 @@ export function generatePrintJob(
         ? { row, col, tileWidth: tiles.tileWidth, tileHeight: tiles.tileHeight }
         : undefined;
 
-      const svgContent = generatePrintSVG(
-        patternSvg,
-        settings,
-        pageNumber,
-        totalPages,
-        tileInfo
-      );
+      const svgContent = generatePrintSVG(patternSvg, settings, pageNumber, totalPages, tileInfo);
 
       pages.push({
         pageNumber,
@@ -530,7 +524,11 @@ export function generatePrintJob(
 /**
  * Convert RGB color to CMYK (simplified)
  */
-export function rgbToCmyk(r: number, g: number, b: number): { c: number; m: number; y: number; k: number } {
+export function rgbToCmyk(
+  r: number,
+  g: number,
+  b: number
+): { c: number; m: number; y: number; k: number } {
   // Normalize to 0-1
   const rNorm = r / 255;
   const gNorm = g / 255;
@@ -576,26 +574,29 @@ export function hexToRgb(hex: string): { r: number; g: number; b: number } | nul
  */
 export function simulateCMYKPreview(svgContent: string): string {
   // Simple simulation - reduce saturation and adjust colors
-  return svgContent.replace(
-    /#([a-fA-F0-9]{6})/g,
-    (match, hex) => {
-      const rgb = hexToRgb(match);
-      if (!rgb) return match;
+  return svgContent.replace(/#([a-fA-F0-9]{6})/g, (match, hex) => {
+    const rgb = hexToRgb(match);
+    if (!rgb) return match;
 
-      // Reduce gamut by limiting saturation
-      const max = Math.max(rgb.r, rgb.g, rgb.b);
-      const min = Math.min(rgb.r, rgb.g, rgb.b);
-      const saturation = max === 0 ? 0 : (max - min) / max;
+    // Reduce gamut by limiting saturation
+    const max = Math.max(rgb.r, rgb.g, rgb.b);
+    const min = Math.min(rgb.r, rgb.g, rgb.b);
+    const saturation = max === 0 ? 0 : (max - min) / max;
 
-      // CMYK has narrower gamut, reduce vivid colors
-      if (saturation > 0.8) {
-        const factor = 0.9;
-        return `#${Math.round(rgb.r * factor).toString(16).padStart(2, '0')}${Math.round(rgb.g * factor).toString(16).padStart(2, '0')}${Math.round(rgb.b * factor).toString(16).padStart(2, '0')}`;
-      }
-
-      return match;
+    // CMYK has narrower gamut, reduce vivid colors
+    if (saturation > 0.8) {
+      const factor = 0.9;
+      return `#${Math.round(rgb.r * factor)
+        .toString(16)
+        .padStart(2, '0')}${Math.round(rgb.g * factor)
+        .toString(16)
+        .padStart(2, '0')}${Math.round(rgb.b * factor)
+        .toString(16)
+        .padStart(2, '0')}`;
     }
-  );
+
+    return match;
+  });
 }
 
 /**

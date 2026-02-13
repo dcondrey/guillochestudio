@@ -15,7 +15,8 @@ export const load: PageServerLoad = async ({ locals }) => {
   // Get listed patterns with sales data
   const { data: patterns } = await locals.supabase
     .from('patterns')
-    .select(`
+    .select(
+      `
       id,
       name,
       thumbnail_url,
@@ -24,7 +25,8 @@ export const load: PageServerLoad = async ({ locals }) => {
       view_count,
       is_listed,
       created_at
-    `)
+    `
+    )
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
@@ -42,14 +44,16 @@ export const load: PageServerLoad = async ({ locals }) => {
   if (patternIds.length > 0) {
     const { data: purchases } = await locals.supabase
       .from('purchases')
-      .select(`
+      .select(
+        `
         id,
         license_type,
         price_cents,
         royalty_paid_cents,
         created_at,
         patterns (name)
-      `)
+      `
+      )
       .in('pattern_id', patternIds)
       .order('created_at', { ascending: false })
       .limit(20);

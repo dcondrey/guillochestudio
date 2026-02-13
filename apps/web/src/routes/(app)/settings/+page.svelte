@@ -33,8 +33,8 @@
         body: JSON.stringify({
           display_name: displayName,
           username,
-          bio
-        })
+          bio,
+        }),
       });
 
       if (!response.ok) {
@@ -57,7 +57,7 @@
 
     try {
       const response = await fetch('/api/stripe/create-portal-session', {
-        method: 'POST'
+        method: 'POST',
       });
 
       if (!response.ok) {
@@ -193,8 +193,14 @@
             <span class="text-2xl font-bold text-gray-900 capitalize">
               {$profile?.subscription_tier || $_('subscription.free')}
             </span>
-            <span class="px-2 py-1 text-xs font-medium rounded-full {getTierBadgeClass($profile?.subscription_tier || 'free')}">
-              {$profile?.subscription_tier === 'free' ? $_('subscription.free') : $_('settings.active')}
+            <span
+              class="px-2 py-1 text-xs font-medium rounded-full {getTierBadgeClass(
+                $profile?.subscription_tier || 'free'
+              )}"
+            >
+              {$profile?.subscription_tier === 'free'
+                ? $_('subscription.free')
+                : $_('settings.active')}
             </span>
           </div>
         </div>

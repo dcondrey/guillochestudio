@@ -19,10 +19,7 @@ import { z } from 'zod';
 import { STRIPE_SECRET_KEY } from '$env/static/private';
 import { STRIPE_PRICES } from '$lib/config/stripe';
 import { validate } from '$lib/utils/validation';
-import {
-  SecurityMiddleware,
-  createSecurityErrorResponse,
-} from '$lib/services/security-middleware';
+import { SecurityMiddleware, createSecurityErrorResponse } from '$lib/services/security-middleware';
 
 // =============================================================================
 // Stripe Client
@@ -51,11 +48,19 @@ function successResponse<T>(data: T, status = 200): Response {
   return json(response, { status });
 }
 
-function errorResponse(code: string, message: string, status: number, details?: Array<{ path: string; message: string }>): never {
-  throw error(status, JSON.stringify({
-    success: false,
-    error: { code, message, details },
-  }));
+function errorResponse(
+  code: string,
+  message: string,
+  status: number,
+  details?: Array<{ path: string; message: string }>
+): never {
+  throw error(
+    status,
+    JSON.stringify({
+      success: false,
+      error: { code, message, details },
+    })
+  );
 }
 
 // =============================================================================

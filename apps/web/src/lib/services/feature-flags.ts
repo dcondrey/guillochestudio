@@ -138,9 +138,7 @@ export const FEATURE_FLAGS: Record<FeatureFlagName, FeatureFlagDefinition> = {
     name: 'advanced_export_formats',
     description: 'Advanced export formats (PDF, DXF, GCODE) for professional use',
     defaultEnabled: false,
-    rules: [
-      { type: 'subscription', tiers: ['pro', 'enterprise'] },
-    ],
+    rules: [{ type: 'subscription', tiers: ['pro', 'enterprise'] }],
     metadata: {
       owner: 'export-team',
       tags: ['export', 'pro-feature'],
@@ -258,7 +256,7 @@ function hashString(str: string): number {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = (hash << 5) - hash + char;
     hash = hash & hash; // Convert to 32-bit integer
   }
   return Math.abs(hash);
@@ -285,11 +283,13 @@ export function getCurrentEnvironment(): Environment {
   }
 
   // Default to development if not set
-  return (import.meta.env.MODE === 'production'
-    ? 'production'
-    : import.meta.env.MODE === 'staging'
-      ? 'staging'
-      : 'development') as Environment;
+  return (
+    import.meta.env.MODE === 'production'
+      ? 'production'
+      : import.meta.env.MODE === 'staging'
+        ? 'staging'
+        : 'development'
+  ) as Environment;
 }
 
 // ============================================================================
@@ -464,10 +464,7 @@ export function evaluateFlag(
 /**
  * Simple evaluation that returns just a boolean.
  */
-export function isFeatureEnabled(
-  name: FeatureFlagName,
-  context: FeatureFlagContext
-): boolean {
+export function isFeatureEnabled(name: FeatureFlagName, context: FeatureFlagContext): boolean {
   return evaluateFlag(name, context).enabled;
 }
 
@@ -490,8 +487,8 @@ export function evaluateAllFlags(
  * Get all enabled flags for a context.
  */
 export function getEnabledFlags(context: FeatureFlagContext): FeatureFlagName[] {
-  return (Object.keys(FEATURE_FLAGS) as FeatureFlagName[]).filter(
-    name => isFeatureEnabled(name, context)
+  return (Object.keys(FEATURE_FLAGS) as FeatureFlagName[]).filter((name) =>
+    isFeatureEnabled(name, context)
   );
 }
 
@@ -586,9 +583,7 @@ export function createContextFromSession(
 /**
  * Serialize flag states for hydration on the client.
  */
-export function serializeFlags(
-  context: FeatureFlagContext
-): Record<FeatureFlagName, boolean> {
+export function serializeFlags(context: FeatureFlagContext): Record<FeatureFlagName, boolean> {
   const flags: Partial<Record<FeatureFlagName, boolean>> = {};
 
   for (const name of Object.keys(FEATURE_FLAGS) as FeatureFlagName[]) {

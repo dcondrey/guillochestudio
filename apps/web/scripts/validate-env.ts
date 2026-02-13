@@ -34,26 +34,16 @@ const publicEnvSchema = z.object({
     .string()
     .url('Must be a valid URL')
     .startsWith('https://', 'Must use HTTPS'),
-  PUBLIC_SUPABASE_ANON_KEY: z
-    .string()
-    .min(1, 'Required')
-    .regex(/^eyJ/, 'Must be a valid JWT'),
+  PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, 'Required').regex(/^eyJ/, 'Must be a valid JWT'),
   PUBLIC_STRIPE_PUBLISHABLE_KEY: z
     .string()
     .min(1, 'Required')
     .regex(/^pk_(test|live)_/, 'Must start with pk_test_ or pk_live_'),
-  PUBLIC_APP_URL: z
-    .string()
-    .url('Must be a valid URL')
-    .optional()
-    .default('http://localhost:5173'),
+  PUBLIC_APP_URL: z.string().url('Must be a valid URL').optional().default('http://localhost:5173'),
 });
 
 const privateEnvSchema = z.object({
-  SUPABASE_SERVICE_ROLE_KEY: z
-    .string()
-    .min(1, 'Required')
-    .regex(/^eyJ/, 'Must be a valid JWT'),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'Required').regex(/^eyJ/, 'Must be a valid JWT'),
   STRIPE_SECRET_KEY: z
     .string()
     .min(1, 'Required')
@@ -99,7 +89,7 @@ function log(message: string, color = colors.reset): void {
 }
 
 function formatErrors(errors: z.ZodError): string[] {
-  return errors.errors.map(err => {
+  return errors.errors.map((err) => {
     const path = err.path.join('.');
     return `    ${path}: ${err.message}`;
   });
@@ -146,13 +136,19 @@ async function main(): Promise<void> {
     // Show parsed values (redacted)
     log('  Parsed values:', colors.dim);
     log(`    PUBLIC_SUPABASE_URL: ${publicResult.data.PUBLIC_SUPABASE_URL}`, colors.dim);
-    log(`    PUBLIC_SUPABASE_ANON_KEY: ${publicResult.data.PUBLIC_SUPABASE_ANON_KEY.substring(0, 20)}...`, colors.dim);
-    log(`    PUBLIC_STRIPE_PUBLISHABLE_KEY: ${publicResult.data.PUBLIC_STRIPE_PUBLISHABLE_KEY.substring(0, 15)}...`, colors.dim);
+    log(
+      `    PUBLIC_SUPABASE_ANON_KEY: ${publicResult.data.PUBLIC_SUPABASE_ANON_KEY.substring(0, 20)}...`,
+      colors.dim
+    );
+    log(
+      `    PUBLIC_STRIPE_PUBLISHABLE_KEY: ${publicResult.data.PUBLIC_STRIPE_PUBLISHABLE_KEY.substring(0, 15)}...`,
+      colors.dim
+    );
     log(`    PUBLIC_APP_URL: ${publicResult.data.PUBLIC_APP_URL}`, colors.dim);
   } else {
     hasErrors = true;
     log('  [FAIL] Public variables have errors:', colors.red);
-    formatErrors(publicResult.error).forEach(err => log(err, colors.red));
+    formatErrors(publicResult.error).forEach((err) => log(err, colors.red));
   }
 
   log('');
@@ -167,17 +163,32 @@ async function main(): Promise<void> {
 
     // Show parsed values (heavily redacted)
     log('  Parsed values:', colors.dim);
-    log(`    SUPABASE_SERVICE_ROLE_KEY: ${privateResult.data.SUPABASE_SERVICE_ROLE_KEY.substring(0, 20)}...`, colors.dim);
-    log(`    STRIPE_SECRET_KEY: ${privateResult.data.STRIPE_SECRET_KEY.substring(0, 12)}...`, colors.dim);
-    log(`    STRIPE_WEBHOOK_SECRET: ${privateResult.data.STRIPE_WEBHOOK_SECRET.substring(0, 12)}...`, colors.dim);
+    log(
+      `    SUPABASE_SERVICE_ROLE_KEY: ${privateResult.data.SUPABASE_SERVICE_ROLE_KEY.substring(0, 20)}...`,
+      colors.dim
+    );
+    log(
+      `    STRIPE_SECRET_KEY: ${privateResult.data.STRIPE_SECRET_KEY.substring(0, 12)}...`,
+      colors.dim
+    );
+    log(
+      `    STRIPE_WEBHOOK_SECRET: ${privateResult.data.STRIPE_WEBHOOK_SECRET.substring(0, 12)}...`,
+      colors.dim
+    );
     log(`    STRIPE_PRICE_PRO_MONTHLY: ${privateResult.data.STRIPE_PRICE_PRO_MONTHLY}`, colors.dim);
     log(`    STRIPE_PRICE_PRO_YEARLY: ${privateResult.data.STRIPE_PRICE_PRO_YEARLY}`, colors.dim);
-    log(`    STRIPE_PRICE_ENTERPRISE_MONTHLY: ${privateResult.data.STRIPE_PRICE_ENTERPRISE_MONTHLY}`, colors.dim);
-    log(`    STRIPE_PRICE_ENTERPRISE_YEARLY: ${privateResult.data.STRIPE_PRICE_ENTERPRISE_YEARLY}`, colors.dim);
+    log(
+      `    STRIPE_PRICE_ENTERPRISE_MONTHLY: ${privateResult.data.STRIPE_PRICE_ENTERPRISE_MONTHLY}`,
+      colors.dim
+    );
+    log(
+      `    STRIPE_PRICE_ENTERPRISE_YEARLY: ${privateResult.data.STRIPE_PRICE_ENTERPRISE_YEARLY}`,
+      colors.dim
+    );
   } else {
     hasErrors = true;
     log('  [FAIL] Private variables have errors:', colors.red);
-    formatErrors(privateResult.error).forEach(err => log(err, colors.red));
+    formatErrors(privateResult.error).forEach((err) => log(err, colors.red));
   }
 
   log('');
@@ -253,7 +264,7 @@ async function main(): Promise<void> {
   process.exit(0);
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('Validation script error:', err);
   process.exit(1);
 });

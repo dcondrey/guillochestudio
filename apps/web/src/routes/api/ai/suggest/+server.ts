@@ -18,10 +18,7 @@ import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { AIRequestSchema, validate } from '$lib/utils/validation';
 import { getCacheHeaders, memoryCache } from '$lib/utils/cache';
-import {
-  SecurityMiddleware,
-  createSecurityErrorResponse,
-} from '$lib/services/security-middleware';
+import { SecurityMiddleware, createSecurityErrorResponse } from '$lib/services/security-middleware';
 
 // =============================================================================
 // Types
@@ -61,18 +58,33 @@ function successResponse<T>(data: T, cacheType?: 'API'): Response {
   });
 }
 
-function errorResponse(code: string, message: string, status: number, details?: Array<{ path: string; message: string }>): never {
-  throw error(status, JSON.stringify({
-    success: false,
-    error: { code, message, details },
-  }));
+function errorResponse(
+  code: string,
+  message: string,
+  status: number,
+  details?: Array<{ path: string; message: string }>
+): never {
+  throw error(
+    status,
+    JSON.stringify({
+      success: false,
+      error: { code, message, details },
+    })
+  );
 }
 
 // =============================================================================
 // Constants
 // =============================================================================
 
-const PATTERN_FAMILIES = ['rose', 'maurer', 'spirograph', 'lissajous', 'hypotrochoid', 'epitrochoid'];
+const PATTERN_FAMILIES = [
+  'rose',
+  'maurer',
+  'spirograph',
+  'lissajous',
+  'hypotrochoid',
+  'epitrochoid',
+];
 
 const STYLE_PRESETS: Record<string, Record<string, unknown>> = {
   'art-deco': {
@@ -81,37 +93,37 @@ const STYLE_PRESETS: Record<string, Record<string, unknown>> = {
     layerCount: 3,
     family: 'rose',
   },
-  'celtic': {
+  celtic: {
     symmetry: 4,
     strokeWidth: 1.5,
     layerCount: 5,
     family: 'spirograph',
   },
-  'mandala': {
+  mandala: {
     symmetry: 12,
     strokeWidth: 1,
     layerCount: 7,
     family: 'rose',
   },
-  'geometric': {
+  geometric: {
     symmetry: 6,
     strokeWidth: 1.5,
     layerCount: 4,
     family: 'lissajous',
   },
-  'organic': {
+  organic: {
     symmetry: 5,
     strokeWidth: 2,
     layerCount: 3,
     family: 'spirograph',
   },
-  'currency': {
+  currency: {
     symmetry: 2,
     strokeWidth: 0.5,
     layerCount: 10,
     family: 'maurer',
   },
-  'security': {
+  security: {
     symmetry: 1,
     strokeWidth: 0.3,
     layerCount: 15,
@@ -301,7 +313,7 @@ function generateFromPresets(
   style?: string,
   complexity?: string
 ): PatternSuggestion {
-  const normalizedKeywords = keywords.map(k => k.toLowerCase().trim());
+  const normalizedKeywords = keywords.map((k) => k.toLowerCase().trim());
 
   // Find matching preset
   let bestMatch = 'geometric';
@@ -309,8 +321,8 @@ function generateFromPresets(
 
   for (const [presetName] of Object.entries(STYLE_PRESETS)) {
     const presetKeywords = presetName.split('-');
-    const score = normalizedKeywords.filter(k =>
-      presetKeywords.some(pk => k.includes(pk) || pk.includes(k))
+    const score = normalizedKeywords.filter((k) =>
+      presetKeywords.some((pk) => k.includes(pk) || pk.includes(k))
     ).length;
 
     if (score > matchScore) {
@@ -344,7 +356,7 @@ function generateFromPresets(
   // Apply style adjustments
   if (style === 'organic') {
     baseParams.family = 'spirograph';
-    baseParams.symmetry = Math.max(3, Math.min(7, (baseParams.symmetry as number)));
+    baseParams.symmetry = Math.max(3, Math.min(7, baseParams.symmetry as number));
   } else if (style === 'geometric') {
     baseParams.family = 'lissajous';
     baseParams.symmetry = [4, 6, 8][Math.floor(Math.random() * 3)];

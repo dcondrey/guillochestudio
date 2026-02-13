@@ -18,37 +18,38 @@ export interface PriceInfo {
   interval: 'month' | 'year';
 }
 
-export const STRIPE_PRICES: Record<SubscriptionTier, { monthly?: PriceInfo; yearly?: PriceInfo }> = {
-  free: {},
-  pro: {
-    monthly: {
-      priceId: 'price_pro_monthly', // Replace with actual Stripe price ID
-      amount: 1200,
-      currency: 'usd',
-      interval: 'month'
+export const STRIPE_PRICES: Record<SubscriptionTier, { monthly?: PriceInfo; yearly?: PriceInfo }> =
+  {
+    free: {},
+    pro: {
+      monthly: {
+        priceId: 'price_pro_monthly', // Replace with actual Stripe price ID
+        amount: 1200,
+        currency: 'usd',
+        interval: 'month',
+      },
+      yearly: {
+        priceId: 'price_pro_yearly', // Replace with actual Stripe price ID
+        amount: 9900,
+        currency: 'usd',
+        interval: 'year',
+      },
     },
-    yearly: {
-      priceId: 'price_pro_yearly', // Replace with actual Stripe price ID
-      amount: 9900,
-      currency: 'usd',
-      interval: 'year'
-    }
-  },
-  enterprise: {
-    monthly: {
-      priceId: 'price_enterprise_monthly', // Replace with actual Stripe price ID
-      amount: 4900,
-      currency: 'usd',
-      interval: 'month'
+    enterprise: {
+      monthly: {
+        priceId: 'price_enterprise_monthly', // Replace with actual Stripe price ID
+        amount: 4900,
+        currency: 'usd',
+        interval: 'month',
+      },
+      yearly: {
+        priceId: 'price_enterprise_yearly', // Replace with actual Stripe price ID
+        amount: 39900,
+        currency: 'usd',
+        interval: 'year',
+      },
     },
-    yearly: {
-      priceId: 'price_enterprise_yearly', // Replace with actual Stripe price ID
-      amount: 39900,
-      currency: 'usd',
-      interval: 'year'
-    }
-  }
-};
+  };
 
 export async function createCheckoutSession(
   tier: Exclude<SubscriptionTier, 'free'>,
@@ -66,8 +67,8 @@ export async function createCheckoutSession(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         priceId: price.priceId,
-        tier
-      })
+        tier,
+      }),
     });
 
     if (!response.ok) {
@@ -97,7 +98,7 @@ export async function createPortalSession(): Promise<{ url: string } | { error: 
   try {
     const response = await fetch('/api/stripe/create-portal-session', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json' },
     });
 
     if (!response.ok) {
@@ -114,6 +115,6 @@ export async function createPortalSession(): Promise<{ url: string } | { error: 
 export function formatPrice(amount: number, currency = 'usd'): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: currency.toUpperCase()
+    currency: currency.toUpperCase(),
   }).format(amount / 100);
 }

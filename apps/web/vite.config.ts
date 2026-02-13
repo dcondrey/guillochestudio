@@ -40,12 +40,7 @@ export default defineConfig(({ mode }): UserConfig => {
     optimizeDeps: {
       exclude: ['@guilloche/core', '@guilloche/shared'],
       // Pre-bundle heavy dependencies for faster dev startup
-      include: [
-        'svelte',
-        '@supabase/supabase-js',
-        '@stripe/stripe-js',
-        'zod',
-      ],
+      include: ['svelte', '@supabase/supabase-js', '@stripe/stripe-js', 'zod'],
     },
 
     build: {

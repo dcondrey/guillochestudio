@@ -23,6 +23,6 @@ export const load: PageLoad = async ({ parent, fetch }) => {
     session,
     user,
     profile,
-    patterns: patterns || []
+    patterns: patterns || [],
   };
 };

@@ -50,14 +50,17 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     });
 
     if (limitCheck && !limitCheck.allowed) {
-      return json({
-        success: false,
-        error: {
-          code: 'LIMIT_EXCEEDED',
-          message: `Pattern limit reached (${limitCheck.current}/${limitCheck.limit})`,
-          details: { tier: limitCheck.tier },
+      return json(
+        {
+          success: false,
+          error: {
+            code: 'LIMIT_EXCEEDED',
+            message: `Pattern limit reached (${limitCheck.current}/${limitCheck.limit})`,
+            details: { tier: limitCheck.tier },
+          },
         },
-      }, { status: 403 });
+        { status: 403 }
+      );
     }
   }
 

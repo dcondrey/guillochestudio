@@ -38,10 +38,7 @@ interface ApiResponse<T> {
   };
 }
 
-function successResponse<T>(
-  data: T,
-  meta?: { limit: number; offset: number }
-): Response {
+function successResponse<T>(data: T, meta?: { limit: number; offset: number }): Response {
   const response: ApiResponse<T> = { success: true, data, meta };
   return json(response, {
     status: 200,
@@ -49,11 +46,19 @@ function successResponse<T>(
   });
 }
 
-function errorResponse(code: string, message: string, status: number, details?: Array<{ path: string; message: string }>): never {
-  throw error(status, JSON.stringify({
-    success: false,
-    error: { code, message, details },
-  }));
+function errorResponse(
+  code: string,
+  message: string,
+  status: number,
+  details?: Array<{ path: string; message: string }>
+): never {
+  throw error(
+    status,
+    JSON.stringify({
+      success: false,
+      error: { code, message, details },
+    })
+  );
 }
 
 // =============================================================================
@@ -155,7 +160,8 @@ export const GET: RequestHandler = async ({ url, locals }) => {
   try {
     let query = locals.supabase
       .from('patterns')
-      .select(`
+      .select(
+        `
         id,
         name,
         description,
@@ -169,16 +175,15 @@ export const GET: RequestHandler = async ({ url, locals }) => {
           username,
           display_name
         )
-      `)
+      `
+      )
       .eq('is_listed', true)
       .eq('is_public', true);
 
     // Apply search filter with proper escaping
     if (searchQuery) {
       // Escape special characters for ILIKE pattern matching
-      const sanitizedQuery = searchQuery
-        .replace(/[%_\\]/g, '\\$&')
-        .slice(0, 100);
+      const sanitizedQuery = searchQuery.replace(/[%_\\]/g, '\\$&').slice(0, 100);
       query = query.or(`name.ilike.%${sanitizedQuery}%,description.ilike.%${sanitizedQuery}%`);
     }
 

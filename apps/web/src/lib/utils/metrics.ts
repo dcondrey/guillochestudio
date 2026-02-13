@@ -152,7 +152,10 @@ export class MetricsCollector {
     for (const bucket of RESPONSE_TIME_BUCKETS) {
       this.responseTimeBuckets.set(`<=${bucket}ms`, 0);
     }
-    this.responseTimeBuckets.set(`>${RESPONSE_TIME_BUCKETS[RESPONSE_TIME_BUCKETS.length - 1]}ms`, 0);
+    this.responseTimeBuckets.set(
+      `>${RESPONSE_TIME_BUCKETS[RESPONSE_TIME_BUCKETS.length - 1]}ms`,
+      0
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -170,17 +173,11 @@ export class MetricsCollector {
     this.requestsByStatus.set(statusGroup, (this.requestsByStatus.get(statusGroup) || 0) + 1);
 
     // By method
-    this.requestsByMethod.set(
-      metrics.method,
-      (this.requestsByMethod.get(metrics.method) || 0) + 1
-    );
+    this.requestsByMethod.set(metrics.method, (this.requestsByMethod.get(metrics.method) || 0) + 1);
 
     // By path (normalized)
     const normalizedPath = this.normalizePath(metrics.path);
-    this.requestsByPath.set(
-      normalizedPath,
-      (this.requestsByPath.get(normalizedPath) || 0) + 1
-    );
+    this.requestsByPath.set(normalizedPath, (this.requestsByPath.get(normalizedPath) || 0) + 1);
 
     // Response time
     this.recordResponseTime(metrics.totalDuration);
@@ -229,13 +226,15 @@ export class MetricsCollector {
    * Normalize path by replacing dynamic segments
    */
   private normalizePath(path: string): string {
-    return path
-      // Replace UUIDs
-      .replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, ':id')
-      // Replace numeric IDs
-      .replace(/\/\d+/g, '/:id')
-      // Remove trailing slash
-      .replace(/\/$/, '') || '/';
+    return (
+      path
+        // Replace UUIDs
+        .replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, ':id')
+        // Replace numeric IDs
+        .replace(/\/\d+/g, '/:id')
+        // Remove trailing slash
+        .replace(/\/$/, '') || '/'
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -270,10 +269,7 @@ export class MetricsCollector {
     if (failed) {
       this.apiMetrics.failedCalls++;
     }
-    this.apiMetrics.byService.set(
-      service,
-      (this.apiMetrics.byService.get(service) || 0) + 1
-    );
+    this.apiMetrics.byService.set(service, (this.apiMetrics.byService.get(service) || 0) + 1);
   }
 
   // ---------------------------------------------------------------------------
@@ -329,9 +325,7 @@ export class MetricsCollector {
   getSnapshot(): MetricsSnapshot {
     const sortedTimes = [...this.responseTimes].sort((a, b) => a - b);
     const avgResponseTime =
-      sortedTimes.length > 0
-        ? sortedTimes.reduce((a, b) => a + b, 0) / sortedTimes.length
-        : 0;
+      sortedTimes.length > 0 ? sortedTimes.reduce((a, b) => a + b, 0) / sortedTimes.length : 0;
 
     return {
       timestamp: new Date().toISOString(),
@@ -341,9 +335,7 @@ export class MetricsCollector {
         byStatus: Object.fromEntries(this.requestsByStatus),
         byMethod: Object.fromEntries(this.requestsByMethod),
         byPath: Object.fromEntries(
-          [...this.requestsByPath.entries()]
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 20) // Top 20 paths
+          [...this.requestsByPath.entries()].sort((a, b) => b[1] - a[1]).slice(0, 20) // Top 20 paths
         ),
       },
       responseTime: {
@@ -402,7 +394,9 @@ export class MetricsCollector {
       const le = bucket.replace('<=', '').replace('ms', '').replace('>', '+Inf');
       lines.push(`http_request_duration_seconds_bucket{le="${le}"} ${count}`);
     }
-    lines.push(`http_request_duration_seconds_sum ${snapshot.responseTime.avg * snapshot.requests.total / 1000}`);
+    lines.push(
+      `http_request_duration_seconds_sum ${(snapshot.responseTime.avg * snapshot.requests.total) / 1000}`
+    );
     lines.push(`http_request_duration_seconds_count ${snapshot.requests.total}`);
 
     // Database metrics
@@ -578,9 +572,8 @@ export function buildHealthStatus(
   // Calculate rates (per minute, assuming metrics are recent)
   const uptimeMinutes = snapshot.uptime / 60000;
   const requestRate = uptimeMinutes > 0 ? snapshot.requests.total / uptimeMinutes : 0;
-  const errorRate = snapshot.requests.total > 0
-    ? snapshot.errors.total / snapshot.requests.total
-    : 0;
+  const errorRate =
+    snapshot.requests.total > 0 ? snapshot.errors.total / snapshot.requests.total : 0;
 
   // Determine overall status
   const hasFailedChecks = checks.some((c) => c.status === 'fail');
@@ -607,4 +600,3 @@ export function buildHealthStatus(
     },
   };
 }
-

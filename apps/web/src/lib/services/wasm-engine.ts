@@ -10,7 +10,7 @@ import { wasmEngineEnabled } from '$lib/stores/feature-flags';
 // WASM module types
 interface GuillocheWasmModule {
   GuillocheEngine: {
-    new(): WasmEngine;
+    new (): WasmEngine;
   };
 }
 
@@ -76,8 +76,7 @@ export async function detectCapabilities(): Promise<EngineCapabilities> {
 
     // Check thread support (SharedArrayBuffer)
     capabilities.threads =
-      typeof SharedArrayBuffer !== 'undefined' &&
-      typeof Atomics !== 'undefined';
+      typeof SharedArrayBuffer !== 'undefined' && typeof Atomics !== 'undefined';
   }
 
   return capabilities;

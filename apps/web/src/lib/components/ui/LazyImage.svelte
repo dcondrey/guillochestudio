@@ -18,10 +18,11 @@
   let inView = false;
 
   // Use a tiny transparent placeholder by default
-  const defaultPlaceholder = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+  const defaultPlaceholder =
+    'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
   const placeholderSrc = placeholder || defaultPlaceholder;
 
-  $: actualSrc = (loading === 'eager' || inView) ? src : placeholderSrc;
+  $: actualSrc = loading === 'eager' || inView ? src : placeholderSrc;
 
   onMount(() => {
     if (!browser || loading === 'eager') {

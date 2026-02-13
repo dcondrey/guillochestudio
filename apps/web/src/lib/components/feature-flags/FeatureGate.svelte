@@ -29,7 +29,9 @@
 {:else if !hideWhenDisabled}
   <slot name="disabled">
     {#if showPlaceholder}
-      <div class="feature-placeholder p-4 bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+      <div
+        class="feature-placeholder p-4 bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+      >
         <div class="flex items-center gap-3 text-gray-500 dark:text-gray-400">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path

@@ -51,9 +51,5 @@
     </button>
   </div>
 {:else if AIAssistant}
-  <svelte:component
-    this={AIAssistant}
-    on:apply={handleApply}
-    on:applyFull={handleApplyFull}
-  />
+  <svelte:component this={AIAssistant} on:apply={handleApply} on:applyFull={handleApplyFull} />
 {/if}

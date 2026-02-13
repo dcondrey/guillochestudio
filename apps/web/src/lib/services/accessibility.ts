@@ -126,9 +126,16 @@ export function hexToRgb(hex: string): { r: number; g: number; b: number } {
  * RGB to hex
  */
 export function rgbToHex(r: number, g: number, b: number): string {
-  return '#' + [r, g, b]
-    .map((x) => Math.round(Math.max(0, Math.min(255, x))).toString(16).padStart(2, '0'))
-    .join('');
+  return (
+    '#' +
+    [r, g, b]
+      .map((x) =>
+        Math.round(Math.max(0, Math.min(255, x)))
+          .toString(16)
+          .padStart(2, '0')
+      )
+      .join('')
+  );
 }
 
 /**
@@ -227,10 +234,7 @@ export function evaluateContrast(ratio: number): ContrastResult {
 /**
  * Simulate color blindness
  */
-export function simulateColorBlindness(
-  hex: string,
-  type: ColorBlindSimulation['type']
-): string {
+export function simulateColorBlindness(hex: string, type: ColorBlindSimulation['type']): string {
   const rgb = hexToRgb(hex);
   const matrix = COLOR_BLIND_MATRICES[type];
 
@@ -358,7 +362,8 @@ function checkMotionIssues(svgContent: string): AccessibilityIssue[] {
       wcagCriteria: 'WCAG 2.3.3',
       title: 'Animation Detected',
       description: 'SVG contains animations that may affect users with vestibular disorders.',
-      recommendation: 'Provide a way to pause, stop, or hide animations. Consider using prefers-reduced-motion media query.',
+      recommendation:
+        'Provide a way to pause, stop, or hide animations. Consider using prefers-reduced-motion media query.',
     });
   }
 
@@ -419,7 +424,8 @@ function checkStructuralIssues(svgContent: string): AccessibilityIssue[] {
       wcagCriteria: 'WCAG 4.1.2',
       title: 'Missing Role',
       description: 'SVG does not have an ARIA role attribute.',
-      recommendation: 'Add role="img" for meaningful graphics or role="presentation" for decorative ones.',
+      recommendation:
+        'Add role="img" for meaningful graphics or role="presentation" for decorative ones.',
     });
   }
 
@@ -431,8 +437,10 @@ function checkStructuralIssues(svgContent: string): AccessibilityIssue[] {
       category: 'structure',
       wcagCriteria: 'WCAG 4.1.2',
       title: 'Consider ARIA Labels',
-      description: 'SVG could benefit from aria-label or aria-labelledby for better screen reader support.',
-      recommendation: 'Add aria-labelledby pointing to the title element, or aria-label with descriptive text.',
+      description:
+        'SVG could benefit from aria-label or aria-labelledby for better screen reader support.',
+      recommendation:
+        'Add aria-labelledby pointing to the title element, or aria-label with descriptive text.',
     });
   }
 
@@ -503,7 +511,8 @@ export function generateAccessibilityReport(
       wcagCriteria: 'WCAG 1.4.1',
       title: 'Color Blind Accessibility',
       description: 'Some colors may be indistinguishable for color blind users.',
-      recommendation: 'Use additional visual cues like patterns or shapes, or adjust color palette.',
+      recommendation:
+        'Use additional visual cues like patterns or shapes, or adjust color palette.',
     });
   } else {
     passedChecks.push('Color blind safe palette');
@@ -582,26 +591,19 @@ export function applyColorBlindSimulation(
   svgContent: string,
   type: ColorBlindSimulation['type']
 ): string {
-  return svgContent.replace(
-    /#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})\b/g,
-    (match) => {
-      let hex = match.toLowerCase();
-      if (hex.length === 4) {
-        hex = `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`;
-      }
-      return simulateColorBlindness(hex, type);
+  return svgContent.replace(/#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})\b/g, (match) => {
+    let hex = match.toLowerCase();
+    if (hex.length === 4) {
+      hex = `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`;
     }
-  );
+    return simulateColorBlindness(hex, type);
+  });
 }
 
 /**
  * Make SVG accessible by adding required elements
  */
-export function makeAccessible(
-  svgContent: string,
-  title: string,
-  description: string
-): string {
+export function makeAccessible(svgContent: string, title: string, description: string): string {
   // Add role if missing
   if (!svgContent.includes('role=')) {
     svgContent = svgContent.replace('<svg', '<svg role="img"');
@@ -613,10 +615,7 @@ export function makeAccessible(
 
   // Add aria-labelledby
   if (!svgContent.includes('aria-label')) {
-    svgContent = svgContent.replace(
-      '<svg',
-      `<svg aria-labelledby="${titleId} ${descId}"`
-    );
+    svgContent = svgContent.replace('<svg', `<svg aria-labelledby="${titleId} ${descId}"`);
   }
 
   // Find closing > of opening svg tag

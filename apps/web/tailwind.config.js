@@ -16,8 +16,8 @@ export default {
           700: '#4338ca',
           800: '#3730a3',
           900: '#312e81',
-          950: '#1e1b4b'
-        }
+          950: '#1e1b4b',
+        },
       },
       fontFamily: {
         sans: [
@@ -27,18 +27,18 @@ export default {
           'BlinkMacSystemFont',
           'Segoe UI',
           'Roboto',
-          'sans-serif'
-        ]
+          'sans-serif',
+        ],
       },
       animation: {
         'spin-slow': 'spin 3s linear infinite',
-        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       boxShadow: {
         glow: '0 0 20px rgba(99, 102, 241, 0.3)',
-        'glow-lg': '0 0 40px rgba(99, 102, 241, 0.4)'
-      }
-    }
+        'glow-lg': '0 0 40px rgba(99, 102, 241, 0.4)',
+      },
+    },
   },
-  plugins: []
+  plugins: [],
 };

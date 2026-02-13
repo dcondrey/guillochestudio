@@ -11,6 +11,6 @@ export const load: PageLoad = async ({ parent }) => {
   return {
     session,
     user,
-    profile
+    profile,
   };
 };

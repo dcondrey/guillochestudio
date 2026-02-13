@@ -90,7 +90,7 @@ export class DeviceFingerprintService {
     const data = encoder.encode(JSON.stringify(normalizedData));
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
   }
 
   /**
@@ -111,9 +111,10 @@ export class DeviceFingerprintService {
       // Hardware (if available)
       hw: `${components.hardwareConcurrency || 0}:${components.deviceMemory || 0}`,
       // WebGL (if available)
-      gl: components.webglVendor && components.webglRenderer
-        ? `${components.webglVendor}:${components.webglRenderer}`.substring(0, 100)
-        : '',
+      gl:
+        components.webglVendor && components.webglRenderer
+          ? `${components.webglVendor}:${components.webglRenderer}`.substring(0, 100)
+          : '',
       // Canvas hash (stable)
       canvas: components.canvasHash || '',
       // Audio hash (stable)
@@ -170,21 +171,19 @@ export class DeviceFingerprintService {
     const ua = components.userAgent.toLowerCase();
 
     // Detect headless browsers
-    indicators.isHeadless = (
+    indicators.isHeadless =
       ua.includes('headless') ||
       ua.includes('phantomjs') ||
       ua.includes('nightmare') ||
       !components.webglVendor ||
-      !components.webglRenderer
-    );
+      !components.webglRenderer;
 
     // Detect automation frameworks
-    indicators.isAutomated = (
+    indicators.isAutomated =
       ua.includes('selenium') ||
       ua.includes('puppeteer') ||
       ua.includes('playwright') ||
-      ua.includes('webdriver')
-    );
+      ua.includes('webdriver');
 
     // Check for webdriver
     indicators.hasWebdriver = ua.includes('webdriver');
@@ -192,12 +191,11 @@ export class DeviceFingerprintService {
     // Detect virtual machines (common WebGL renderers)
     if (components.webglRenderer) {
       const renderer = components.webglRenderer.toLowerCase();
-      indicators.isVirtualMachine = (
+      indicators.isVirtualMachine =
         renderer.includes('swiftshader') ||
         renderer.includes('llvmpipe') ||
         renderer.includes('virtualbox') ||
-        renderer.includes('vmware')
-      );
+        renderer.includes('vmware');
     }
 
     // Check for inconsistencies
@@ -217,10 +215,7 @@ export class DeviceFingerprintService {
     }
 
     // Mobile UA with desktop screen
-    if (
-      (ua.includes('mobile') || ua.includes('android')) &&
-      components.screen.width > 1920
-    ) {
+    if ((ua.includes('mobile') || ua.includes('android')) && components.screen.width > 1920) {
       inconsistencies.push('mobile_ua_desktop_screen');
     }
 
@@ -259,7 +254,7 @@ export class DeviceFingerprintService {
     const expectedPrefixes = tzCountryMap[countryCode];
     if (!expectedPrefixes) return false;
 
-    return !expectedPrefixes.some(prefix => timezone.startsWith(prefix));
+    return !expectedPrefixes.some((prefix) => timezone.startsWith(prefix));
   }
 
   /**
@@ -280,10 +275,9 @@ export class DeviceFingerprintService {
 
     if (existing) {
       // Update existing record
-      const associatedUserIds = [...new Set([
-        ...existing.associated_user_ids,
-        ...(userId ? [userId] : []),
-      ])];
+      const associatedUserIds = [
+        ...new Set([...existing.associated_user_ids, ...(userId ? [userId] : [])]),
+      ];
 
       const { data, error } = await this.supabase
         .from('device_fingerprints')
@@ -376,9 +370,7 @@ export class DeviceFingerprintService {
     // Check for multiple accounts on same device
     let linkedAccounts = 0;
     if (device && device.associated_user_ids) {
-      linkedAccounts = device.associated_user_ids.filter(
-        (id: string) => id !== userId
-      ).length;
+      linkedAccounts = device.associated_user_ids.filter((id: string) => id !== userId).length;
 
       if (linkedAccounts >= 3) {
         reasons.push(`Multiple accounts (${linkedAccounts + 1}) detected on same device`);
@@ -435,7 +427,7 @@ export class DeviceFingerprintService {
       .is('is_legitimate', null); // Unreviewed links
 
     if (links && links.length > 0) {
-      const highConfidenceLinks = links.filter(l => l.confidence_score > 0.8);
+      const highConfidenceLinks = links.filter((l) => l.confidence_score > 0.8);
       if (highConfidenceLinks.length > 0) {
         reasons.push(`${highConfidenceLinks.length} high-confidence account link(s) detected`);
         riskLevel = riskLevel === 'low' ? 'medium' : riskLevel;
@@ -496,7 +488,7 @@ export class DeviceFingerprintService {
     const data = encoder.encode(str);
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
   }
 }
 

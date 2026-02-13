@@ -68,11 +68,7 @@
 
     try {
       const deviceId = `device_${Date.now()}`;
-      const device = await manager.connectSerial(
-        deviceId,
-        newDeviceProfile,
-        {}
-      );
+      const device = await manager.connectSerial(deviceId, newDeviceProfile, {});
 
       if (newDeviceName) {
         device.name = newDeviceName;
@@ -105,34 +101,52 @@
 
   function getStatusColor(status: ConnectionStatus): string {
     switch (status) {
-      case 'connected': return '#22c55e';
-      case 'connecting': return '#f59e0b';
-      case 'busy': return '#3b82f6';
-      case 'paused': return '#a855f7';
-      case 'error': return '#ef4444';
-      default: return '#94a3b8';
+      case 'connected':
+        return '#22c55e';
+      case 'connecting':
+        return '#f59e0b';
+      case 'busy':
+        return '#3b82f6';
+      case 'paused':
+        return '#a855f7';
+      case 'error':
+        return '#ef4444';
+      default:
+        return '#94a3b8';
     }
   }
 
   function getStatusIcon(status: ConnectionStatus): string {
     switch (status) {
-      case 'connected': return '✓';
-      case 'connecting': return '◌';
-      case 'busy': return '⏳';
-      case 'paused': return '⏸';
-      case 'error': return '!';
-      default: return '○';
+      case 'connected':
+        return '✓';
+      case 'connecting':
+        return '◌';
+      case 'busy':
+        return '⏳';
+      case 'paused':
+        return '⏸';
+      case 'error':
+        return '!';
+      default:
+        return '○';
     }
   }
 
   function getDeviceIcon(type: HardwareDevice['type']): string {
     switch (type) {
-      case 'plotter': return '🖊';
-      case 'cnc': return '⚙';
-      case 'laser': return '🔴';
-      case 'engraver': return '✒';
-      case 'printer': return '🖨';
-      default: return '📟';
+      case 'plotter':
+        return '🖊';
+      case 'cnc':
+        return '⚙';
+      case 'laser':
+        return '🔴';
+      case 'engraver':
+        return '✒';
+      case 'printer':
+        return '🖨';
+      default:
+        return '📟';
     }
   }
 
@@ -164,7 +178,14 @@
       disabled={!isSerialSupported}
       title={isSerialSupported ? 'Add device' : 'Web Serial API not supported'}
     >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
         <path d="M12 5v14M5 12h14" />
       </svg>
     </button>
@@ -172,8 +193,17 @@
 
   {#if !isSerialSupported}
     <div class="warning-banner">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <path
+          d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+        />
         <line x1="12" y1="9" x2="12" y2="13" />
         <line x1="12" y1="17" x2="12.01" y2="17" />
       </svg>
@@ -198,12 +228,7 @@
 
       <div class="form-group">
         <label for="deviceName">Custom Name (optional)</label>
-        <input
-          id="deviceName"
-          type="text"
-          bind:value={newDeviceName}
-          placeholder="My Plotter"
-        />
+        <input id="deviceName" type="text" bind:value={newDeviceName} placeholder="My Plotter" />
       </div>
 
       {#if connectionError}
@@ -211,9 +236,7 @@
       {/if}
 
       <div class="form-actions">
-        <button class="btn secondary" on:click={() => (showAddDevice = false)}>
-          Cancel
-        </button>
+        <button class="btn secondary" on:click={() => (showAddDevice = false)}> Cancel </button>
         <button
           class="btn primary"
           on:click={connectDevice}
@@ -255,10 +278,7 @@
             </div>
           </div>
 
-          <div
-            class="device-status"
-            style="--status-color: {getStatusColor(device.status)}"
-          >
+          <div class="device-status" style="--status-color: {getStatusColor(device.status)}">
             <span class="status-icon">{getStatusIcon(device.status)}</span>
             <span class="status-text">{device.status}</span>
           </div>
@@ -270,7 +290,14 @@
                 on:click|stopPropagation={() => disconnectDevice(device.id)}
                 title="Disconnect"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
                   <path d="M18.36 6.64A9 9 0 015.64 18.36M19.36 19.36A9 9 0 016.64 5.64" />
                 </svg>
               </button>
@@ -280,8 +307,17 @@
                 on:click|stopPropagation={() => removeDevice(device.id)}
                 title="Remove"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"
+                  />
                 </svg>
               </button>
             {/if}
@@ -369,10 +405,7 @@
           </div>
           <div class="job-actions">
             {#if selectedDeviceJob.status === 'running'}
-              <button
-                class="btn small"
-                on:click={() => manager.pauseJob(selectedDeviceJob.id)}
-              >
+              <button class="btn small" on:click={() => manager.pauseJob(selectedDeviceJob.id)}>
                 Pause
               </button>
             {:else if selectedDeviceJob.status === 'paused'}
@@ -401,7 +434,14 @@
             on:click={() => manager.homeDevice(selectedDevice.id)}
             disabled={!selectedDevice.capabilities.supportsHoming}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
               <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
             </svg>
             Home
@@ -410,7 +450,14 @@
             class="quick-btn"
             on:click={() => manager.moveTo(selectedDevice.id, 0, 0, undefined, true)}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
               <circle cx="12" cy="12" r="10" />
               <circle cx="12" cy="12" r="3" />
             </svg>

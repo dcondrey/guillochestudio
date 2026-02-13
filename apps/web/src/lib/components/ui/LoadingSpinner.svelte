@@ -42,13 +42,7 @@
     <!-- Inner counter-rotating pattern -->
     <g class="inner" fill="none" stroke={color} stroke-width="1" opacity="0.5">
       {#each [0, 45, 90, 135] as angle}
-        <ellipse
-          cx="50"
-          cy="50"
-          rx="30"
-          ry="15"
-          transform="rotate({angle} 50 50)"
-        />
+        <ellipse cx="50" cy="50" rx="30" ry="15" transform="rotate({angle} 50 50)" />
       {/each}
     </g>
 

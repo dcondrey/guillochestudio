@@ -35,10 +35,13 @@ function successResponse<T>(data: T, status = 200): Response {
 }
 
 function errorResponse(code: string, message: string, status: number): never {
-  throw error(status, JSON.stringify({
-    success: false,
-    error: { code, message },
-  }));
+  throw error(
+    status,
+    JSON.stringify({
+      success: false,
+      error: { code, message },
+    })
+  );
 }
 
 // =============================================================================
@@ -66,7 +69,11 @@ export const POST: RequestHandler = async ({ locals, url }) => {
     }
 
     if (!profile?.stripe_customer_id) {
-      errorResponse('NO_SUBSCRIPTION', 'No active subscription found. Please subscribe first.', 404);
+      errorResponse(
+        'NO_SUBSCRIPTION',
+        'No active subscription found. Please subscribe first.',
+        404
+      );
     }
 
     // Create portal session

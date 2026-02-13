@@ -161,9 +161,7 @@ export class ProgressiveRenderer {
       ['initializing', 'rendering'].includes($state.status)
     );
 
-    this.canPause = derived(this._state, ($state) =>
-      $state.status === 'rendering'
-    );
+    this.canPause = derived(this._state, ($state) => $state.status === 'rendering');
   }
 
   private getInitialState(): RenderState {
@@ -426,7 +424,10 @@ export class ProgressiveRenderer {
     let renderedPoints = 0;
     let peakFps = 0;
     const fpsHistory: number[] = [];
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
 
     // Progressive rendering loop
     for (let chunk = 0; chunk < totalChunks; chunk++) {
@@ -460,7 +461,7 @@ export class ProgressiveRenderer {
       // Draw chunk
       this.drawChunk(new Float64Array(chunkPoints), renderedPoints === 0);
 
-      renderedPoints += (endStep - startStep);
+      renderedPoints += endStep - startStep;
       this.frameCount++;
 
       const frameTime = performance.now() - frameStart;
@@ -546,7 +547,7 @@ export class ProgressiveRenderer {
         case 'liss3d':
           // Lissajous - use k and mf as a and b parameters
           const a = k || 3;
-          const b = (frequency || 4);
+          const b = frequency || 4;
           x = R * Math.sin(a * t + (phase || 0));
           y = R * Math.sin(b * t);
           break;
@@ -610,10 +611,7 @@ export class ProgressiveRenderer {
 
     if (isFirst) {
       ctx.beginPath();
-      ctx.moveTo(
-        centerX + points[0] * scale,
-        centerY + points[1] * scale
-      );
+      ctx.moveTo(centerX + points[0] * scale, centerY + points[1] * scale);
     }
 
     for (let i = 0; i < points.length; i += 2) {
@@ -713,9 +711,12 @@ export class ProgressiveRenderer {
    * Calculate perpendicular distance from point to line
    */
   private perpendicularDistance(
-    px: number, py: number,
-    x1: number, y1: number,
-    x2: number, y2: number
+    px: number,
+    py: number,
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number
   ): number {
     const dx = x2 - x1;
     const dy = y2 - y1;
@@ -806,9 +807,10 @@ export class ProgressiveRenderer {
     totalFrames: number;
     engineType: 'js' | 'wasm' | 'none';
   } {
-    const averageFrameTime = this.frameTimes.length > 0
-      ? this.frameTimes.reduce((a, b) => a + b, 0) / this.frameTimes.length
-      : 0;
+    const averageFrameTime =
+      this.frameTimes.length > 0
+        ? this.frameTimes.reduce((a, b) => a + b, 0) / this.frameTimes.length
+        : 0;
 
     return {
       averageFrameTime,
@@ -835,9 +837,7 @@ export class ProgressiveRenderer {
 /**
  * Create a progressive renderer with default configuration
  */
-export function createProgressiveRenderer(
-  config?: Partial<RenderConfig>
-): ProgressiveRenderer {
+export function createProgressiveRenderer(config?: Partial<RenderConfig>): ProgressiveRenderer {
   return new ProgressiveRenderer(config);
 }
 

@@ -90,8 +90,7 @@ describe('Pattern DNA Encoding', () => {
 describe('Pattern DNA Generation', () => {
   function generateDNA(params: Record<string, unknown>): string {
     const compressed = compressParams(params);
-    const hash = Array.from(compressed)
-      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const hash = Array.from(compressed).reduce((acc, char) => acc + char.charCodeAt(0), 0);
     return encodeBase62(hash % 100000000).padStart(8, '0');
   }
 
@@ -241,8 +240,7 @@ describe('Parameter Compression Edge Cases', () => {
 describe('Pattern DNA Generation Edge Cases', () => {
   function generateDNA(params: Record<string, unknown>): string {
     const compressed = compressParams(params);
-    const hash = Array.from(compressed)
-      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const hash = Array.from(compressed).reduce((acc, char) => acc + char.charCodeAt(0), 0);
     return encodeBase62(hash % 100000000).padStart(8, '0');
   }
 
@@ -295,7 +293,9 @@ describe('Pattern DNA Generation Edge Cases', () => {
       startColor: '#FF5733',
     };
 
-    const dnas = Array(10).fill(null).map(() => generateDNA(params));
+    const dnas = Array(10)
+      .fill(null)
+      .map(() => generateDNA(params));
     const allSame = dnas.every((dna) => dna === dnas[0]);
     expect(allSame).toBe(true);
   });

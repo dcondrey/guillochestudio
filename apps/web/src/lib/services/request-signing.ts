@@ -23,7 +23,13 @@ export interface SignedRequest {
 export interface SignatureValidationResult {
   valid: boolean;
   reason?: string;
-  code?: 'VALID' | 'EXPIRED' | 'INVALID_SIGNATURE' | 'REPLAY_DETECTED' | 'MISSING_FIELDS' | 'FUTURE_TIMESTAMP';
+  code?:
+    | 'VALID'
+    | 'EXPIRED'
+    | 'INVALID_SIGNATURE'
+    | 'REPLAY_DETECTED'
+    | 'MISSING_FIELDS'
+    | 'FUTURE_TIMESTAMP';
 }
 
 export interface RequestToSign {
@@ -123,9 +129,10 @@ export class RequestSigningService {
     if (validation && !validation.valid) {
       return {
         valid: false,
-        reason: validation.reason === 'signature_already_used'
-          ? 'This request has already been processed (replay attack detected)'
-          : validation.reason,
+        reason:
+          validation.reason === 'signature_already_used'
+            ? 'This request has already been processed (replay attack detected)'
+            : validation.reason,
         code: 'REPLAY_DETECTED',
       };
     }
@@ -147,9 +154,8 @@ export class RequestSigningService {
 
     // Add body hash if present
     if (request.body !== undefined) {
-      const bodyStr = typeof request.body === 'string'
-        ? request.body
-        : JSON.stringify(request.body);
+      const bodyStr =
+        typeof request.body === 'string' ? request.body : JSON.stringify(request.body);
       parts.push(bodyStr);
     }
 
@@ -174,7 +180,7 @@ export class RequestSigningService {
 
     const signature = await crypto.subtle.sign('HMAC', key, messageData);
     const hashArray = Array.from(new Uint8Array(signature));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
   }
 
   /**
@@ -200,7 +206,7 @@ export class RequestSigningService {
     const data = encoder.encode(str);
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
   }
 
   /**
@@ -209,7 +215,7 @@ export class RequestSigningService {
   generateNonce(): string {
     const array = new Uint8Array(16);
     crypto.getRandomValues(array);
-    return Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
+    return Array.from(array, (b) => b.toString(16).padStart(2, '0')).join('');
   }
 
   /**
@@ -238,11 +244,7 @@ export class ClientRequestSigner {
   /**
    * Sign a request before sending to server
    */
-  async signRequest(
-    method: string,
-    path: string,
-    body?: unknown
-  ): Promise<SignedRequest> {
+  async signRequest(method: string, path: string, body?: unknown): Promise<SignedRequest> {
     const timestamp = Math.floor(Date.now() / 1000);
     const nonce = this.generateNonce();
 
@@ -281,13 +283,13 @@ export class ClientRequestSigner {
 
     const signature = await crypto.subtle.sign('HMAC', key, messageData);
     const hashArray = Array.from(new Uint8Array(signature));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
   }
 
   private generateNonce(): string {
     const array = new Uint8Array(16);
     crypto.getRandomValues(array);
-    return Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
+    return Array.from(array, (b) => b.toString(16).padStart(2, '0')).join('');
   }
 }
 

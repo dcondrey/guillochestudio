@@ -22,11 +22,15 @@
 
 {#if shouldShow}
   {#if variant === 'default'}
-    <span class="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300">
+    <span
+      class="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300"
+    >
       {text}
     </span>
   {:else if variant === 'small'}
-    <span class="inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold tracking-wide rounded bg-purple-600 text-white">
+    <span
+      class="inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold tracking-wide rounded bg-purple-600 text-white"
+    >
       {text}
     </span>
   {:else if variant === 'inline'}

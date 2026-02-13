@@ -20,9 +20,9 @@ export interface PathSegment {
 
 export interface PlotterConfig {
   name: string;
-  maxWidth: number;  // mm
+  maxWidth: number; // mm
   maxHeight: number; // mm
-  maxSpeed: number;  // mm/s
+  maxSpeed: number; // mm/s
   penUpHeight: number;
   penDownHeight: number;
   acceleration: number;
@@ -33,10 +33,10 @@ export interface MaterialPreset {
   id: string;
   name: string;
   description: string;
-  speed: number;        // Percentage of max speed
-  penPressure: number;  // 0-100
+  speed: number; // Percentage of max speed
+  penPressure: number; // 0-100
   passes: number;
-  penUpDelay: number;   // ms
+  penUpDelay: number; // ms
   penDownDelay: number; // ms
   recommended: string[];
 }
@@ -124,7 +124,7 @@ export const PLOTTER_PRESETS: Record<string, PlotterConfig> = {
     acceleration: 80,
     homePosition: { x: 0, y: 0 },
   },
-  'custom': {
+  custom: {
     name: 'Custom Plotter',
     maxWidth: 297,
     maxHeight: 210,
@@ -445,10 +445,7 @@ export function optimizePaths(
 /**
  * Convert pattern to path segments
  */
-export function patternToPathSegments(
-  svgContent: string,
-  scale: number = 1
-): PathSegment[] {
+export function patternToPathSegments(svgContent: string, scale: number = 1): PathSegment[] {
   const paths: PathSegment[] = [];
 
   // Parse SVG path data
@@ -569,13 +566,7 @@ function parsePathData(d: string, scale: number): Point[] {
 }
 
 // Sample cubic bezier curve
-function sampleCubicBezier(
-  p0: Point,
-  p1: Point,
-  p2: Point,
-  p3: Point,
-  samples: number
-): Point[] {
+function sampleCubicBezier(p0: Point, p1: Point, p2: Point, p3: Point, samples: number): Point[] {
   const points: Point[] = [];
 
   for (let i = 1; i <= samples; i++) {
@@ -622,7 +613,7 @@ export function generateHPGL(
   const lines: string[] = [];
 
   // Initialize plotter
-  lines.push('IN;');  // Initialize
+  lines.push('IN;'); // Initialize
   lines.push('SP1;'); // Select pen 1
   lines.push(`VS${Math.round(config.maxSpeed * (material.speed / 100))};`); // Set speed
 
@@ -740,11 +731,7 @@ export class PlotterConnection {
     await this.writer.write(encoder.encode(command + '\n'));
   }
 
-  async plot(
-    paths: PathSegment[],
-    config: PlotterConfig,
-    material: MaterialPreset
-  ): Promise<void> {
+  async plot(paths: PathSegment[], config: PlotterConfig, material: MaterialPreset): Promise<void> {
     if (!this.writer) {
       throw new Error('Not connected to plotter');
     }

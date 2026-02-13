@@ -129,11 +129,7 @@ export class PerformanceMonitor {
   /**
    * Start recording a render
    */
-  startRender(params: {
-    engineType: 'js' | 'wasm';
-    quality: string;
-    pointCount: number;
-  }): string {
+  startRender(params: { engineType: 'js' | 'wasm'; quality: string; pointCount: number }): string {
     const id = `render_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 
     this.isRecording = true;
@@ -190,9 +186,8 @@ export class PerformanceMonitor {
 
       // Calculate FPS stats
       const fpsList = frameTimings.map((f) => (f.duration > 0 ? 1000 / f.duration : 0));
-      const averageFps = fpsList.length > 0
-        ? fpsList.reduce((a, b) => a + b, 0) / fpsList.length
-        : 0;
+      const averageFps =
+        fpsList.length > 0 ? fpsList.reduce((a, b) => a + b, 0) / fpsList.length : 0;
       const peakFps = Math.max(...fpsList, 0);
       const minFps = fpsList.length > 0 ? Math.min(...fpsList) : 0;
 
@@ -273,11 +268,14 @@ export class PerformanceMonitor {
       .filter((r) => r.memoryUsed !== undefined)
       .map((r) => r.memoryUsed!);
 
-    const memoryStats = memoryValues.length > 0 ? {
-      averageUsed: memoryValues.reduce((a, b) => a + b, 0) / memoryValues.length,
-      peakUsed: Math.max(...memoryValues),
-      averageLimit: 0, // Would need JSHeapSizeLimit
-    } : undefined;
+    const memoryStats =
+      memoryValues.length > 0
+        ? {
+            averageUsed: memoryValues.reduce((a, b) => a + b, 0) / memoryValues.length,
+            peakUsed: Math.max(...memoryValues),
+            averageLimit: 0, // Would need JSHeapSizeLimit
+          }
+        : undefined;
 
     return {
       sessionId: this.sessionId,
@@ -286,16 +284,16 @@ export class PerformanceMonitor {
       totalRenders: this.renderHistory.length,
       successfulRenders: successful.length,
       failedRenders: failed.length,
-      averageRenderTime: durations.length > 0
-        ? durations.reduce((a, b) => a + b, 0) / durations.length
-        : 0,
+      averageRenderTime:
+        durations.length > 0 ? durations.reduce((a, b) => a + b, 0) / durations.length : 0,
       medianRenderTime: p50,
       p95RenderTime: p95,
       p99RenderTime: p99,
       totalPointsRendered: successful.reduce((sum, r) => sum + r.pointCount, 0),
-      averageFps: successful.length > 0
-        ? successful.reduce((sum, r) => sum + r.averageFps, 0) / successful.length
-        : 0,
+      averageFps:
+        successful.length > 0
+          ? successful.reduce((sum, r) => sum + r.averageFps, 0) / successful.length
+          : 0,
       wasmUsagePercent: (wasmRenders / totalSuccessful) * 100,
       jsUsagePercent: (jsRenders / totalSuccessful) * 100,
       memoryStats,
@@ -335,11 +333,15 @@ export class PerformanceMonitor {
    * Export metrics as JSON
    */
   exportJSON(): string {
-    return JSON.stringify({
-      report: this.generateReport(),
-      renders: this.renderHistory,
-      metrics: this.metrics,
-    }, null, 2);
+    return JSON.stringify(
+      {
+        report: this.generateReport(),
+        renders: this.renderHistory,
+        metrics: this.metrics,
+      },
+      null,
+      2
+    );
   }
 
   /**
@@ -362,21 +364,23 @@ export class PerformanceMonitor {
       'success',
     ];
 
-    const rows = this.renderHistory.map((r) => [
-      r.id,
-      r.startTime,
-      r.duration,
-      r.pointCount,
-      r.engineType,
-      r.quality,
-      r.averageFps,
-      r.peakFps,
-      r.minFps,
-      r.frameCount,
-      r.pointsPerSecond,
-      r.memoryUsed ?? '',
-      r.success,
-    ].join(','));
+    const rows = this.renderHistory.map((r) =>
+      [
+        r.id,
+        r.startTime,
+        r.duration,
+        r.pointCount,
+        r.engineType,
+        r.quality,
+        r.averageFps,
+        r.peakFps,
+        r.minFps,
+        r.frameCount,
+        r.pointsPerSecond,
+        r.memoryUsed ?? '',
+        r.success,
+      ].join(',')
+    );
 
     return [headers.join(','), ...rows].join('\n');
   }
@@ -496,22 +500,33 @@ export async function runBenchmark(
  * Format benchmark results as table
  */
 export function formatBenchmarkTable(results: BenchmarkResult[]): string {
-  const headers = ['Engine', 'Quality', 'Avg (ms)', 'Med (ms)', 'Min (ms)', 'Max (ms)', 'StdDev', 'Points/s'];
+  const headers = [
+    'Engine',
+    'Quality',
+    'Avg (ms)',
+    'Med (ms)',
+    'Min (ms)',
+    'Max (ms)',
+    'StdDev',
+    'Points/s',
+  ];
   const widths = [8, 10, 10, 10, 10, 10, 10, 12];
 
   const separator = widths.map((w) => '-'.repeat(w)).join('-+-');
   const headerRow = headers.map((h, i) => h.padEnd(widths[i])).join(' | ');
 
-  const rows = results.map((r) => [
-    r.engine.toUpperCase().padEnd(widths[0]),
-    r.quality.padEnd(widths[1]),
-    r.averageTime.toFixed(2).padStart(widths[2]),
-    r.medianTime.toFixed(2).padStart(widths[3]),
-    r.minTime.toFixed(2).padStart(widths[4]),
-    r.maxTime.toFixed(2).padStart(widths[5]),
-    r.standardDeviation.toFixed(2).padStart(widths[6]),
-    Math.round(r.pointsPerSecond).toLocaleString().padStart(widths[7]),
-  ].join(' | '));
+  const rows = results.map((r) =>
+    [
+      r.engine.toUpperCase().padEnd(widths[0]),
+      r.quality.padEnd(widths[1]),
+      r.averageTime.toFixed(2).padStart(widths[2]),
+      r.medianTime.toFixed(2).padStart(widths[3]),
+      r.minTime.toFixed(2).padStart(widths[4]),
+      r.maxTime.toFixed(2).padStart(widths[5]),
+      r.standardDeviation.toFixed(2).padStart(widths[6]),
+      Math.round(r.pointsPerSecond).toLocaleString().padStart(widths[7]),
+    ].join(' | ')
+  );
 
   return [headerRow, separator, ...rows].join('\n');
 }

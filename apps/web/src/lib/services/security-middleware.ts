@@ -167,10 +167,7 @@ export class SecurityMiddleware {
   /**
    * Main security check method - call this from API routes
    */
-  async check(
-    event: RequestEvent,
-    options: MiddlewareOptions = {}
-  ): Promise<SecurityCheckResult> {
+  async check(event: RequestEvent, options: MiddlewareOptions = {}): Promise<SecurityCheckResult> {
     const warnings: string[] = [];
     const { request, locals } = event;
 
@@ -232,8 +229,8 @@ export class SecurityMiddleware {
       // 3. Request Signature Verification (for sensitive operations)
       // =================================================================
 
-      const shouldCheckSignature = options.requireSignature ||
-        requiresSignature(request.method, event.url.pathname);
+      const shouldCheckSignature =
+        options.requireSignature || requiresSignature(request.method, event.url.pathname);
 
       if (shouldCheckSignature) {
         const signatureData = extractSignatureFromRequest(request);
@@ -297,11 +294,7 @@ export class SecurityMiddleware {
       // 4. Per-User Rate Limiting
       // =================================================================
 
-      const rateCheck = checkUserRateLimit(
-        user.id,
-        profile.subscription_tier,
-        options.rateLimit
-      );
+      const rateCheck = checkUserRateLimit(user.id, profile.subscription_tier, options.rateLimit);
 
       if (!rateCheck.allowed) {
         // Log rate limit event
@@ -333,11 +326,9 @@ export class SecurityMiddleware {
       // =================================================================
 
       if (options.feature) {
-        const featureCheck = await this.enforcement.checkFeatureAccess(
-          user.id,
-          options.feature,
-          { skipVerificationCheck: !options.requireVerification }
-        );
+        const featureCheck = await this.enforcement.checkFeatureAccess(user.id, options.feature, {
+          skipVerificationCheck: !options.requireVerification,
+        });
 
         if (!featureCheck.allowed) {
           return {
@@ -359,10 +350,7 @@ export class SecurityMiddleware {
       // =================================================================
 
       if (options.action) {
-        const usageCheck = await this.enforcement.checkUsageLimit(
-          user.id,
-          options.action
-        );
+        const usageCheck = await this.enforcement.checkUsageLimit(user.id, options.action);
 
         if (!usageCheck.allowed) {
           return {
@@ -403,7 +391,10 @@ export class SecurityMiddleware {
               'abuse_detected',
               abuseCheck.riskLevel,
               abuseCheck.reasons.join('; '),
-              { linkedAccounts: abuseCheck.linkedAccounts, recommendation: abuseCheck.recommendation },
+              {
+                linkedAccounts: abuseCheck.linkedAccounts,
+                recommendation: abuseCheck.recommendation,
+              },
               ipAddress
             );
 
@@ -429,7 +420,11 @@ export class SecurityMiddleware {
       // 8. Email Verification Check (for premium features)
       // =================================================================
 
-      if (options.requireVerification && !profile.email_verified && profile.subscription_tier !== 'free') {
+      if (
+        options.requireVerification &&
+        !profile.email_verified &&
+        profile.subscription_tier !== 'free'
+      ) {
         return {
           allowed: false,
           statusCode: 403,
@@ -448,9 +443,14 @@ export class SecurityMiddleware {
         userAgent,
         isVerified: profile.email_verified,
         trustScore: profile.trust_score,
-        riskLevel: profile.trust_score >= 70 ? 'low' :
-                   profile.trust_score >= 40 ? 'medium' :
-                   profile.trust_score >= 20 ? 'high' : 'critical',
+        riskLevel:
+          profile.trust_score >= 70
+            ? 'low'
+            : profile.trust_score >= 40
+              ? 'medium'
+              : profile.trust_score >= 20
+                ? 'high'
+                : 'critical',
       };
 
       return {
@@ -547,10 +547,7 @@ export function createSecurityErrorResponse(result: SecurityCheckResult): Respon
  */
 export function withSecurity<T>(
   options: MiddlewareOptions,
-  handler: (
-    event: RequestEvent,
-    context: SecurityContext
-  ) => Promise<Response>
+  handler: (event: RequestEvent, context: SecurityContext) => Promise<Response>
 ): (event: RequestEvent) => Promise<Response> {
   return async (event: RequestEvent): Promise<Response> => {
     const middleware = new SecurityMiddleware(event.locals.supabase);

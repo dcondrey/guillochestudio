@@ -29,19 +29,13 @@ export const isEnterprise: Readable<boolean> = derived(
   ($tier) => $tier === 'enterprise'
 );
 
-export const displayName: Readable<string> = derived(
-  [user, profile],
-  ([$user, $profile]) => {
-    return $profile?.display_name || $profile?.username || $user?.email?.split('@')[0] || 'User';
-  }
-);
+export const displayName: Readable<string> = derived([user, profile], ([$user, $profile]) => {
+  return $profile?.display_name || $profile?.username || $user?.email?.split('@')[0] || 'User';
+});
 
-export const avatarUrl: Readable<string | null> = derived(
-  [user, profile],
-  ([$user, $profile]) => {
-    return $profile?.avatar_url || $user?.user_metadata?.avatar_url || null;
-  }
-);
+export const avatarUrl: Readable<string | null> = derived([user, profile], ([$user, $profile]) => {
+  return $profile?.avatar_url || $user?.user_metadata?.avatar_url || null;
+});
 
 // Initialize auth state from server data
 export function initializeAuth(data: { session: Session | null; user: User | null }) {

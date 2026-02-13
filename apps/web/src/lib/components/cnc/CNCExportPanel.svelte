@@ -63,7 +63,8 @@
   let selectedMaterialPreset = '';
   let selectedTool = 'endmill-3mm';
 
-  $: selectedMachine = MACHINE_PROFILES.find(m => m.id === selectedMachineId) ?? MACHINE_PROFILES[0];
+  $: selectedMachine =
+    MACHINE_PROFILES.find((m) => m.id === selectedMachineId) ?? MACHINE_PROFILES[0];
   $: isLaser = selectedMachine.type === 'laser';
   $: isCNC = selectedMachine.type === 'cnc';
 
@@ -96,8 +97,8 @@
     if (paths.length === 0) return;
 
     const fullSettings = isLaser
-      ? { machine: selectedMachine, ...laserSettings } as LaserSettings
-      : { machine: selectedMachine, ...cncSettings } as CNCSettings;
+      ? ({ machine: selectedMachine, ...laserSettings } as LaserSettings)
+      : ({ machine: selectedMachine, ...cncSettings } as CNCSettings);
 
     if (activeTab === 'cnc' && isCNC) {
       gcode = generateCNCGCode(paths, fullSettings as CNCSettings);
@@ -154,17 +155,34 @@
 
 <div class="cnc-panel bg-gray-900 rounded-lg overflow-hidden flex flex-col h-full">
   <!-- Header -->
-  <div class="px-4 py-3 bg-gray-800 border-b border-gray-700 flex items-center justify-between shrink-0">
+  <div
+    class="px-4 py-3 bg-gray-800 border-b border-gray-700 flex items-center justify-between shrink-0"
+  >
     <h2 class="text-white font-semibold flex items-center gap-2">
       <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+        />
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+        />
       </svg>
       CNC / Laser Export
     </h2>
     <button on:click={() => dispatch('close')} class="text-gray-400 hover:text-white">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M6 18L18 6M6 6l12 12"
+        />
       </svg>
     </button>
   </div>
@@ -179,7 +197,7 @@
           class:text-indigo-400={activeTab === 'laser'}
           class:bg-gray-800={activeTab === 'laser'}
           class:text-gray-400={activeTab !== 'laser'}
-          on:click={() => activeTab = 'laser'}
+          on:click={() => (activeTab = 'laser')}
         >
           Laser
         </button>
@@ -188,7 +206,7 @@
           class:text-indigo-400={activeTab === 'cnc'}
           class:bg-gray-800={activeTab === 'cnc'}
           class:text-gray-400={activeTab !== 'cnc'}
-          on:click={() => activeTab = 'cnc'}
+          on:click={() => (activeTab = 'cnc')}
         >
           CNC
         </button>
@@ -197,7 +215,7 @@
           class:text-indigo-400={activeTab === 'dxf'}
           class:bg-gray-800={activeTab === 'dxf'}
           class:text-gray-400={activeTab !== 'dxf'}
-          on:click={() => activeTab = 'dxf'}
+          on:click={() => (activeTab = 'dxf')}
         >
           DXF
         </button>
@@ -214,13 +232,13 @@
           >
             {#if activeTab === 'laser'}
               <optgroup label="Laser Cutters">
-                {#each MACHINE_PROFILES.filter(m => m.type === 'laser') as machine}
+                {#each MACHINE_PROFILES.filter((m) => m.type === 'laser') as machine}
                   <option value={machine.id}>{machine.name}</option>
                 {/each}
               </optgroup>
             {:else if activeTab === 'cnc'}
               <optgroup label="CNC Machines">
-                {#each MACHINE_PROFILES.filter(m => m.type === 'cnc') as machine}
+                {#each MACHINE_PROFILES.filter((m) => m.type === 'cnc') as machine}
                   <option value={machine.id}>{machine.name}</option>
                 {/each}
               </optgroup>
@@ -288,13 +306,7 @@
               <label class="text-sm font-medium text-gray-300">Power</label>
               <span class="text-sm text-indigo-400">{laserSettings.power}%</span>
             </div>
-            <input
-              type="range"
-              bind:value={laserSettings.power}
-              min="1"
-              max="100"
-              class="w-full"
-            />
+            <input type="range" bind:value={laserSettings.power} min="1" max="100" class="w-full" />
           </div>
 
           <div class="space-y-2">
@@ -306,7 +318,7 @@
               type="range"
               bind:value={laserSettings.speed}
               min="100"
-              max="{selectedMachine.maxFeedRate}"
+              max={selectedMachine.maxFeedRate}
               step="50"
               class="w-full"
             />
@@ -333,7 +345,6 @@
             />
             Air assist
           </label>
-
         {:else if activeTab === 'cnc'}
           <!-- CNC Settings -->
           <div class="space-y-3">
@@ -401,7 +412,7 @@
                 type="number"
                 bind:value={cncSettings.feedRate}
                 min="100"
-                max="{selectedMachine.maxFeedRate}"
+                max={selectedMachine.maxFeedRate}
                 step="100"
                 class="w-full bg-gray-800 border border-gray-600 rounded px-2 py-1.5 text-sm text-white"
               />
@@ -426,7 +437,7 @@
                 type="number"
                 bind:value={cncSettings.spindleSpeed}
                 min="1000"
-                max="{selectedMachine.maxSpindleSpeed}"
+                max={selectedMachine.maxSpindleSpeed}
                 step="1000"
                 class="w-full bg-gray-800 border border-gray-600 rounded px-2 py-1.5 text-sm text-white"
               />
@@ -463,7 +474,6 @@
             />
             Enable coolant
           </label>
-
         {:else if activeTab === 'dxf'}
           <!-- DXF Options -->
           <div class="space-y-3">
@@ -475,7 +485,10 @@
                 class:text-white={dxfOptions.units === 'mm'}
                 class:bg-gray-700={dxfOptions.units !== 'mm'}
                 class:text-gray-300={dxfOptions.units !== 'mm'}
-                on:click={() => { dxfOptions.units = 'mm'; dxfOptions = dxfOptions; }}
+                on:click={() => {
+                  dxfOptions.units = 'mm';
+                  dxfOptions = dxfOptions;
+                }}
               >
                 Millimeters
               </button>
@@ -485,7 +498,10 @@
                 class:text-white={dxfOptions.units === 'inch'}
                 class:bg-gray-700={dxfOptions.units !== 'inch'}
                 class:text-gray-300={dxfOptions.units !== 'inch'}
-                on:click={() => { dxfOptions.units = 'inch'; dxfOptions = dxfOptions; }}
+                on:click={() => {
+                  dxfOptions.units = 'inch';
+                  dxfOptions = dxfOptions;
+                }}
               >
                 Inches
               </button>
@@ -558,13 +574,22 @@
     <div class="flex-1 flex flex-col bg-gray-950 overflow-hidden">
       <!-- Code Preview -->
       <div class="flex-1 overflow-auto p-4">
-        <pre class="text-xs text-gray-300 font-mono whitespace-pre-wrap">{activeTab === 'dxf' ? dxfContent.slice(0, 5000) : gcode.slice(0, 5000)}{(activeTab === 'dxf' ? dxfContent : gcode).length > 5000 ? '\n... (truncated)' : ''}</pre>
+        <pre class="text-xs text-gray-300 font-mono whitespace-pre-wrap">{activeTab === 'dxf'
+            ? dxfContent.slice(0, 5000)
+            : gcode.slice(0, 5000)}{(activeTab === 'dxf' ? dxfContent : gcode).length > 5000
+            ? '\n... (truncated)'
+            : ''}</pre>
       </div>
 
       <!-- Actions -->
-      <div class="px-4 py-3 bg-gray-900 border-t border-gray-700 flex items-center justify-between shrink-0">
+      <div
+        class="px-4 py-3 bg-gray-900 border-t border-gray-700 flex items-center justify-between shrink-0"
+      >
         <div class="text-sm text-gray-400">
-          {paths.length} paths | {(activeTab === 'dxf' ? dxfContent : gcode).length.toLocaleString()} characters
+          {paths.length} paths | {(activeTab === 'dxf'
+            ? dxfContent
+            : gcode
+          ).length.toLocaleString()} characters
         </div>
         <div class="flex gap-2">
           <button
@@ -572,7 +597,12 @@
             class="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors text-sm flex items-center gap-2"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+              />
             </svg>
             Copy
           </button>
@@ -581,7 +611,12 @@
             class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors text-sm flex items-center gap-2"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+              />
             </svg>
             Download {activeTab === 'dxf' ? '.dxf' : '.gcode'}
           </button>

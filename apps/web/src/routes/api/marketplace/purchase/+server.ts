@@ -19,10 +19,7 @@ import Stripe from 'stripe';
 import { STRIPE_SECRET_KEY } from '$env/static/private';
 import { PurchaseRequestSchema, validate } from '$lib/utils/validation';
 import { calculateLicensePrices, calculateRoyalty } from '$lib/services/marketplace';
-import {
-  SecurityMiddleware,
-  createSecurityErrorResponse,
-} from '$lib/services/security-middleware';
+import { SecurityMiddleware, createSecurityErrorResponse } from '$lib/services/security-middleware';
 
 // =============================================================================
 // Stripe Client
@@ -51,11 +48,19 @@ function successResponse<T>(data: T, status = 200): Response {
   return json(response, { status });
 }
 
-function errorResponse(code: string, message: string, status: number, details?: Array<{ path: string; message: string }>): never {
-  throw error(status, JSON.stringify({
-    success: false,
-    error: { code, message, details },
-  }));
+function errorResponse(
+  code: string,
+  message: string,
+  status: number,
+  details?: Array<{ path: string; message: string }>
+): never {
+  throw error(
+    status,
+    JSON.stringify({
+      success: false,
+      error: { code, message, details },
+    })
+  );
 }
 
 // =============================================================================
@@ -169,7 +174,8 @@ export const POST: RequestHandler = async (event) => {
     // Get pattern details
     const { data: pattern, error: patternError } = await locals.supabase
       .from('patterns')
-      .select(`
+      .select(
+        `
         id,
         name,
         price_cents,
@@ -183,7 +189,8 @@ export const POST: RequestHandler = async (event) => {
           display_name,
           username
         )
-      `)
+      `
+      )
       .eq('id', patternId)
       .eq('is_listed', true)
       .single();
@@ -215,15 +222,13 @@ export const POST: RequestHandler = async (event) => {
 
     // Handle free patterns
     if (priceCents === 0) {
-      const { error: purchaseError } = await locals.supabase
-        .from('purchases')
-        .insert({
-          user_id: user.id,
-          pattern_id: patternId,
-          license_type: licenseType,
-          price_cents: 0,
-          royalty_paid_cents: 0,
-        });
+      const { error: purchaseError } = await locals.supabase.from('purchases').insert({
+        user_id: user.id,
+        pattern_id: patternId,
+        license_type: licenseType,
+        price_cents: 0,
+        royalty_paid_cents: 0,
+      });
 
       if (purchaseError) {
         console.error('Failed to create free purchase:', purchaseError);

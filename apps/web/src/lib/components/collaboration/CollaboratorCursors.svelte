@@ -20,21 +20,12 @@
       "
     >
       <!-- Cursor icon -->
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill={collab.color}
-        class="cursor-icon"
-      >
+      <svg width="24" height="24" viewBox="0 0 24 24" fill={collab.color} class="cursor-icon">
         <path d="M3 3l18 9-9 3-3 9-6-21z" />
       </svg>
 
       <!-- Name label -->
-      <div
-        class="cursor-label"
-        style="background-color: {collab.color}"
-      >
+      <div class="cursor-label" style="background-color: {collab.color}">
         {collab.name}
       </div>
     </div>
@@ -47,7 +38,9 @@
     pointer-events: none;
     z-index: 1000;
     transform: translate(-2px, -2px);
-    transition: left 0.05s linear, top 0.05s linear;
+    transition:
+      left 0.05s linear,
+      top 0.05s linear;
   }
 
   .cursor-icon {

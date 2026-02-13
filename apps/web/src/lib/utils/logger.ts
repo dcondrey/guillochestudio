@@ -197,11 +197,7 @@ export class Logger {
   /**
    * Time a sync operation
    */
-  timeSync<T>(
-    name: string,
-    operation: () => T,
-    metadata?: Record<string, unknown>
-  ): T {
+  timeSync<T>(name: string, operation: () => T, metadata?: Record<string, unknown>): T {
     this.startTimer(name, metadata);
     try {
       const result = operation();
@@ -257,12 +253,7 @@ export class Logger {
   /**
    * Log a database query
    */
-  query(
-    operation: string,
-    table: string,
-    duration: number,
-    meta?: Record<string, unknown>
-  ): void {
+  query(operation: string, table: string, duration: number, meta?: Record<string, unknown>): void {
     const level: LogLevel = duration > 1000 ? 'warn' : 'debug';
     this.log(level, `DB: ${operation} ${table}`, {
       type: 'database',
@@ -361,8 +352,8 @@ export class Logger {
   private prettyPrint(entry: LogEntry): void {
     const levelColors: Record<LogLevel, string> = {
       debug: '\x1b[90m', // Gray
-      info: '\x1b[36m',  // Cyan
-      warn: '\x1b[33m',  // Yellow
+      info: '\x1b[36m', // Cyan
+      warn: '\x1b[33m', // Yellow
       error: '\x1b[31m', // Red
     };
     const reset = '\x1b[0m';
@@ -526,4 +517,3 @@ export function buildServerTimingHeader(entries: ServerTimingEntry[]): string {
     })
     .join(', ');
 }
-

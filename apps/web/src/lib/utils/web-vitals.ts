@@ -94,9 +94,11 @@ export function initWebVitals(options?: {
 export function isSlowConnection(): boolean {
   if (!browser) return false;
 
-  const connection = (navigator as Navigator & {
-    connection?: { effectiveType?: string; saveData?: boolean };
-  }).connection;
+  const connection = (
+    navigator as Navigator & {
+      connection?: { effectiveType?: string; saveData?: boolean };
+    }
+  ).connection;
 
   if (!connection) return false;
 

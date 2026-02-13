@@ -105,7 +105,11 @@
 
 <svelte:head>
   <title>{pattern.name} - Guilloché Marketplace</title>
-  <meta name="description" content={pattern.description || `Beautiful guilloché pattern by ${pattern.creator.display_name || pattern.creator.username}`} />
+  <meta
+    name="description"
+    content={pattern.description ||
+      `Beautiful guilloché pattern by ${pattern.creator.display_name || pattern.creator.username}`}
+  />
 </svelte:head>
 
 <div class="max-w-7xl mx-auto px-4 py-8">
@@ -133,7 +137,12 @@
           {:else}
             <div class="w-full h-full flex items-center justify-center text-gray-600">
               <svg class="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1"
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
               </svg>
             </div>
           {/if}
@@ -164,14 +173,29 @@
           <div class="flex items-center gap-6 text-sm text-gray-500">
             <span class="flex items-center gap-1">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                />
               </svg>
               {pattern.view_count} views
             </span>
             <span class="flex items-center gap-1">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                />
               </svg>
               {pattern.download_count} downloads
             </span>
@@ -184,7 +208,12 @@
         <div class="bg-amber-50 border border-amber-200 rounded-xl p-6">
           <h3 class="font-semibold text-amber-800 mb-3 flex items-center gap-2">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 10V3L4 14h7v7l9-11h-7z"
+              />
             </svg>
             Remix Attribution
           </h3>
@@ -201,8 +230,18 @@
                 <span class="text-amber-600">by {item.creator_username || 'Unknown'}</span>
               </a>
               {#if i < pattern.remix_chain.length - 1}
-                <svg class="w-4 h-4 text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                <svg
+                  class="w-4 h-4 text-amber-400 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               {/if}
             {/each}
@@ -220,7 +259,9 @@
               class="w-16 h-16 rounded-full object-cover"
             />
           {:else}
-            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold">
+            <div
+              class="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold"
+            >
               {(pattern.creator.display_name || pattern.creator.username || '?')[0].toUpperCase()}
             </div>
           {/if}
@@ -238,7 +279,12 @@
             >
               View profile
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
             </a>
           </div>
@@ -253,16 +299,29 @@
                 <a href="/marketplace/{p.id}" class="group">
                   <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden">
                     {#if p.thumbnail_url}
-                      <img src={p.thumbnail_url} alt={p.name} class="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                      <img
+                        src={p.thumbnail_url}
+                        alt={p.name}
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      />
                     {:else}
                       <div class="w-full h-full flex items-center justify-center text-gray-400">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="1"
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
                         </svg>
                       </div>
                     {/if}
                   </div>
-                  <p class="mt-2 text-sm font-medium text-gray-900 truncate group-hover:text-indigo-600">{p.name}</p>
+                  <p
+                    class="mt-2 text-sm font-medium text-gray-900 truncate group-hover:text-indigo-600"
+                  >
+                    {p.name}
+                  </p>
                   <p class="text-sm text-gray-500">{formatPrice(p.price_cents)}</p>
                 </a>
               {/each}
@@ -302,9 +361,16 @@
             {:else if purchaseStatus.purchased}
               <!-- Already Purchased -->
               <div class="text-center">
-                <div class="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-full mb-4">
+                <div
+                  class="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-full mb-4"
+                >
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                   Purchased ({purchaseStatus.license} license)
                 </div>
@@ -331,7 +397,9 @@
                   {#each ['personal', 'commercial', 'remix'] as license (license)}
                     <label
                       class="flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors
-                             {selectedLicense === license ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'}"
+                             {selectedLicense === license
+                        ? 'border-indigo-600 bg-indigo-50'
+                        : 'border-gray-200 hover:border-gray-300'}"
                     >
                       <input
                         type="radio"
@@ -363,8 +431,19 @@
               >
                 {#if purchaseLoading}
                   <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <circle
+                      class="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      stroke-width="4"
+                    ></circle>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Processing...
                 {:else if pattern.price_cents === 0}
@@ -386,35 +465,85 @@
               <h5 class="text-sm font-medium text-gray-700 mb-2">License includes:</h5>
               <ul class="space-y-2 text-sm text-gray-600">
                 <li class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  <svg
+                    class="w-4 h-4 text-green-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                   Full parameter access
                 </li>
                 <li class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  <svg
+                    class="w-4 h-4 text-green-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                   SVG & PNG exports
                 </li>
                 <li class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  <svg
+                    class="w-4 h-4 text-green-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                   Lifetime access
                 </li>
                 {#if selectedLicense === 'commercial' || selectedLicense === 'remix'}
                   <li class="flex items-center gap-2">
-                    <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    <svg
+                      class="w-4 h-4 text-green-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                     Commercial usage rights
                   </li>
                 {/if}
                 {#if selectedLicense === 'remix'}
                   <li class="flex items-center gap-2">
-                    <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    <svg
+                      class="w-4 h-4 text-green-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                     Create & sell derivatives
                   </li>
@@ -436,16 +565,27 @@
           <a href="/marketplace/{p.id}" class="group">
             <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden">
               {#if p.thumbnail_url}
-                <img src={p.thumbnail_url} alt={p.name} class="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                <img
+                  src={p.thumbnail_url}
+                  alt={p.name}
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                />
               {:else}
                 <div class="w-full h-full flex items-center justify-center text-gray-400">
                   <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1"
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
                   </svg>
                 </div>
               {/if}
             </div>
-            <p class="mt-2 font-medium text-gray-900 truncate group-hover:text-indigo-600">{p.name}</p>
+            <p class="mt-2 font-medium text-gray-900 truncate group-hover:text-indigo-600">
+              {p.name}
+            </p>
             <p class="text-sm text-gray-500">
               {formatPrice(p.price_cents)}
               {#if p.creator_username}

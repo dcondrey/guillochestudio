@@ -48,11 +48,16 @@
 
   function getInsightIcon(type: string): string {
     switch (type) {
-      case 'session': return '⏱';
-      case 'preference': return '❤';
-      case 'progress': return '🎯';
-      case 'achievement': return '🏆';
-      default: return '💡';
+      case 'session':
+        return '⏱';
+      case 'preference':
+        return '❤';
+      case 'progress':
+        return '🎯';
+      case 'achievement':
+        return '🏆';
+      default:
+        return '💡';
     }
   }
 
@@ -122,8 +127,11 @@
         <div class="summary-content">
           <span class="summary-label">Complexity</span>
           <span class="summary-value">
-            {profile.styleProfile.complexityScore < 0.33 ? 'Simple' :
-             profile.styleProfile.complexityScore < 0.66 ? 'Moderate' : 'Complex'}
+            {profile.styleProfile.complexityScore < 0.33
+              ? 'Simple'
+              : profile.styleProfile.complexityScore < 0.66
+                ? 'Moderate'
+                : 'Complex'}
           </span>
         </div>
       </div>
@@ -133,8 +141,11 @@
         <div class="summary-content">
           <span class="summary-label">Style Tendency</span>
           <span class="summary-value">
-            {profile.styleProfile.organicVsGeometric < -0.3 ? 'Organic' :
-             profile.styleProfile.organicVsGeometric > 0.3 ? 'Geometric' : 'Balanced'}
+            {profile.styleProfile.organicVsGeometric < -0.3
+              ? 'Organic'
+              : profile.styleProfile.organicVsGeometric > 0.3
+                ? 'Geometric'
+                : 'Balanced'}
           </span>
         </div>
       </div>

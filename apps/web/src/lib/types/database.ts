@@ -3,7 +3,12 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type AccountStatus = 'active' | 'suspended' | 'banned' | 'under_review';
 export type PeriodType = 'hourly' | 'daily' | 'monthly';
 export type SecurityEventSeverity = 'low' | 'medium' | 'high' | 'critical';
-export type AccountLinkType = 'device_fingerprint' | 'ip_address' | 'payment_method' | 'email_pattern' | 'behavioral';
+export type AccountLinkType =
+  | 'device_fingerprint'
+  | 'ip_address'
+  | 'payment_method'
+  | 'email_pattern'
+  | 'behavioral';
 
 export interface Database {
   public: {
@@ -144,7 +149,7 @@ export interface Database {
             columns: ['remix_of'];
             referencedRelation: 'patterns';
             referencedColumns: ['id'];
-          }
+          },
         ];
       };
       pattern_dna: {
@@ -172,7 +177,7 @@ export interface Database {
             columns: ['pattern_id'];
             referencedRelation: 'patterns';
             referencedColumns: ['id'];
-          }
+          },
         ];
       };
       purchases: {
@@ -218,7 +223,7 @@ export interface Database {
             columns: ['pattern_id'];
             referencedRelation: 'patterns';
             referencedColumns: ['id'];
-          }
+          },
         ];
       };
       remixes: {
@@ -255,7 +260,7 @@ export interface Database {
             columns: ['remix_pattern_id'];
             referencedRelation: 'patterns';
             referencedColumns: ['id'];
-          }
+          },
         ];
       };
       ai_style_presets: {
@@ -316,7 +321,7 @@ export interface Database {
             columns: ['host_id'];
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
-          }
+          },
         ];
       };
       pattern_comments: {
@@ -365,7 +370,7 @@ export interface Database {
             columns: ['user_id'];
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
-          }
+          },
         ];
       };
       comment_replies: {
@@ -402,7 +407,7 @@ export interface Database {
             columns: ['user_id'];
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
-          }
+          },
         ];
       };
       pattern_versions: {
@@ -445,7 +450,7 @@ export interface Database {
             columns: ['created_by'];
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
-          }
+          },
         ];
       };
       subscriptions: {
@@ -491,7 +496,7 @@ export interface Database {
             columns: ['user_id'];
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
-          }
+          },
         ];
       };
       device_fingerprints: {
@@ -567,7 +572,7 @@ export interface Database {
             columns: ['user_id'];
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
-          }
+          },
         ];
       };
       user_sessions: {
@@ -640,7 +645,7 @@ export interface Database {
             columns: ['device_fingerprint_id'];
             referencedRelation: 'device_fingerprints';
             referencedColumns: ['id'];
-          }
+          },
         ];
       };
       usage_records: {
@@ -705,7 +710,7 @@ export interface Database {
             columns: ['user_id'];
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
-          }
+          },
         ];
       };
       usage_lifetime: {
@@ -754,7 +759,7 @@ export interface Database {
             columns: ['user_id'];
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
-          }
+          },
         ];
       };
       security_events: {
@@ -836,7 +841,7 @@ export interface Database {
             columns: ['resolved_by'];
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
-          }
+          },
         ];
       };
       ip_reputation: {
@@ -954,7 +959,7 @@ export interface Database {
             columns: ['reviewed_by'];
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
-          }
+          },
         ];
       };
       rate_limit_state: {
@@ -1021,7 +1026,7 @@ export interface Database {
             columns: ['user_id'];
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
-          }
+          },
         ];
       };
       feature_access: {
@@ -1067,7 +1072,7 @@ export interface Database {
             columns: ['user_id'];
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
-          }
+          },
         ];
       };
     };
@@ -1298,7 +1303,12 @@ export interface Database {
       account_status: 'active' | 'suspended' | 'banned' | 'under_review';
       period_type: 'hourly' | 'daily' | 'monthly';
       security_event_severity: 'low' | 'medium' | 'high' | 'critical';
-      account_link_type: 'device_fingerprint' | 'ip_address' | 'payment_method' | 'email_pattern' | 'behavioral';
+      account_link_type:
+        | 'device_fingerprint'
+        | 'ip_address'
+        | 'payment_method'
+        | 'email_pattern'
+        | 'behavioral';
     };
     CompositeTypes: {
       [_ in never]: never;
