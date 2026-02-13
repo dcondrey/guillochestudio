@@ -9,49 +9,49 @@
     400: {
       title: 'Bad Request',
       description: 'The request was malformed or invalid.',
-      action: 'Check your input and try again.'
+      action: 'Check your input and try again.',
     },
     401: {
       title: 'Unauthorized',
       description: 'You need to sign in to access this page.',
-      action: 'Please sign in to continue.'
+      action: 'Please sign in to continue.',
     },
     403: {
       title: 'Forbidden',
       description: "You don't have permission to access this resource.",
-      action: 'Contact support if you believe this is an error.'
+      action: 'Contact support if you believe this is an error.',
     },
     404: {
       title: 'Page Not Found',
       description: "The page you're looking for doesn't exist or has been moved.",
-      action: 'Check the URL or navigate back home.'
+      action: 'Check the URL or navigate back home.',
     },
     429: {
       title: 'Too Many Requests',
       description: "You've made too many requests. Please slow down.",
-      action: 'Wait a moment before trying again.'
+      action: 'Wait a moment before trying again.',
     },
     500: {
       title: 'Server Error',
       description: 'Something went wrong on our end.',
-      action: "We've been notified and are working on it."
+      action: "We've been notified and are working on it.",
     },
     502: {
       title: 'Bad Gateway',
       description: 'Our servers are temporarily unavailable.',
-      action: 'Please try again in a few moments.'
+      action: 'Please try again in a few moments.',
     },
     503: {
       title: 'Service Unavailable',
       description: "We're performing maintenance or experiencing high load.",
-      action: 'Please check back shortly.'
-    }
+      action: 'Please check back shortly.',
+    },
   };
 
   $: error = errorMessages[status] || {
     title: 'Error',
     description: message,
-    action: 'Please try again or contact support.'
+    action: 'Please try again or contact support.',
   };
 
   function goBack() {
@@ -82,11 +82,7 @@
   <div class="max-w-lg w-full text-center">
     <!-- Animated Guilloché Pattern -->
     <figure class="relative w-48 h-48 mx-auto mb-8" aria-hidden="true">
-      <svg
-        viewBox="0 0 200 200"
-        class="w-full h-full animate-spin-slow"
-        role="presentation"
-      >
+      <svg viewBox="0 0 200 200" class="w-full h-full animate-spin-slow" role="presentation">
         <defs>
           <linearGradient id="errorGradient" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" style="stop-color:#ef4444" />
@@ -123,10 +119,7 @@
     <p class="text-gray-500 text-sm mb-8">{error.action}</p>
 
     <!-- Actions -->
-    <nav
-      class="flex flex-col sm:flex-row gap-3 justify-center"
-      aria-label="Error recovery options"
-    >
+    <nav class="flex flex-col sm:flex-row gap-3 justify-center" aria-label="Error recovery options">
       <button
         on:click={goBack}
         type="button"
@@ -163,16 +156,16 @@
         >
           Report this issue
         </button>
-        <p id="report-description" class="sr-only">
-          Send an error report to our support team
-        </p>
+        <p id="report-description" class="sr-only">Send an error report to our support team</p>
       </div>
     {/if}
 
     <!-- Technical Details (collapsible) -->
     {#if browser && status >= 500}
       <details class="mt-8 text-left">
-        <summary class="text-gray-500 cursor-pointer hover:text-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-gray-500 rounded">
+        <summary
+          class="text-gray-500 cursor-pointer hover:text-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-gray-500 rounded"
+        >
           Technical Details
         </summary>
         <div

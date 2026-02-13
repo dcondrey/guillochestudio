@@ -19,12 +19,22 @@
   {#each Array(count) as _, i}
     <div class="pattern-card-skeleton" aria-hidden="true">
       <div class="thumbnail">
-        <Skeleton variant="rectangular" width="100%" height="200px" ariaLabel="Loading pattern thumbnail" />
+        <Skeleton
+          variant="rectangular"
+          width="100%"
+          height="200px"
+          ariaLabel="Loading pattern thumbnail"
+        />
       </div>
       <div class="content">
         <Skeleton variant="text" width="70%" height="20px" ariaLabel="Loading pattern title" />
         <div class="meta">
-          <Skeleton variant="circular" width="24px" height="24px" ariaLabel="Loading author avatar" />
+          <Skeleton
+            variant="circular"
+            width="24px"
+            height="24px"
+            ariaLabel="Loading author avatar"
+          />
           <Skeleton variant="text" width="100px" height="14px" ariaLabel="Loading author name" />
         </div>
         <div class="stats">

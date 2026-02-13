@@ -75,24 +75,37 @@
 
   function getSuggestionIcon(type: Suggestion['type']): string {
     switch (type) {
-      case 'parameter_adjustment': return '⚙';
-      case 'style_exploration': return '🎨';
-      case 'workflow_tip': return '💡';
-      case 'similar_pattern': return '🔗';
-      case 'trending_style': return '📈';
-      case 'skill_improvement': return '📚';
-      case 'quick_action': return '⚡';
-      default: return '✨';
+      case 'parameter_adjustment':
+        return '⚙';
+      case 'style_exploration':
+        return '🎨';
+      case 'workflow_tip':
+        return '💡';
+      case 'similar_pattern':
+        return '🔗';
+      case 'trending_style':
+        return '📈';
+      case 'skill_improvement':
+        return '📚';
+      case 'quick_action':
+        return '⚡';
+      default:
+        return '✨';
     }
   }
 
   function getSkillLevelColor(level: SkillLevel): string {
     switch (level) {
-      case 'beginner': return '#22c55e';
-      case 'intermediate': return '#3b82f6';
-      case 'advanced': return '#a855f7';
-      case 'expert': return '#f59e0b';
-      default: return '#64748b';
+      case 'beginner':
+        return '#22c55e';
+      case 'intermediate':
+        return '#3b82f6';
+      case 'advanced':
+        return '#a855f7';
+      case 'expert':
+        return '#f59e0b';
+      default:
+        return '#64748b';
     }
   }
 
@@ -105,10 +118,18 @@
       expert: 1000,
     };
     const threshold = thresholds[skillLevel];
-    const prevThreshold = skillLevel === 'beginner' ? 0 :
-      skillLevel === 'intermediate' ? 50 :
-      skillLevel === 'advanced' ? 200 : 500;
-    return Math.min(100, ((profile.totalInteractions - prevThreshold) / (threshold - prevThreshold)) * 100);
+    const prevThreshold =
+      skillLevel === 'beginner'
+        ? 0
+        : skillLevel === 'intermediate'
+          ? 50
+          : skillLevel === 'advanced'
+            ? 200
+            : 500;
+    return Math.min(
+      100,
+      ((profile.totalInteractions - prevThreshold) / (threshold - prevThreshold)) * 100
+    );
   }
 </script>
 
@@ -142,7 +163,14 @@
   <div class="suggestions-header">
     <h4>Suggestions</h4>
     <button class="refresh-btn" on:click={refreshSuggestions} title="Refresh suggestions">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
         <path d="M21 12a9 9 0 11-2.52-6.25" />
         <path d="M21 3v6h-6" />
       </svg>
@@ -186,7 +214,14 @@
             on:click|stopPropagation={() => dismissSuggestion(suggestion.id)}
             title="Dismiss"
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
               <path d="M18 6L6 18M6 6l12 12" />
             </svg>
           </button>

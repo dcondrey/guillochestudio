@@ -100,7 +100,9 @@ test.describe('Authentication Flow', () => {
     // Note: These tests require authenticated state
     // In CI, they would use the stored auth state from auth.setup.ts
 
-    test('should redirect to login when accessing protected routes unauthenticated', async ({ page }) => {
+    test('should redirect to login when accessing protected routes unauthenticated', async ({
+      page,
+    }) => {
       // Try to access protected route
       await page.goto('/patterns');
 
@@ -110,9 +112,7 @@ test.describe('Authentication Flow', () => {
       const currentUrl = page.url();
 
       // Either redirected to login or still on patterns (if app handles differently)
-      expect(
-        currentUrl.includes('/auth/login') || currentUrl.includes('/patterns')
-      ).toBe(true);
+      expect(currentUrl.includes('/auth/login') || currentUrl.includes('/patterns')).toBe(true);
     });
 
     test('should show login button in studio for unauthenticated users', async ({ page }) => {
@@ -131,8 +131,14 @@ test.describe('Authentication Flow', () => {
       await page.waitForTimeout(1000);
 
       // Should either redirect to login or show empty state/login prompt
-      const hasLoginLink = await page.getByRole('link', { name: /sign in|log in/i }).isVisible().catch(() => false);
-      const hasPatternContent = await page.getByText(/my patterns|no patterns/i).isVisible().catch(() => false);
+      const hasLoginLink = await page
+        .getByRole('link', { name: /sign in|log in/i })
+        .isVisible()
+        .catch(() => false);
+      const hasPatternContent = await page
+        .getByText(/my patterns|no patterns/i)
+        .isVisible()
+        .catch(() => false);
       const isOnLoginPage = page.url().includes('/auth/login');
 
       expect(hasLoginLink || hasPatternContent || isOnLoginPage).toBe(true);
@@ -146,9 +152,7 @@ test.describe('Authentication Flow', () => {
 
       // Should either redirect to login or show settings
       const currentUrl = page.url();
-      expect(
-        currentUrl.includes('/auth/login') || currentUrl.includes('/settings')
-      ).toBe(true);
+      expect(currentUrl.includes('/auth/login') || currentUrl.includes('/settings')).toBe(true);
     });
   });
 });

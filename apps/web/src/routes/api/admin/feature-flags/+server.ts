@@ -24,16 +24,19 @@ import {
 // ============================================================================
 
 // In-memory storage for server-side overrides (in production, use a database or KV store)
-const serverOverrides = new Map<string, {
-  enabled: boolean;
-  scope: 'global' | 'environment' | 'user';
-  targetEnvironment?: Environment;
-  targetUserId?: string;
-  expiresAt?: number;
-  reason?: string;
-  updatedAt: number;
-  updatedBy: string;
-}>();
+const serverOverrides = new Map<
+  string,
+  {
+    enabled: boolean;
+    scope: 'global' | 'environment' | 'user';
+    targetEnvironment?: Environment;
+    targetUserId?: string;
+    expiresAt?: number;
+    reason?: string;
+    updatedAt: number;
+    updatedBy: string;
+  }
+>();
 
 /**
  * Generate a storage key for an override.
@@ -116,11 +119,14 @@ export async function GET({ locals, url }: RequestEvent) {
     const status: AdminFlagStatus = {
       name: flagName,
       definition,
-      globalOverride: globalOverride && !globalOverride.expiresAt ? {
-        name: flagName,
-        enabled: globalOverride.enabled,
-        reason: globalOverride.reason,
-      } : undefined,
+      globalOverride:
+        globalOverride && !globalOverride.expiresAt
+          ? {
+              name: flagName,
+              enabled: globalOverride.enabled,
+              reason: globalOverride.reason,
+            }
+          : undefined,
     };
 
     // Add stats if requested
@@ -142,7 +148,7 @@ export async function GET({ locals, url }: RequestEvent) {
       timestamp: Date.now(),
     },
   });
-};
+}
 
 // ============================================================================
 // POST: Update Flag Override
@@ -192,11 +198,12 @@ export async function POST({ locals, request }: RequestEvent) {
   }
 
   // Generate storage key
-  const target = update.scope === 'environment'
-    ? update.targetEnvironment
-    : update.scope === 'user'
-      ? update.targetUserId
-      : undefined;
+  const target =
+    update.scope === 'environment'
+      ? update.targetEnvironment
+      : update.scope === 'user'
+        ? update.targetUserId
+        : undefined;
   const key = getOverrideKey(update.name, update.scope, target);
 
   // Process action
@@ -233,7 +240,7 @@ export async function POST({ locals, request }: RequestEvent) {
       expiresAt: update.expiresInMs ? Date.now() + update.expiresInMs : undefined,
     },
   });
-};
+}
 
 // ============================================================================
 // DELETE: Clear All Overrides for a Flag
@@ -283,7 +290,7 @@ export async function DELETE({ locals, url }: RequestEvent) {
     message: `Cleared ${clearedCount} overrides for ${flagName}`,
     clearedCount,
   });
-};
+}
 
 // ============================================================================
 // PATCH: Bulk Update Flags
@@ -331,11 +338,12 @@ export async function PATCH({ locals, request }: RequestEvent) {
       }
 
       // Generate storage key
-      const target = update.scope === 'environment'
-        ? update.targetEnvironment
-        : update.scope === 'user'
-          ? update.targetUserId
-          : undefined;
+      const target =
+        update.scope === 'environment'
+          ? update.targetEnvironment
+          : update.scope === 'user'
+            ? update.targetUserId
+            : undefined;
       const key = getOverrideKey(update.name, update.scope, target);
 
       if (update.action === 'clear_override') {
@@ -373,11 +381,11 @@ export async function PATCH({ locals, request }: RequestEvent) {
     }
   }
 
-  const successCount = results.filter(r => r.success).length;
+  const successCount = results.filter((r) => r.success).length;
 
   return json({
     success: successCount === results.length,
     message: `Updated ${successCount}/${results.length} flags`,
     results,
   });
-};
+}

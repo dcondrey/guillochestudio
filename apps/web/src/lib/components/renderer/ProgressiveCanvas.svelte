@@ -130,10 +130,7 @@
   {#if showProgress && state && ['initializing', 'rendering'].includes(state.status)}
     <div class="progress-overlay">
       <div class="progress-bar">
-        <div
-          class="progress-fill"
-          style="width: {state.progress}%"
-        />
+        <div class="progress-fill" style="width: {state.progress}%" />
       </div>
       <div class="progress-text">
         {Math.round(state.progress)}%
@@ -147,9 +144,7 @@
           <span>~{formatTime(state.estimatedTimeRemaining)} remaining</span>
         {/if}
       </div>
-      <button class="abort-button" on:click={abort}>
-        Cancel
-      </button>
+      <button class="abort-button" on:click={abort}> Cancel </button>
     </div>
   {/if}
 
@@ -186,18 +181,14 @@
     <div class="error-overlay">
       <div class="error-icon">!</div>
       <div class="error-message">{state.error}</div>
-      <button class="retry-button" on:click={render}>
-        Retry
-      </button>
+      <button class="retry-button" on:click={render}> Retry </button>
     </div>
   {/if}
 
   {#if state?.status === 'paused'}
     <div class="paused-overlay">
       <div class="paused-text">Paused</div>
-      <button class="resume-button" on:click={resume}>
-        Resume
-      </button>
+      <button class="resume-button" on:click={resume}> Resume </button>
     </div>
   {/if}
 </div>

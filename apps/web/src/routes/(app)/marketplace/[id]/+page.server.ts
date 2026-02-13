@@ -37,12 +37,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   }
 
   // Get similar patterns
-  const similarPatterns = await getSimilarPatterns(
-    locals.supabase,
-    patternId,
-    pattern.tags,
-    6
-  );
+  const similarPatterns = await getSimilarPatterns(locals.supabase, patternId, pattern.tags, 6);
 
   // Get more from this creator
   const creatorPatterns = await getCreatorPatterns(

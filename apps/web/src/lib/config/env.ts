@@ -31,7 +31,10 @@ export const publicEnvSchema = z.object({
   PUBLIC_STRIPE_PUBLISHABLE_KEY: z
     .string()
     .min(1, 'PUBLIC_STRIPE_PUBLISHABLE_KEY is required')
-    .regex(/^pk_(test|live)_/, 'PUBLIC_STRIPE_PUBLISHABLE_KEY must start with pk_test_ or pk_live_'),
+    .regex(
+      /^pk_(test|live)_/,
+      'PUBLIC_STRIPE_PUBLISHABLE_KEY must start with pk_test_ or pk_live_'
+    ),
 
   // App Configuration
   PUBLIC_APP_URL: z
@@ -86,30 +89,24 @@ export const privateEnvSchema = z.object({
  */
 export const optionalEnvSchema = z.object({
   // Logging & Monitoring
-  LOG_LEVEL: z
-    .enum(['debug', 'info', 'warn', 'error'])
-    .optional()
-    .default('info'),
+  LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).optional().default('info'),
 
   // Feature flags
   ENABLE_AI_FEATURES: z
     .string()
-    .transform(val => val === 'true' || val === '1')
+    .transform((val) => val === 'true' || val === '1')
     .optional()
     .default('false'),
 
   // Rate limiting
   RATE_LIMIT_ENABLED: z
     .string()
-    .transform(val => val === 'true' || val === '1')
+    .transform((val) => val === 'true' || val === '1')
     .optional()
     .default('true'),
 
   // Sentry DSN for error tracking
-  SENTRY_DSN: z
-    .string()
-    .url()
-    .optional(),
+  SENTRY_DSN: z.string().url().optional(),
 });
 
 // =============================================================================
@@ -138,7 +135,7 @@ export interface EnvValidationResult<T> {
  * Format Zod errors into human-readable messages
  */
 function formatZodErrors(error: z.ZodError): string[] {
-  return error.errors.map(err => {
+  return error.errors.map((err) => {
     const path = err.path.join('.');
     return `  - ${path}: ${err.message}`;
   });
@@ -147,7 +144,9 @@ function formatZodErrors(error: z.ZodError): string[] {
 /**
  * Validate public environment variables
  */
-export function validatePublicEnv(env: Record<string, string | undefined>): EnvValidationResult<PublicEnv> {
+export function validatePublicEnv(
+  env: Record<string, string | undefined>
+): EnvValidationResult<PublicEnv> {
   const result = publicEnvSchema.safeParse(env);
 
   if (result.success) {
@@ -163,7 +162,9 @@ export function validatePublicEnv(env: Record<string, string | undefined>): EnvV
 /**
  * Validate private environment variables
  */
-export function validatePrivateEnv(env: Record<string, string | undefined>): EnvValidationResult<PrivateEnv> {
+export function validatePrivateEnv(
+  env: Record<string, string | undefined>
+): EnvValidationResult<PrivateEnv> {
   const result = privateEnvSchema.safeParse(env);
 
   if (result.success) {
@@ -179,7 +180,9 @@ export function validatePrivateEnv(env: Record<string, string | undefined>): Env
 /**
  * Validate optional environment variables
  */
-export function validateOptionalEnv(env: Record<string, string | undefined>): EnvValidationResult<OptionalEnv> {
+export function validateOptionalEnv(
+  env: Record<string, string | undefined>
+): EnvValidationResult<OptionalEnv> {
   const result = optionalEnvSchema.safeParse(env);
 
   if (result.success) {

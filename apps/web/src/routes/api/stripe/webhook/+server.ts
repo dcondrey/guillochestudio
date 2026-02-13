@@ -6,7 +6,11 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import Stripe from 'stripe';
-import { STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, SUPABASE_SERVICE_ROLE_KEY } from '$env/static/private';
+import {
+  STRIPE_SECRET_KEY,
+  STRIPE_WEBHOOK_SECRET,
+  SUPABASE_SERVICE_ROLE_KEY,
+} from '$env/static/private';
 import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '$lib/types/database';
@@ -20,10 +24,7 @@ const stripe = new Stripe(STRIPE_SECRET_KEY, {
 });
 
 // Use service role key for webhook operations (bypasses RLS)
-const supabaseTyped = createClient<Database>(
-  PUBLIC_SUPABASE_URL,
-  SUPABASE_SERVICE_ROLE_KEY
-);
+const supabaseTyped = createClient<Database>(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 // Untyped client for operations where type inference fails
 const supabase = supabaseTyped as SupabaseClient;
@@ -33,10 +34,13 @@ const supabase = supabaseTyped as SupabaseClient;
 // =============================================================================
 
 function errorResponse(code: string, message: string, status: number): never {
-  throw error(status, JSON.stringify({
-    success: false,
-    error: { code, message },
-  }));
+  throw error(
+    status,
+    JSON.stringify({
+      success: false,
+      error: { code, message },
+    })
+  );
 }
 
 // =============================================================================
@@ -103,7 +107,9 @@ export const POST: RequestHandler = async ({ request }) => {
                 stripe_subscription_id: subscription.id,
                 stripe_price_id: subscription.items.data[0].price.id,
                 status: subscription.status,
-                current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+                current_period_start: new Date(
+                  subscription.current_period_start * 1000
+                ).toISOString(),
                 current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
                 cancel_at_period_end: subscription.cancel_at_period_end,
               });
@@ -127,11 +133,11 @@ export const POST: RequestHandler = async ({ request }) => {
         const customerId = subscription.customer as string;
 
         // Find user by Stripe customer ID
-        const { data: profile, error: profileError } = await supabase
+        const { data: profile, error: profileError } = (await supabase
           .from('profiles')
           .select('id')
           .eq('stripe_customer_id', customerId)
-          .single() as { data: { id: string } | null; error: unknown };
+          .single()) as { data: { id: string } | null; error: unknown };
 
         if (profileError || !profile) {
           console.warn(`No profile found for Stripe customer ${customerId}`);
@@ -176,11 +182,11 @@ export const POST: RequestHandler = async ({ request }) => {
         const customerId = subscription.customer as string;
 
         // Find user and downgrade to free
-        const { data: profile, error: profileError } = await supabase
+        const { data: profile, error: profileError } = (await supabase
           .from('profiles')
           .select('id')
           .eq('stripe_customer_id', customerId)
-          .single() as { data: { id: string } | null; error: unknown };
+          .single()) as { data: { id: string } | null; error: unknown };
 
         if (profileError || !profile) {
           console.warn(`No profile found for Stripe customer ${customerId}`);

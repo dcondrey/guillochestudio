@@ -36,7 +36,8 @@ export const GET: RequestHandler = async ({ params, locals }) => {
     const startTime = new Date(exportJob.started_at).getTime();
     const elapsed = Date.now() - startTime;
     // Estimate based on format (rough heuristic)
-    const estimatedDuration = exportJob.format === 'svg' ? 2000 : exportJob.format === 'png' ? 5000 : 15000;
+    const estimatedDuration =
+      exportJob.format === 'svg' ? 2000 : exportJob.format === 'png' ? 5000 : 15000;
     progress = Math.min(95, Math.round((elapsed / estimatedDuration) * 100));
   } else if (exportJob.status === 'done') {
     progress = 100;

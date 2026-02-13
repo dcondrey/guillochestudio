@@ -8,17 +8,17 @@ const config = {
     adapter: adapter({
       routes: {
         include: ['/*'],
-        exclude: ['<all>']
-      }
+        exclude: ['<all>'],
+      },
     }),
     alias: {
       $lib: './src/lib',
       $components: './src/lib/components',
       $stores: './src/lib/stores',
       $services: './src/lib/services',
-      $utils: './src/lib/utils'
-    }
-  }
+      $utils: './src/lib/utils',
+    },
+  },
 };
 
 export default config;

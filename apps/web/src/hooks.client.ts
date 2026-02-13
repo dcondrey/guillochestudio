@@ -28,7 +28,10 @@ async function initErrorTracking() {
           blockAllMedia: false,
         }),
       ],
-      beforeSend(event: { exception?: { values?: Array<{ type?: string }> }; [key: string]: unknown }) {
+      beforeSend(event: {
+        exception?: { values?: Array<{ type?: string }> };
+        [key: string]: unknown;
+      }) {
         // Filter out known non-critical errors
         if (event.exception?.values?.[0]?.type === 'ChunkLoadError') {
           return null; // Don't send chunk load errors (usually refreshes fix them)
@@ -75,13 +78,16 @@ function initPerformanceMonitoring() {
       const sendToAnalytics = (metric: { name: string; value: number; id: string }) => {
         // Send to your analytics endpoint
         if ('sendBeacon' in navigator) {
-          navigator.sendBeacon('/api/metrics', JSON.stringify({
-            name: metric.name,
-            value: metric.value,
-            id: metric.id,
-            url: window.location.href,
-            timestamp: Date.now(),
-          }));
+          navigator.sendBeacon(
+            '/api/metrics',
+            JSON.stringify({
+              name: metric.name,
+              value: metric.value,
+              id: metric.id,
+              url: window.location.href,
+              timestamp: Date.now(),
+            })
+          );
         }
 
         // Also track in Plausible if available

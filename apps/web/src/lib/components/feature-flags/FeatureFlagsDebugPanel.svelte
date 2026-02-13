@@ -89,7 +89,12 @@
     aria-label="Toggle feature flags debug panel"
   >
     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"
+      />
     </svg>
   </button>
 
@@ -103,8 +108,18 @@
       <!-- Header -->
       <div class="flex items-center justify-between px-4 py-3 bg-gray-800 border-b border-gray-700">
         <h2 class="text-lg font-semibold text-white flex items-center gap-2">
-          <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+          <svg
+            class="w-5 h-5 text-indigo-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"
+            />
           </svg>
           Feature Flags
         </h2>
@@ -114,7 +129,12 @@
           aria-label="Close panel"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       </div>
@@ -123,8 +143,16 @@
       <div class="px-4 py-2 bg-gray-800/50 border-b border-gray-700 text-xs text-gray-400">
         <div class="flex items-center justify-between">
           <span>Env: <strong class="text-gray-300">{$featureFlagContext.environment}</strong></span>
-          <span>User: <strong class="text-gray-300">{$featureFlagContext.userId?.slice(0, 8) || 'Anonymous'}</strong></span>
-          <span>Tier: <strong class="text-gray-300">{$featureFlagContext.subscriptionTier || 'free'}</strong></span>
+          <span
+            >User: <strong class="text-gray-300"
+              >{$featureFlagContext.userId?.slice(0, 8) || 'Anonymous'}</strong
+            ></span
+          >
+          <span
+            >Tier: <strong class="text-gray-300"
+              >{$featureFlagContext.subscriptionTier || 'free'}</strong
+            ></span
+          >
         </div>
       </div>
 
@@ -151,7 +179,9 @@
                 <div class="flex items-center gap-2">
                   <span class="font-mono text-sm text-white">{name}</span>
                   {#if flagHasOverride}
-                    <span class="px-1.5 py-0.5 text-[10px] font-medium bg-yellow-600 text-white rounded">
+                    <span
+                      class="px-1.5 py-0.5 text-[10px] font-medium bg-yellow-600 text-white rounded"
+                    >
                       OVERRIDE
                     </span>
                   {/if}
@@ -185,7 +215,9 @@
             {#if definition.metadata?.tags}
               <div class="flex gap-1 mt-2">
                 {#each definition.metadata.tags as tag}
-                  <span class="px-1.5 py-0.5 text-[10px] bg-gray-700 text-gray-400 rounded">{tag}</span>
+                  <span class="px-1.5 py-0.5 text-[10px] bg-gray-700 text-gray-400 rounded"
+                    >{tag}</span
+                  >
                 {/each}
               </div>
             {/if}

@@ -16,7 +16,10 @@ test.describe('Pattern Saving and Loading', () => {
       if (await saveButton.isVisible().catch(() => false)) {
         await saveButton.click();
         // Should show login prompt or redirect
-        const loginPromptVisible = await page.getByText(/sign in|log in/i).isVisible().catch(() => false);
+        const loginPromptVisible = await page
+          .getByText(/sign in|log in/i)
+          .isVisible()
+          .catch(() => false);
         const redirectedToLogin = page.url().includes('/auth/login');
         expect(loginPromptVisible || redirectedToLogin).toBe(true);
       }
@@ -159,11 +162,21 @@ test.describe('Pattern Saving and Loading', () => {
 
       if (await patternCard.isVisible().catch(() => false)) {
         // Should show date
-        const dateText = await patternCard.getByText(/\d{1,2}, \d{4}|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec/i).isVisible().catch(() => false);
+        const dateText = await patternCard
+          .getByText(/\d{1,2}, \d{4}|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec/i)
+          .isVisible()
+          .catch(() => false);
 
         // Pattern cards should have either a thumbnail or placeholder
-        const hasImage = await patternCard.locator('img').isVisible().catch(() => false);
-        const hasPlaceholder = await patternCard.locator('svg').first().isVisible().catch(() => false);
+        const hasImage = await patternCard
+          .locator('img')
+          .isVisible()
+          .catch(() => false);
+        const hasPlaceholder = await patternCard
+          .locator('svg')
+          .first()
+          .isVisible()
+          .catch(() => false);
 
         expect(hasImage || hasPlaceholder).toBe(true);
       }

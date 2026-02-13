@@ -10,7 +10,8 @@
 
   let dismissed = false;
 
-  export let message = 'We are currently performing scheduled maintenance. Some features may be temporarily unavailable.';
+  export let message =
+    'We are currently performing scheduled maintenance. Some features may be temporarily unavailable.';
   export let dismissable = true;
 
   function dismiss() {

@@ -10,7 +10,7 @@ function isValidRedirect(path: string): boolean {
   // Prevent protocol-relative URLs
   if (path.startsWith('//')) return false;
   // Check against allowed prefixes
-  return ALLOWED_REDIRECTS.some(allowed => path === allowed || path.startsWith(allowed + '/'));
+  return ALLOWED_REDIRECTS.some((allowed) => path === allowed || path.startsWith(allowed + '/'));
 }
 
 export const GET: RequestHandler = async ({ url, locals }) => {
@@ -23,7 +23,9 @@ export const GET: RequestHandler = async ({ url, locals }) => {
     const { error } = await locals.supabase.auth.exchangeCodeForSession(code);
     if (!error) {
       // Create profile if it doesn't exist
-      const { data: { user } } = await locals.supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await locals.supabase.auth.getUser();
       if (user) {
         const { data: existingProfile } = await locals.supabase
           .from('profiles')
@@ -36,7 +38,7 @@ export const GET: RequestHandler = async ({ url, locals }) => {
             id: user.id,
             display_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
             avatar_url: user.user_metadata?.avatar_url || null,
-            subscription_tier: 'free'
+            subscription_tier: 'free',
           });
         }
       }

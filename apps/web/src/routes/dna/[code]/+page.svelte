@@ -80,7 +80,9 @@
 
   function shareToTwitter() {
     if (!browser || !data.shareUrl) return;
-    const text = encodeURIComponent(`Check out this geometric pattern I found on Guilloché Studio!`);
+    const text = encodeURIComponent(
+      `Check out this geometric pattern I found on Guilloché Studio!`
+    );
     const url = encodeURIComponent(data.shareUrl);
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
   }
@@ -118,29 +120,14 @@
   <!-- Header -->
   <header class="dna-header">
     <div class="header-content">
-      <a href="/" class="logo">
-        Guilloché Studio
-      </a>
+      <a href="/" class="logo"> Guilloché Studio </a>
       <nav class="header-actions">
         {#if data.found}
-          <button
-            on:click={() => copyToClipboard('link')}
-            class="btn btn-secondary"
-          >
+          <button on:click={() => copyToClipboard('link')} class="btn btn-secondary">
             {copied === 'link' ? 'Copied!' : 'Copy Link'}
           </button>
-          <button
-            on:click={remixPattern}
-            class="btn btn-secondary"
-          >
-            Remix
-          </button>
-          <button
-            on:click={openInStudio}
-            class="btn btn-primary"
-          >
-            Open in Studio
-          </button>
+          <button on:click={remixPattern} class="btn btn-secondary"> Remix </button>
+          <button on:click={openInStudio} class="btn btn-primary"> Open in Studio </button>
         {/if}
       </nav>
     </div>
@@ -152,25 +139,31 @@
       <!-- Not Found State -->
       <div class="error-state">
         <svg class="error-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.5"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+          />
         </svg>
         <h1>Pattern Not Found</h1>
         <p>This pattern DNA link may be invalid or the pattern has been deleted.</p>
-        <a href="/studio" class="btn btn-primary">
-          Create Your Own
-        </a>
+        <a href="/studio" class="btn btn-primary"> Create Your Own </a>
       </div>
     {:else if renderError}
       <!-- Render Error State -->
       <div class="error-state">
         <svg class="error-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.5"
+            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
         </svg>
         <h1>Render Error</h1>
         <p>{renderError}</p>
-        <button on:click={openInStudio} class="btn btn-primary">
-          Try in Studio
-        </button>
+        <button on:click={openInStudio} class="btn btn-primary"> Try in Studio </button>
       </div>
     {:else}
       <!-- Pattern Display -->
@@ -182,12 +175,7 @@
               <p>Loading pattern...</p>
             </div>
           {/if}
-          <canvas
-            bind:this={canvas}
-            width="800"
-            height="800"
-            class="pattern-canvas"
-            class:loading
+          <canvas bind:this={canvas} width="800" height="800" class="pattern-canvas" class:loading
           ></canvas>
         </div>
 
@@ -213,11 +201,21 @@
               >
                 {#if copied === 'link'}
                   <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                 {:else}
                   <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
                   </svg>
                 {/if}
               </button>
@@ -230,12 +228,20 @@
             <div class="share-buttons">
               <button on:click={shareToTwitter} class="share-btn twitter" title="Share on Twitter">
                 <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  <path
+                    d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
+                  />
                 </svg>
               </button>
-              <button on:click={shareToFacebook} class="share-btn facebook" title="Share on Facebook">
+              <button
+                on:click={shareToFacebook}
+                class="share-btn facebook"
+                title="Share on Facebook"
+              >
                 <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                  <path
+                    d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
+                  />
                 </svg>
               </button>
             </div>
@@ -243,19 +249,27 @@
 
           <!-- Embed Code -->
           <div class="info-section">
-            <button on:click={() => showEmbed = !showEmbed} class="embed-toggle">
+            <button on:click={() => (showEmbed = !showEmbed)} class="embed-toggle">
               <h2>Embed Code</h2>
-              <svg class="chevron" class:open={showEmbed} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              <svg
+                class="chevron"
+                class:open={showEmbed}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"
+                />
               </svg>
             </button>
             {#if showEmbed && data.embedCode}
               <div class="embed-code">
                 <pre><code>{data.embedCode}</code></pre>
-                <button
-                  on:click={() => copyToClipboard('embed')}
-                  class="btn btn-small"
-                >
+                <button on:click={() => copyToClipboard('embed')} class="btn btn-small">
                   {copied === 'embed' ? 'Copied!' : 'Copy Embed'}
                 </button>
               </div>
@@ -440,7 +454,9 @@
   }
 
   @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   .loading-overlay p {

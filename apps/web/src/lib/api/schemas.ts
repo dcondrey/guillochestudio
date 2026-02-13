@@ -128,40 +128,47 @@ export type SavePatternResponse = z.infer<typeof savePatternResponseSchema>;
 // LOAD PATTERN SCHEMAS
 // =============================================================================
 
-export const loadPatternRequestSchema = z.object({
-  patternId: uuidSchema.optional(),
-  versionId: uuidSchema.optional(),
-  dnaCode: z.string().length(8).optional(),
-}).refine(
-  (data) => data.patternId || data.versionId || data.dnaCode,
-  { message: 'One of patternId, versionId, or dnaCode is required' }
-);
+export const loadPatternRequestSchema = z
+  .object({
+    patternId: uuidSchema.optional(),
+    versionId: uuidSchema.optional(),
+    dnaCode: z.string().length(8).optional(),
+  })
+  .refine((data) => data.patternId || data.versionId || data.dnaCode, {
+    message: 'One of patternId, versionId, or dnaCode is required',
+  });
 
 export type LoadPatternRequest = z.infer<typeof loadPatternRequestSchema>;
 
 export const loadPatternResponseSchema = z.object({
-  pattern: z.object({
-    id: uuidSchema,
-    name: z.string(),
-    description: z.string().nullable(),
-    currentVersionId: uuidSchema.nullable(),
-    thumbnailUrl: z.string().nullable(),
-    visibility: z.string(),
-    createdAt: z.string(),
-    updatedAt: z.string(),
-  }).nullable(),
-  version: z.object({
-    id: uuidSchema,
-    params: patternParamsSchema,
-    dnaCode: z.string().nullable(),
-    createdAt: z.string(),
-    parentVersionId: uuidSchema.nullable(),
-  }).nullable(),
-  creator: z.object({
-    id: uuidSchema,
-    displayName: z.string().nullable(),
-    avatarUrl: z.string().nullable(),
-  }).nullable(),
+  pattern: z
+    .object({
+      id: uuidSchema,
+      name: z.string(),
+      description: z.string().nullable(),
+      currentVersionId: uuidSchema.nullable(),
+      thumbnailUrl: z.string().nullable(),
+      visibility: z.string(),
+      createdAt: z.string(),
+      updatedAt: z.string(),
+    })
+    .nullable(),
+  version: z
+    .object({
+      id: uuidSchema,
+      params: patternParamsSchema,
+      dnaCode: z.string().nullable(),
+      createdAt: z.string(),
+      parentVersionId: uuidSchema.nullable(),
+    })
+    .nullable(),
+  creator: z
+    .object({
+      id: uuidSchema,
+      displayName: z.string().nullable(),
+      avatarUrl: z.string().nullable(),
+    })
+    .nullable(),
   canEdit: z.boolean(),
   hasLocalDraft: z.boolean().default(false),
 });
@@ -178,13 +185,15 @@ export const exportRequestSchema = z.object({
   patternId: uuidSchema,
   versionId: uuidSchema.optional(), // Defaults to current version
   format: exportFormatSchema,
-  settings: z.object({
-    size: z.number().int().min(100).max(8000).default(2000),
-    transparent: z.boolean().default(false),
-    includeMetadata: z.boolean().default(true),
-    colorProfile: z.enum(['srgb', 'cmyk']).optional(),
-    dpi: z.number().int().min(72).max(600).optional(),
-  }).default({}),
+  settings: z
+    .object({
+      size: z.number().int().min(100).max(8000).default(2000),
+      transparent: z.boolean().default(false),
+      includeMetadata: z.boolean().default(true),
+      colorProfile: z.enum(['srgb', 'cmyk']).optional(),
+      dpi: z.number().int().min(72).max(600).optional(),
+    })
+    .default({}),
 });
 
 export type ExportRequest = z.infer<typeof exportRequestSchema>;
@@ -224,11 +233,13 @@ export const publishRequestSchema = z.object({
   versionId: uuidSchema.optional(), // Defaults to current version
   visibility: z.enum(['public', 'listed']),
   // Marketplace listing (if visibility = 'listed')
-  listing: z.object({
-    priceCents: z.number().int().min(0).max(100000),
-    licenseType: licenseTypeSchema,
-    tags: z.array(z.string().max(30)).max(10).optional(),
-  }).optional(),
+  listing: z
+    .object({
+      priceCents: z.number().int().min(0).max(100000),
+      licenseType: licenseTypeSchema,
+      tags: z.array(z.string().max(30)).max(10).optional(),
+    })
+    .optional(),
 });
 
 export type PublishRequest = z.infer<typeof publishRequestSchema>;
@@ -248,24 +259,32 @@ export type PublishResponse = z.infer<typeof publishResponseSchema>;
 // =============================================================================
 
 export const dnaResolveRequestSchema = z.object({
-  code: z.string().length(8).regex(/^[A-Za-z0-9]+$/),
+  code: z
+    .string()
+    .length(8)
+    .regex(/^[A-Za-z0-9]+$/),
 });
 
 export type DNAResolveRequest = z.infer<typeof dnaResolveRequestSchema>;
 
 export const dnaResolveResponseSchema = z.object({
   found: z.boolean(),
-  pattern: z.object({
-    id: uuidSchema.nullable(),
-    name: z.string(),
-    thumbnailUrl: z.string().nullable(),
-    params: patternParamsSchema,
-  }).optional(),
-  creator: z.object({
-    id: uuidSchema,
-    displayName: z.string().nullable(),
-    avatarUrl: z.string().nullable(),
-  }).nullable().optional(),
+  pattern: z
+    .object({
+      id: uuidSchema.nullable(),
+      name: z.string(),
+      thumbnailUrl: z.string().nullable(),
+      params: patternParamsSchema,
+    })
+    .optional(),
+  creator: z
+    .object({
+      id: uuidSchema,
+      displayName: z.string().nullable(),
+      avatarUrl: z.string().nullable(),
+    })
+    .nullable()
+    .optional(),
   canRemix: z.boolean().default(true),
   shareUrl: z.string(),
   embedCode: z.string().optional(),
@@ -366,12 +385,14 @@ export type SaveDraftRequest = z.infer<typeof saveDraftRequestSchema>;
 
 export const loadDraftResponseSchema = z.object({
   hasDraft: z.boolean(),
-  draft: z.object({
-    patternId: uuidSchema.nullable(),
-    baseVersionId: uuidSchema.nullable(),
-    params: patternParamsSchema,
-    lastModifiedAt: z.string(),
-  }).nullable(),
+  draft: z
+    .object({
+      patternId: uuidSchema.nullable(),
+      baseVersionId: uuidSchema.nullable(),
+      params: patternParamsSchema,
+      lastModifiedAt: z.string(),
+    })
+    .nullable(),
 });
 
 export type LoadDraftResponse = z.infer<typeof loadDraftResponseSchema>;
@@ -398,10 +419,7 @@ export type APIError = z.infer<typeof apiErrorSchema>;
 /**
  * Validate request body and return typed result or throw
  */
-export function validateRequest<T>(
-  schema: z.ZodSchema<T>,
-  data: unknown
-): T {
+export function validateRequest<T>(schema: z.ZodSchema<T>, data: unknown): T {
   const result = schema.safeParse(data);
   if (!result.success) {
     throw new ValidationError(result.error);

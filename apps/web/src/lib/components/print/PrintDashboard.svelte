@@ -62,13 +62,19 @@
   let customWidth = 200;
   let customHeight = 200;
 
-  $: effectivePaperSize = settings.paperSize.id === 'custom'
-    ? { ...settings.paperSize, width: customWidth, height: customHeight }
-    : settings.paperSize;
+  $: effectivePaperSize =
+    settings.paperSize.id === 'custom'
+      ? { ...settings.paperSize, width: customWidth, height: customHeight }
+      : settings.paperSize;
 
   $: printArea = calculatePrintArea({ ...settings, paperSize: effectivePaperSize });
 
-  $: tiles = calculateTiles(patternWidth, patternHeight, { ...settings, paperSize: effectivePaperSize }, tileSettings);
+  $: tiles = calculateTiles(
+    patternWidth,
+    patternHeight,
+    { ...settings, paperSize: effectivePaperSize },
+    tileSettings
+  );
 
   $: totalPages = tiles.rows * tiles.cols;
 
@@ -84,13 +90,12 @@
     if (tileSettings.enabled && totalPages > 1) {
       const row = Math.floor((currentPreviewPage - 1) / tiles.cols);
       const col = (currentPreviewPage - 1) % tiles.cols;
-      previewSvg = generatePrintSVG(
-        svgContent,
-        settingsWithPaper,
-        currentPreviewPage,
-        totalPages,
-        { row, col, tileWidth: tiles.tileWidth, tileHeight: tiles.tileHeight }
-      );
+      previewSvg = generatePrintSVG(svgContent, settingsWithPaper, currentPreviewPage, totalPages, {
+        row,
+        col,
+        tileWidth: tiles.tileWidth,
+        tileHeight: tiles.tileHeight,
+      });
     } else {
       previewSvg = generatePrintSVG(svgContent, settingsWithPaper, 1, 1);
     }
@@ -103,7 +108,13 @@
 
   function generateJob(): void {
     const settingsWithPaper = { ...settings, paperSize: effectivePaperSize };
-    printJob = generatePrintJob(svgContent, patternWidth, patternHeight, settingsWithPaper, tileSettings);
+    printJob = generatePrintJob(
+      svgContent,
+      patternWidth,
+      patternHeight,
+      settingsWithPaper,
+      tileSettings
+    );
   }
 
   function handleDownloadSingle(): void {
@@ -143,16 +154,28 @@
 
 <div class="print-dashboard bg-gray-900 rounded-lg overflow-hidden flex flex-col h-full">
   <!-- Header -->
-  <div class="px-4 py-3 bg-gray-800 border-b border-gray-700 flex items-center justify-between shrink-0">
+  <div
+    class="px-4 py-3 bg-gray-800 border-b border-gray-700 flex items-center justify-between shrink-0"
+  >
     <h2 class="text-white font-semibold flex items-center gap-2">
       <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+        />
       </svg>
       Print Production
     </h2>
     <button on:click={() => dispatch('close')} class="text-gray-400 hover:text-white">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M6 18L18 6M6 6l12 12"
+        />
       </svg>
     </button>
   </div>
@@ -211,7 +234,7 @@
             <div class="space-y-2">
               <p class="text-xs text-gray-500 uppercase tracking-wider">Standard</p>
               <div class="grid grid-cols-3 gap-2">
-                {#each PAPER_SIZES.filter(p => p.category === 'standard') as size}
+                {#each PAPER_SIZES.filter((p) => p.category === 'standard') as size}
                   <button
                     class="px-2 py-1.5 text-xs rounded transition-colors"
                     class:bg-indigo-600={settings.paperSize.id === size.id}
@@ -227,7 +250,7 @@
 
               <p class="text-xs text-gray-500 uppercase tracking-wider mt-3">Photo</p>
               <div class="grid grid-cols-3 gap-2">
-                {#each PAPER_SIZES.filter(p => p.category === 'photo') as size}
+                {#each PAPER_SIZES.filter((p) => p.category === 'photo') as size}
                   <button
                     class="px-2 py-1.5 text-xs rounded transition-colors"
                     class:bg-indigo-600={settings.paperSize.id === size.id}
@@ -243,7 +266,7 @@
 
               <p class="text-xs text-gray-500 uppercase tracking-wider mt-3">Large Format</p>
               <div class="grid grid-cols-3 gap-2">
-                {#each PAPER_SIZES.filter(p => p.category === 'large') as size}
+                {#each PAPER_SIZES.filter((p) => p.category === 'large') as size}
                   <button
                     class="px-2 py-1.5 text-xs rounded transition-colors"
                     class:bg-indigo-600={settings.paperSize.id === size.id}
@@ -266,7 +289,14 @@
                 class:text-white={settings.paperSize.id === 'custom'}
                 class:bg-gray-700={settings.paperSize.id !== 'custom'}
                 class:text-gray-300={settings.paperSize.id !== 'custom'}
-                on:click={() => setPaperSize({ id: 'custom', name: 'Custom', width: customWidth, height: customHeight, category: 'custom' })}
+                on:click={() =>
+                  setPaperSize({
+                    id: 'custom',
+                    name: 'Custom',
+                    width: customWidth,
+                    height: customHeight,
+                    category: 'custom',
+                  })}
               >
                 Custom Size
               </button>
@@ -303,7 +333,10 @@
                 class:text-white={settings.orientation === 'portrait'}
                 class:bg-gray-700={settings.orientation !== 'portrait'}
                 class:text-gray-300={settings.orientation !== 'portrait'}
-                on:click={() => { settings.orientation = 'portrait'; settings = settings; }}
+                on:click={() => {
+                  settings.orientation = 'portrait';
+                  settings = settings;
+                }}
               >
                 <svg class="w-4 h-6 border border-current rounded-sm" viewBox="0 0 16 24"></svg>
                 Portrait
@@ -314,7 +347,10 @@
                 class:text-white={settings.orientation === 'landscape'}
                 class:bg-gray-700={settings.orientation !== 'landscape'}
                 class:text-gray-300={settings.orientation !== 'landscape'}
-                on:click={() => { settings.orientation = 'landscape'; settings = settings; }}
+                on:click={() => {
+                  settings.orientation = 'landscape';
+                  settings = settings;
+                }}
               >
                 <svg class="w-6 h-4 border border-current rounded-sm" viewBox="0 0 24 16"></svg>
                 Landscape
@@ -383,18 +419,19 @@
                   step="0.1"
                   class="w-full"
                 />
-                <div class="text-xs text-gray-400 text-right">{(settings.scale * 100).toFixed(0)}%</div>
+                <div class="text-xs text-gray-400 text-right">
+                  {(settings.scale * 100).toFixed(0)}%
+                </div>
               </div>
             {/if}
           </div>
-
         {:else if activeTab === 'color'}
           <!-- Color Profile -->
           <div class="space-y-3">
             <label class="block text-sm font-medium text-gray-300">Color Profile</label>
             <div class="space-y-2">
               <p class="text-xs text-gray-500 uppercase tracking-wider">RGB</p>
-              {#each COLOR_PROFILES.filter(p => p.type === 'rgb') as profile}
+              {#each COLOR_PROFILES.filter((p) => p.type === 'rgb') as profile}
                 <button
                   class="w-full p-3 rounded text-left transition-colors"
                   class:bg-indigo-600={settings.colorProfile.id === profile.id}
@@ -407,7 +444,7 @@
               {/each}
 
               <p class="text-xs text-gray-500 uppercase tracking-wider mt-4">CMYK (Print)</p>
-              {#each COLOR_PROFILES.filter(p => p.type === 'cmyk') as profile}
+              {#each COLOR_PROFILES.filter((p) => p.type === 'cmyk') as profile}
                 <button
                   class="w-full p-3 rounded text-left transition-colors"
                   class:bg-indigo-600={settings.colorProfile.id === profile.id}
@@ -433,7 +470,9 @@
                 />
                 Simulate CMYK gamut
               </label>
-              <p class="text-xs text-gray-500">Preview how colors may appear in print (approximate)</p>
+              <p class="text-xs text-gray-500">
+                Preview how colors may appear in print (approximate)
+              </p>
             </div>
           {/if}
 
@@ -451,7 +490,6 @@
               <option value={1200}>1200 DPI (Professional)</option>
             </select>
           </div>
-
         {:else if activeTab === 'marks'}
           <!-- Print Marks -->
           <div class="space-y-4">
@@ -505,7 +543,6 @@
               </div>
             </label>
           </div>
-
         {:else if activeTab === 'tiling'}
           <!-- Tiling Settings -->
           <div class="space-y-4">
@@ -594,7 +631,9 @@
     <!-- Preview Panel -->
     <div class="flex-1 flex flex-col bg-gray-950 overflow-hidden">
       <!-- Preview Header -->
-      <div class="px-4 py-2 bg-gray-900 border-b border-gray-700 flex items-center justify-between shrink-0">
+      <div
+        class="px-4 py-2 bg-gray-900 border-b border-gray-700 flex items-center justify-between shrink-0"
+      >
         <div class="text-sm text-gray-400">
           {formatMM(effectivePaperSize.width)} × {formatMM(effectivePaperSize.height)}
           ({formatInches(effectivePaperSize.width)} × {formatInches(effectivePaperSize.height)})
@@ -602,22 +641,32 @@
         {#if tileSettings.enabled && totalPages > 1}
           <div class="flex items-center gap-2">
             <button
-              on:click={() => currentPreviewPage = Math.max(1, currentPreviewPage - 1)}
+              on:click={() => (currentPreviewPage = Math.max(1, currentPreviewPage - 1))}
               disabled={currentPreviewPage <= 1}
               class="p-1 text-gray-400 hover:text-white disabled:opacity-50"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
             </button>
             <span class="text-sm text-gray-400">Page {currentPreviewPage} of {totalPages}</span>
             <button
-              on:click={() => currentPreviewPage = Math.min(totalPages, currentPreviewPage + 1)}
+              on:click={() => (currentPreviewPage = Math.min(totalPages, currentPreviewPage + 1))}
               disabled={currentPreviewPage >= totalPages}
               class="p-1 text-gray-400 hover:text-white disabled:opacity-50"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
             </button>
           </div>
@@ -628,7 +677,8 @@
       <div class="flex-1 p-8 overflow-auto flex items-center justify-center">
         <div
           class="preview-container bg-white shadow-2xl"
-          style="aspect-ratio: {printArea.width / printArea.height}; max-width: 90%; max-height: 90%;"
+          style="aspect-ratio: {printArea.width /
+            printArea.height}; max-width: 90%; max-height: 90%;"
         >
           {@html sanitizeSvg(previewSvg)}
         </div>
@@ -638,7 +688,11 @@
       <div class="px-4 py-3 bg-gray-900 border-t border-gray-700 shrink-0">
         <div class="flex items-center justify-between">
           <div class="text-sm text-gray-400">
-            <span>Print area: {formatMM(printArea.artboardWidth)} × {formatMM(printArea.artboardHeight)}</span>
+            <span
+              >Print area: {formatMM(printArea.artboardWidth)} × {formatMM(
+                printArea.artboardHeight
+              )}</span
+            >
             <span class="mx-2">•</span>
             <span>Bleed: {formatMM(settings.bleed)}</span>
             <span class="mx-2">•</span>
@@ -656,9 +710,15 @@
               class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors text-sm flex items-center gap-2"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                />
               </svg>
-              Download All ({totalPages} {totalPages === 1 ? 'page' : 'pages'})
+              Download All ({totalPages}
+              {totalPages === 1 ? 'page' : 'pages'})
             </button>
           </div>
         </div>

@@ -35,12 +35,18 @@ test.describe('Marketplace Browsing', () => {
 
     // Either show loading skeleton or patterns quickly
     const loadingSkeleton = page.locator('.animate-pulse').first();
-    const patternGrid = page.getByRole('link').filter({ has: page.locator('img') }).first();
+    const patternGrid = page
+      .getByRole('link')
+      .filter({ has: page.locator('img') })
+      .first();
 
     // One of these should be visible
     const hasLoading = await loadingSkeleton.isVisible({ timeout: 100 }).catch(() => false);
     const hasPatterns = await patternGrid.isVisible({ timeout: 5000 }).catch(() => false);
-    const hasEmptyState = await page.getByText(/no patterns/i).isVisible({ timeout: 100 }).catch(() => false);
+    const hasEmptyState = await page
+      .getByText(/no patterns/i)
+      .isVisible({ timeout: 100 })
+      .catch(() => false);
 
     expect(hasLoading || hasPatterns || hasEmptyState).toBe(true);
   });
@@ -51,7 +57,10 @@ test.describe('Marketplace Browsing', () => {
 
     // Either show patterns or empty state
     const emptyState = page.getByText(/no patterns available/i);
-    const patternCard = page.locator('.rounded-lg').filter({ has: page.getByRole('img') }).first();
+    const patternCard = page
+      .locator('.rounded-lg')
+      .filter({ has: page.getByRole('img') })
+      .first();
 
     const hasEmpty = await emptyState.isVisible().catch(() => false);
     const hasPatterns = await patternCard.isVisible().catch(() => false);
@@ -84,8 +93,15 @@ test.describe('Marketplace Browsing', () => {
         const firstCard = patternLinks.first();
 
         // Card should have image or placeholder
-        const hasImage = await firstCard.locator('img').isVisible().catch(() => false);
-        const hasPlaceholder = await firstCard.locator('svg').first().isVisible().catch(() => false);
+        const hasImage = await firstCard
+          .locator('img')
+          .isVisible()
+          .catch(() => false);
+        const hasPlaceholder = await firstCard
+          .locator('svg')
+          .first()
+          .isVisible()
+          .catch(() => false);
         expect(hasImage || hasPlaceholder).toBe(true);
       }
     });
@@ -98,7 +114,10 @@ test.describe('Marketplace Browsing', () => {
 
       // Either no patterns or patterns have price
       const hasPriceBadge = await priceBadge.isVisible().catch(() => false);
-      const hasEmptyState = await page.getByText(/no patterns/i).isVisible().catch(() => false);
+      const hasEmptyState = await page
+        .getByText(/no patterns/i)
+        .isVisible()
+        .catch(() => false);
 
       expect(hasPriceBadge || hasEmptyState).toBe(true);
     });
@@ -110,7 +129,10 @@ test.describe('Marketplace Browsing', () => {
       const creatorText = page.getByText(/^by /i).first();
 
       const hasCreator = await creatorText.isVisible().catch(() => false);
-      const hasEmptyState = await page.getByText(/no patterns/i).isVisible().catch(() => false);
+      const hasEmptyState = await page
+        .getByText(/no patterns/i)
+        .isVisible()
+        .catch(() => false);
 
       expect(hasCreator || hasEmptyState).toBe(true);
     });
@@ -123,7 +145,10 @@ test.describe('Marketplace Browsing', () => {
       const downloadIcon = page.locator('svg path[d*="16v1"]').first(); // Download icon path
 
       const hasViewIcon = await viewIcon.isVisible().catch(() => false);
-      const hasEmptyState = await page.getByText(/no patterns/i).isVisible().catch(() => false);
+      const hasEmptyState = await page
+        .getByText(/no patterns/i)
+        .isVisible()
+        .catch(() => false);
 
       expect(hasViewIcon || hasEmptyState).toBe(true);
     });
@@ -162,9 +187,9 @@ test.describe('Marketplace Browsing', () => {
       // Click to open dropdown and check options
       const options = await sortDropdown.locator('option').allTextContents();
 
-      expect(options.some(opt => opt.toLowerCase().includes('popular'))).toBe(true);
-      expect(options.some(opt => opt.toLowerCase().includes('recent'))).toBe(true);
-      expect(options.some(opt => opt.toLowerCase().includes('price'))).toBe(true);
+      expect(options.some((opt) => opt.toLowerCase().includes('popular'))).toBe(true);
+      expect(options.some((opt) => opt.toLowerCase().includes('recent'))).toBe(true);
+      expect(options.some((opt) => opt.toLowerCase().includes('price'))).toBe(true);
     });
 
     test('should change sort order', async ({ page }) => {
@@ -184,8 +209,8 @@ test.describe('Marketplace Browsing', () => {
 
       const options = await licenseDropdown.locator('option').allTextContents();
 
-      expect(options.some(opt => opt.toLowerCase().includes('all'))).toBe(true);
-      expect(options.some(opt => opt.toLowerCase().includes('free'))).toBe(true);
+      expect(options.some((opt) => opt.toLowerCase().includes('all'))).toBe(true);
+      expect(options.some((opt) => opt.toLowerCase().includes('free'))).toBe(true);
     });
 
     test('should filter by license type', async ({ page }) => {
@@ -267,7 +292,7 @@ test.describe('Marketplace Browsing', () => {
     test('should show skeleton loading state', async ({ page }) => {
       // Intercept API to delay response
       await page.route('**/api/marketplace/patterns', async (route) => {
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
         await route.continue();
       });
 
@@ -276,7 +301,10 @@ test.describe('Marketplace Browsing', () => {
 
       // Should show loading skeletons
       const skeleton = page.locator('.animate-pulse');
-      const hasSkeletons = await skeleton.first().isVisible({ timeout: 100 }).catch(() => false);
+      const hasSkeletons = await skeleton
+        .first()
+        .isVisible({ timeout: 100 })
+        .catch(() => false);
 
       // Loading state should appear briefly
       // Note: This might be too fast to catch in some cases

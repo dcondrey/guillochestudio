@@ -43,16 +43,21 @@ export const load: PageServerLoad = async ({ params, locals, setHeaders, getClie
       const viewerHash = await hashViewerIdentity(clientIp);
 
       // Non-blocking view recording
-      locals.supabase.rpc('record_pattern_view', {
-        p_pattern_id: record.pattern_id,
-        p_viewer_hash: viewerHash,
-        p_referrer: null,
-        p_device_type: null,
-      }).then(() => {
-        // View recorded successfully
-      }, () => {
-        // Ignore view recording errors
-      });
+      locals.supabase
+        .rpc('record_pattern_view', {
+          p_pattern_id: record.pattern_id,
+          p_viewer_hash: viewerHash,
+          p_referrer: null,
+          p_device_type: null,
+        })
+        .then(
+          () => {
+            // View recorded successfully
+          },
+          () => {
+            // Ignore view recording errors
+          }
+        );
     }
 
     const baseUrl = 'https://guilloche.studio';
@@ -68,10 +73,12 @@ export const load: PageServerLoad = async ({ params, locals, setHeaders, getClie
         thumbnailUrl,
         params: record.parameters,
       },
-      creator: record.creator_id ? {
-        id: record.creator_id,
-        displayName: record.creator_name,
-      } : null,
+      creator: record.creator_id
+        ? {
+            id: record.creator_id,
+            displayName: record.creator_name,
+          }
+        : null,
       meta: {
         title: `${record.pattern_name || 'Pattern'} | Guilloché Studio`,
         description: `View and remix this geometric pattern. Created with Guilloché Studio.`,
@@ -123,7 +130,8 @@ export const load: PageServerLoad = async ({ params, locals, setHeaders, getClie
     creator: null,
     meta: {
       title: 'Pattern Not Found | Guilloché Studio',
-      description: 'This pattern could not be found. It may have been deleted or the link is invalid.',
+      description:
+        'This pattern could not be found. It may have been deleted or the link is invalid.',
       image: 'https://guilloche.studio/og-default.png',
       url: `https://guilloche.studio/dna/${code}`,
     },
@@ -140,7 +148,10 @@ async function hashViewerIdentity(ip: string): Promise<string> {
   const data = encoder.encode(ip + new Date().toISOString().slice(0, 10)); // IP + date for daily uniqueness
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
+  return hashArray
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
+    .slice(0, 16);
 }
 
 /**

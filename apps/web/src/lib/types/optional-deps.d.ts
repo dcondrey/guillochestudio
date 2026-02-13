@@ -24,7 +24,10 @@ declare module '@sentry/sveltekit' {
     beforeSend?: (event: SentryEvent) => SentryEvent | null;
   }): void;
 
-  export function captureException(error: unknown, context?: { extra?: Record<string, unknown> }): void;
+  export function captureException(
+    error: unknown,
+    context?: { extra?: Record<string, unknown> }
+  ): void;
 
   export function replayIntegration(options?: {
     maskAllText?: boolean;
@@ -98,14 +101,50 @@ declare module 'jszip' {
 
   class JSZip {
     file(name: string): JSZipObject | null;
-    file(name: string, data: string | ArrayBuffer | Uint8Array | Blob | Promise<string | ArrayBuffer | Uint8Array | Blob>, options?: { base64?: boolean; binary?: boolean; date?: Date; compression?: string; comment?: string; optimizedBinaryString?: boolean; createFolders?: boolean; unixPermissions?: number; dosPermissions?: number; dir?: boolean }): this;
+    file(
+      name: string,
+      data:
+        | string
+        | ArrayBuffer
+        | Uint8Array
+        | Blob
+        | Promise<string | ArrayBuffer | Uint8Array | Blob>,
+      options?: {
+        base64?: boolean;
+        binary?: boolean;
+        date?: Date;
+        compression?: string;
+        comment?: string;
+        optimizedBinaryString?: boolean;
+        createFolders?: boolean;
+        unixPermissions?: number;
+        dosPermissions?: number;
+        dir?: boolean;
+      }
+    ): this;
     folder(name: string): JSZip | null;
     forEach(callback: (relativePath: string, file: JSZipObject) => void): void;
     filter(predicate: (relativePath: string, file: JSZipObject) => boolean): JSZipObject[];
     remove(name: string): this;
     generateAsync(options: { type: 'blob' } & Omit<JSZipGeneratorOptions, 'type'>): Promise<Blob>;
-    generateAsync(options?: JSZipGeneratorOptions): Promise<string | Uint8Array | ArrayBuffer | Blob | Buffer>;
-    loadAsync(data: string | ArrayBuffer | Uint8Array | Blob | Promise<string | ArrayBuffer | Uint8Array | Blob>, options?: { base64?: boolean; checkCRC32?: boolean; optimizedBinaryString?: boolean; createFolders?: boolean; decodeFileName?: (bytes: Uint8Array) => string }): Promise<JSZip>;
+    generateAsync(
+      options?: JSZipGeneratorOptions
+    ): Promise<string | Uint8Array | ArrayBuffer | Blob | Buffer>;
+    loadAsync(
+      data:
+        | string
+        | ArrayBuffer
+        | Uint8Array
+        | Blob
+        | Promise<string | ArrayBuffer | Uint8Array | Blob>,
+      options?: {
+        base64?: boolean;
+        checkCRC32?: boolean;
+        optimizedBinaryString?: boolean;
+        createFolders?: boolean;
+        decodeFileName?: (bytes: Uint8Array) => string;
+      }
+    ): Promise<JSZip>;
   }
 
   const jszip: {

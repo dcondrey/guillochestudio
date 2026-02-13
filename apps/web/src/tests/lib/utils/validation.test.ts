@@ -24,7 +24,14 @@ import {
 
 describe('CurveFamilySchema', () => {
   it('should accept valid curve families', () => {
-    const validFamilies = ['hypotrochoid', 'epitrochoid', 'rose', 'lissajous', 'spirograph', 'maurer'];
+    const validFamilies = [
+      'hypotrochoid',
+      'epitrochoid',
+      'rose',
+      'lissajous',
+      'spirograph',
+      'maurer',
+    ];
 
     validFamilies.forEach((family) => {
       expect(CurveFamilySchema.parse(family)).toBe(family);
@@ -189,28 +196,34 @@ describe('CreatePatternSchema', () => {
   });
 
   it('should reject description exceeding max length', () => {
-    expect(() => CreatePatternSchema.parse({
-      name: 'Test',
-      description: 'a'.repeat(1001),
-      parameters: {},
-    })).toThrow();
+    expect(() =>
+      CreatePatternSchema.parse({
+        name: 'Test',
+        description: 'a'.repeat(1001),
+        parameters: {},
+      })
+    ).toThrow();
   });
 
   it('should reject more than 10 tags', () => {
     const tooManyTags = Array(11).fill('tag');
-    expect(() => CreatePatternSchema.parse({
-      name: 'Test',
-      parameters: {},
-      tags: tooManyTags,
-    })).toThrow();
+    expect(() =>
+      CreatePatternSchema.parse({
+        name: 'Test',
+        parameters: {},
+        tags: tooManyTags,
+      })
+    ).toThrow();
   });
 
   it('should reject tag exceeding max length', () => {
-    expect(() => CreatePatternSchema.parse({
-      name: 'Test',
-      parameters: {},
-      tags: ['a'.repeat(51)],
-    })).toThrow();
+    expect(() =>
+      CreatePatternSchema.parse({
+        name: 'Test',
+        parameters: {},
+        tags: ['a'.repeat(51)],
+      })
+    ).toThrow();
   });
 
   it('should apply default values', () => {
@@ -346,29 +359,37 @@ describe('ExportRequestSchema', () => {
   });
 
   it('should reject width outside range', () => {
-    expect(() => ExportRequestSchema.parse({
-      format: 'png',
-      parameters: {},
-      options: { width: 99 },
-    })).toThrow();
-    expect(() => ExportRequestSchema.parse({
-      format: 'png',
-      parameters: {},
-      options: { width: 16001 },
-    })).toThrow();
+    expect(() =>
+      ExportRequestSchema.parse({
+        format: 'png',
+        parameters: {},
+        options: { width: 99 },
+      })
+    ).toThrow();
+    expect(() =>
+      ExportRequestSchema.parse({
+        format: 'png',
+        parameters: {},
+        options: { width: 16001 },
+      })
+    ).toThrow();
   });
 
   it('should reject dpi outside range', () => {
-    expect(() => ExportRequestSchema.parse({
-      format: 'png',
-      parameters: {},
-      options: { dpi: 71 },
-    })).toThrow();
-    expect(() => ExportRequestSchema.parse({
-      format: 'png',
-      parameters: {},
-      options: { dpi: 601 },
-    })).toThrow();
+    expect(() =>
+      ExportRequestSchema.parse({
+        format: 'png',
+        parameters: {},
+        options: { dpi: 71 },
+      })
+    ).toThrow();
+    expect(() =>
+      ExportRequestSchema.parse({
+        format: 'png',
+        parameters: {},
+        options: { dpi: 601 },
+      })
+    ).toThrow();
   });
 });
 
@@ -385,17 +406,21 @@ describe('PurchaseRequestSchema', () => {
   });
 
   it('should reject invalid UUID', () => {
-    expect(() => PurchaseRequestSchema.parse({
-      patternId: 'invalid',
-      licenseType: 'personal',
-    })).toThrow();
+    expect(() =>
+      PurchaseRequestSchema.parse({
+        patternId: 'invalid',
+        licenseType: 'personal',
+      })
+    ).toThrow();
   });
 
   it('should reject invalid license type', () => {
-    expect(() => PurchaseRequestSchema.parse({
-      patternId: '123e4567-e89b-12d3-a456-426614174000',
-      licenseType: 'invalid',
-    })).toThrow();
+    expect(() =>
+      PurchaseRequestSchema.parse({
+        patternId: '123e4567-e89b-12d3-a456-426614174000',
+        licenseType: 'invalid',
+      })
+    ).toThrow();
   });
 
   it('should accept all valid license types', () => {
@@ -523,52 +548,64 @@ describe('FeedbackSchema', () => {
   });
 
   it('should reject invalid feedback type', () => {
-    expect(() => FeedbackSchema.parse({
-      type: 'invalid',
-      subject: 'Test',
-      message: 'This is a test message',
-    })).toThrow();
+    expect(() =>
+      FeedbackSchema.parse({
+        type: 'invalid',
+        subject: 'Test',
+        message: 'This is a test message',
+      })
+    ).toThrow();
   });
 
   it('should reject subject that is too short', () => {
-    expect(() => FeedbackSchema.parse({
-      type: 'bug',
-      subject: 'Test',
-      message: 'This is a test message that is long enough',
-    })).toThrow();
+    expect(() =>
+      FeedbackSchema.parse({
+        type: 'bug',
+        subject: 'Test',
+        message: 'This is a test message that is long enough',
+      })
+    ).toThrow();
   });
 
   it('should reject subject exceeding max length', () => {
-    expect(() => FeedbackSchema.parse({
-      type: 'bug',
-      subject: 'a'.repeat(201),
-      message: 'This is a test message that is long enough',
-    })).toThrow();
+    expect(() =>
+      FeedbackSchema.parse({
+        type: 'bug',
+        subject: 'a'.repeat(201),
+        message: 'This is a test message that is long enough',
+      })
+    ).toThrow();
   });
 
   it('should reject message that is too short', () => {
-    expect(() => FeedbackSchema.parse({
-      type: 'bug',
-      subject: 'Valid subject here',
-      message: 'Too short',
-    })).toThrow();
+    expect(() =>
+      FeedbackSchema.parse({
+        type: 'bug',
+        subject: 'Valid subject here',
+        message: 'Too short',
+      })
+    ).toThrow();
   });
 
   it('should reject message exceeding max length', () => {
-    expect(() => FeedbackSchema.parse({
-      type: 'bug',
-      subject: 'Valid subject here',
-      message: 'a'.repeat(5001),
-    })).toThrow();
+    expect(() =>
+      FeedbackSchema.parse({
+        type: 'bug',
+        subject: 'Valid subject here',
+        message: 'a'.repeat(5001),
+      })
+    ).toThrow();
   });
 
   it('should reject invalid email format', () => {
-    expect(() => FeedbackSchema.parse({
-      type: 'bug',
-      subject: 'Valid subject here',
-      message: 'This is a valid message that is long enough',
-      email: 'not-an-email',
-    })).toThrow();
+    expect(() =>
+      FeedbackSchema.parse({
+        type: 'bug',
+        subject: 'Valid subject here',
+        message: 'This is a valid message that is long enough',
+        email: 'not-an-email',
+      })
+    ).toThrow();
   });
 });
 
@@ -629,7 +666,9 @@ describe('sanitizeString', () => {
   });
 
   it('should remove angle brackets', () => {
-    expect(sanitizeString('hello<script>alert("xss")</script>world')).toBe('helloscriptalert("xss")/scriptworld');
+    expect(sanitizeString('hello<script>alert("xss")</script>world')).toBe(
+      'helloscriptalert("xss")/scriptworld'
+    );
   });
 
   it('should limit string length to 10000 characters', () => {

@@ -106,7 +106,7 @@ ${urls.join('')}
   return new Response(sitemapContent, {
     headers: {
       'Content-Type': 'application/xml',
-      'ETag': etag,
+      ETag: etag,
       ...getCacheHeaders('SITEMAP'),
     },
   });

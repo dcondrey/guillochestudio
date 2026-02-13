@@ -49,41 +49,88 @@ export interface FeatureAccess {
 }
 
 // Feature definitions with tier requirements
-export const FEATURE_REQUIREMENTS: Record<string, {
-  minTier: SubscriptionTier;
-  requiresVerification: boolean;
-  description: string;
-}> = {
+export const FEATURE_REQUIREMENTS: Record<
+  string,
+  {
+    minTier: SubscriptionTier;
+    requiresVerification: boolean;
+    description: string;
+  }
+> = {
   // Pattern features
   'pattern.save': { minTier: 'free', requiresVerification: false, description: 'Save patterns' },
-  'pattern.unlimited': { minTier: 'enterprise', requiresVerification: false, description: 'Unlimited pattern saves' },
+  'pattern.unlimited': {
+    minTier: 'enterprise',
+    requiresVerification: false,
+    description: 'Unlimited pattern saves',
+  },
 
   // Export features
   'export.png': { minTier: 'free', requiresVerification: false, description: 'Export PNG' },
-  'export.svg': { minTier: 'pro', requiresVerification: true, description: 'Export SVG (no watermark)' },
+  'export.svg': {
+    minTier: 'pro',
+    requiresVerification: true,
+    description: 'Export SVG (no watermark)',
+  },
   'export.pdf': { minTier: 'pro', requiresVerification: true, description: 'Export PDF' },
   'export.dxf': { minTier: 'pro', requiresVerification: true, description: 'Export DXF' },
-  'export.gcode': { minTier: 'enterprise', requiresVerification: true, description: 'Export GCODE' },
+  'export.gcode': {
+    minTier: 'enterprise',
+    requiresVerification: true,
+    description: 'Export GCODE',
+  },
   'export.hpgl': { minTier: 'enterprise', requiresVerification: true, description: 'Export HPGL' },
 
   // AI features
-  'ai.suggest': { minTier: 'pro', requiresVerification: true, description: 'AI parameter suggestions' },
-  'ai.unlimited': { minTier: 'enterprise', requiresVerification: true, description: 'Unlimited AI requests' },
+  'ai.suggest': {
+    minTier: 'pro',
+    requiresVerification: true,
+    description: 'AI parameter suggestions',
+  },
+  'ai.unlimited': {
+    minTier: 'enterprise',
+    requiresVerification: true,
+    description: 'Unlimited AI requests',
+  },
 
   // Engine features
-  'engine.wasm': { minTier: 'pro', requiresVerification: false, description: 'WASM rendering engine' },
+  'engine.wasm': {
+    minTier: 'pro',
+    requiresVerification: false,
+    description: 'WASM rendering engine',
+  },
 
   // API features
   'api.access': { minTier: 'enterprise', requiresVerification: true, description: 'API access' },
-  'api.webhooks': { minTier: 'enterprise', requiresVerification: true, description: 'Webhook integrations' },
+  'api.webhooks': {
+    minTier: 'enterprise',
+    requiresVerification: true,
+    description: 'Webhook integrations',
+  },
 
   // Collaboration
-  'collab.realtime': { minTier: 'pro', requiresVerification: true, description: 'Real-time collaboration' },
-  'collab.teams': { minTier: 'enterprise', requiresVerification: true, description: 'Team workspaces' },
+  'collab.realtime': {
+    minTier: 'pro',
+    requiresVerification: true,
+    description: 'Real-time collaboration',
+  },
+  'collab.teams': {
+    minTier: 'enterprise',
+    requiresVerification: true,
+    description: 'Team workspaces',
+  },
 
   // Marketplace
-  'marketplace.sell': { minTier: 'pro', requiresVerification: true, description: 'Sell on marketplace' },
-  'marketplace.commercial': { minTier: 'pro', requiresVerification: true, description: 'Commercial licenses' },
+  'marketplace.sell': {
+    minTier: 'pro',
+    requiresVerification: true,
+    description: 'Sell on marketplace',
+  },
+  'marketplace.commercial': {
+    minTier: 'pro',
+    requiresVerification: true,
+    description: 'Commercial licenses',
+  },
 };
 
 // Tier hierarchy for comparison
@@ -112,7 +159,8 @@ export class SubscriptionEnforcement {
   async getUserProfile(userId: string): Promise<UserProfile | null> {
     const { data, error } = await this.supabase
       .from('profiles')
-      .select(`
+      .select(
+        `
         id,
         subscription_tier,
         account_status,
@@ -120,7 +168,8 @@ export class SubscriptionEnforcement {
         email_verified,
         risk_flags,
         locked_until
-      `)
+      `
+      )
       .eq('id', userId)
       .single();
 
@@ -137,12 +186,14 @@ export class SubscriptionEnforcement {
   async getUsageStats(userId: string): Promise<UsageStats | null> {
     const { data, error } = await this.supabase
       .from('usage_lifetime')
-      .select(`
+      .select(
+        `
         current_period_patterns,
         current_period_ai_requests,
         current_period_exports,
         total_patterns_created
-      `)
+      `
+      )
       .eq('user_id', userId)
       .single();
 
@@ -328,9 +379,12 @@ export class SubscriptionEnforcement {
         break;
       case 'ai_request':
         current = usage.current_period_ai_requests;
-        limit = profile.subscription_tier === 'free' ? 0 :
-                profile.subscription_tier === 'pro' ? 100 :
-                Infinity;
+        limit =
+          profile.subscription_tier === 'free'
+            ? 0
+            : profile.subscription_tier === 'pro'
+              ? 100
+              : Infinity;
         break;
       case 'export':
         current = usage.current_period_exports;
@@ -366,11 +420,7 @@ export class SubscriptionEnforcement {
   /**
    * Record usage (call after successful operation)
    */
-  async recordUsage(
-    userId: string,
-    action: string,
-    amount: number = 1
-  ): Promise<boolean> {
+  async recordUsage(userId: string, action: string, amount: number = 1): Promise<boolean> {
     const { error } = await this.supabase.rpc('increment_usage', {
       p_user_id: userId,
       p_action: action,
@@ -430,10 +480,7 @@ export class SubscriptionEnforcement {
     const profile = await this.getUserProfile(userId);
     if (!profile) return true;
 
-    return (
-      profile.subscription_tier !== 'free' &&
-      !profile.email_verified
-    );
+    return profile.subscription_tier !== 'free' && !profile.email_verified;
   }
 
   /**

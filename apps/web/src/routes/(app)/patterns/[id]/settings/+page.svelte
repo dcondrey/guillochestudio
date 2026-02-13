@@ -73,7 +73,12 @@
         {:else}
           <div class="w-full h-full flex items-center justify-center text-gray-600">
             <svg class="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1"
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
             </svg>
           </div>
         {/if}
@@ -114,9 +119,7 @@
             </div>
 
             <div>
-              <label for="tags" class="block text-sm font-medium text-gray-700 mb-1">
-                Tags
-              </label>
+              <label for="tags" class="block text-sm font-medium text-gray-700 mb-1"> Tags </label>
               <input
                 type="text"
                 id="tags"
@@ -191,12 +194,14 @@
 
                 <!-- License Type -->
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">
-                    License Type
-                  </label>
+                  <label class="block text-sm font-medium text-gray-700 mb-2"> License Type </label>
                   <div class="space-y-2">
-                    <label class="flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-colors
-                                 {license_type === 'personal' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'}">
+                    <label
+                      class="flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-colors
+                                 {license_type === 'personal'
+                        ? 'border-indigo-600 bg-indigo-50'
+                        : 'border-gray-200 hover:border-gray-300'}"
+                    >
                       <input
                         type="radio"
                         name="license_type"
@@ -206,12 +211,18 @@
                       />
                       <div>
                         <span class="font-medium text-gray-900">Personal</span>
-                        <p class="text-sm text-gray-500">Use in personal, non-commercial projects</p>
+                        <p class="text-sm text-gray-500">
+                          Use in personal, non-commercial projects
+                        </p>
                       </div>
                     </label>
 
-                    <label class="flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-colors
-                                 {license_type === 'commercial' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'}">
+                    <label
+                      class="flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-colors
+                                 {license_type === 'commercial'
+                        ? 'border-indigo-600 bg-indigo-50'
+                        : 'border-gray-200 hover:border-gray-300'}"
+                    >
                       <input
                         type="radio"
                         name="license_type"
@@ -221,12 +232,18 @@
                       />
                       <div>
                         <span class="font-medium text-gray-900">Commercial</span>
-                        <p class="text-sm text-gray-500">Use in commercial products and client work (3x price)</p>
+                        <p class="text-sm text-gray-500">
+                          Use in commercial products and client work (3x price)
+                        </p>
                       </div>
                     </label>
 
-                    <label class="flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-colors
-                                 {license_type === 'remix' ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200 hover:border-gray-300'}">
+                    <label
+                      class="flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-colors
+                                 {license_type === 'remix'
+                        ? 'border-indigo-600 bg-indigo-50'
+                        : 'border-gray-200 hover:border-gray-300'}"
+                    >
                       <input
                         type="radio"
                         name="license_type"
@@ -236,7 +253,9 @@
                       />
                       <div>
                         <span class="font-medium text-gray-900">Remix</span>
-                        <p class="text-sm text-gray-500">Allow modifications and derivatives (2x price, you earn royalties)</p>
+                        <p class="text-sm text-gray-500">
+                          Allow modifications and derivatives (2x price, you earn royalties)
+                        </p>
                       </div>
                     </label>
                   </div>
@@ -247,15 +266,21 @@
                   <h4 class="text-sm font-medium text-gray-700 mb-2">License Prices Preview</h4>
                   <div class="grid grid-cols-3 gap-4 text-center">
                     <div>
-                      <p class="text-lg font-semibold text-gray-900">${(price_cents / 100).toFixed(2)}</p>
+                      <p class="text-lg font-semibold text-gray-900">
+                        ${(price_cents / 100).toFixed(2)}
+                      </p>
                       <p class="text-xs text-gray-500">Personal</p>
                     </div>
                     <div>
-                      <p class="text-lg font-semibold text-gray-900">${((price_cents * 3) / 100).toFixed(2)}</p>
+                      <p class="text-lg font-semibold text-gray-900">
+                        ${((price_cents * 3) / 100).toFixed(2)}
+                      </p>
                       <p class="text-xs text-gray-500">Commercial</p>
                     </div>
                     <div>
-                      <p class="text-lg font-semibold text-gray-900">${((price_cents * 2) / 100).toFixed(2)}</p>
+                      <p class="text-lg font-semibold text-gray-900">
+                        ${((price_cents * 2) / 100).toFixed(2)}
+                      </p>
                       <p class="text-xs text-gray-500">Remix</p>
                     </div>
                   </div>
@@ -269,7 +294,7 @@
         <div class="pt-6 border-t border-gray-100 flex items-center justify-between">
           <button
             type="button"
-            on:click={() => showDeleteModal = true}
+            on:click={() => (showDeleteModal = true)}
             class="text-red-600 hover:text-red-700 font-medium"
           >
             Delete Pattern
@@ -298,16 +323,13 @@
       </p>
       <div class="flex gap-3 justify-end">
         <button
-          on:click={() => showDeleteModal = false}
+          on:click={() => (showDeleteModal = false)}
           class="px-4 py-2 text-gray-700 hover:text-gray-900"
         >
           Cancel
         </button>
         <form method="POST" action="?/delete">
-          <button
-            type="submit"
-            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-          >
+          <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
             Delete
           </button>
         </form>

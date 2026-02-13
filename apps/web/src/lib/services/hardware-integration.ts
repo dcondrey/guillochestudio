@@ -157,7 +157,7 @@ export const DEVICE_PROFILES: Record<string, Partial<HardwareDevice>> = {
       baudRate: 9600,
     },
   },
-  'hp7475a': {
+  hp7475a: {
     name: 'HP 7475A',
     type: 'plotter',
     manufacturer: 'Hewlett-Packard',
@@ -494,15 +494,21 @@ export class HardwareConnectionManager {
         try {
           await reader?.cancel();
           reader?.releaseLock();
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
 
         try {
           await writer?.close();
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
 
         try {
           await (connection as SerialPort).close();
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
       }
     }
 
@@ -970,8 +976,9 @@ export class HardwareConnectionManager {
    * Update jobs store
    */
   private updateJobsStore(): void {
-    const activeJobs = Array.from(this.jobs.values())
-      .filter((j) => !['completed', 'cancelled', 'error'].includes(j.status));
+    const activeJobs = Array.from(this.jobs.values()).filter(
+      (j) => !['completed', 'cancelled', 'error'].includes(j.status)
+    );
     this._activeJobs.set(activeJobs);
   }
 

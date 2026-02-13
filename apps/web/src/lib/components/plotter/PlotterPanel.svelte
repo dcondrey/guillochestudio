@@ -38,7 +38,8 @@
   let isConnecting = false;
 
   $: currentConfig = customConfig ?? PLOTTER_PRESETS[selectedPlotter];
-  $: currentMaterial = MATERIAL_PRESETS.find((m) => m.id === selectedMaterial) ?? MATERIAL_PRESETS[0];
+  $: currentMaterial =
+    MATERIAL_PRESETS.find((m) => m.id === selectedMaterial) ?? MATERIAL_PRESETS[0];
 
   onMount(() => {
     optimize();
@@ -106,11 +107,7 @@
   async function startPlotting(): Promise<void> {
     if (!plotterConnection || !optimizationResult) return;
 
-    await plotterConnection.plot(
-      optimizationResult.paths,
-      currentConfig,
-      currentMaterial
-    );
+    await plotterConnection.plot(optimizationResult.paths, currentConfig, currentMaterial);
   }
 
   function pausePlotting(): void {
@@ -164,13 +161,23 @@
   <div class="px-4 py-3 bg-gray-800 border-b border-gray-700 flex items-center justify-between">
     <h2 class="text-white font-semibold flex items-center gap-2">
       <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
+        />
       </svg>
       Pen Plotter
     </h2>
     <button on:click={() => dispatch('close')} class="text-gray-400 hover:text-white">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M6 18L18 6M6 6l12 12"
+        />
       </svg>
     </button>
   </div>
@@ -191,7 +198,7 @@
 
       {#if selectedPlotter === 'custom'}
         <button
-          on:click={() => showCustomSettings = !showCustomSettings}
+          on:click={() => (showCustomSettings = !showCustomSettings)}
           class="text-sm text-indigo-400 hover:text-indigo-300"
         >
           {showCustomSettings ? 'Hide' : 'Show'} custom settings
@@ -232,11 +239,7 @@
         </label>
       </div>
       <div class="border border-gray-700 rounded overflow-hidden bg-gray-950">
-        <canvas
-          bind:this={previewCanvas}
-          class="w-full"
-          style="max-height: 300px;"
-        ></canvas>
+        <canvas bind:this={previewCanvas} class="w-full" style="max-height: 300px;"></canvas>
       </div>
     </div>
 
@@ -270,7 +273,9 @@
       </div>
     {:else if isOptimizing}
       <div class="flex items-center justify-center p-8">
-        <div class="animate-spin w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full"></div>
+        <div
+          class="animate-spin w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full"
+        ></div>
         <span class="ml-3 text-gray-400">Optimizing paths...</span>
       </div>
     {/if}
@@ -286,11 +291,18 @@
           class="w-full py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
         >
           {#if isConnecting}
-            <div class="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+            <div
+              class="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+            ></div>
             Connecting...
           {:else}
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+              />
             </svg>
             Connect Plotter
           {/if}
@@ -306,10 +318,7 @@
               <div class="w-2 h-2 rounded-full bg-green-500"></div>
               <span class="text-sm text-white">Connected</span>
             </div>
-            <button
-              on:click={disconnectPlotter}
-              class="text-sm text-red-400 hover:text-red-300"
-            >
+            <button on:click={disconnectPlotter} class="text-sm text-red-400 hover:text-red-300">
               Disconnect
             </button>
           </div>
@@ -361,8 +370,18 @@
               class="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2 text-lg font-medium"
             >
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
               Start Plotting
             </button>
@@ -387,7 +406,12 @@
           class="py-2 bg-gray-700 text-white rounded hover:bg-gray-600 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+            />
           </svg>
           HPGL
         </button>
@@ -396,7 +420,12 @@
           class="py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+            />
           </svg>
           SVG
         </button>

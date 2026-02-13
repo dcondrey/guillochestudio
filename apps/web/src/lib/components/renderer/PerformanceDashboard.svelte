@@ -82,21 +82,44 @@
     <div class="header-actions">
       {#if showExport}
         <button class="action-btn" on:click={exportJSON} title="Export as JSON">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
           </svg>
           JSON
         </button>
         <button class="action-btn" on:click={exportCSV} title="Export as CSV">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
           </svg>
           CSV
         </button>
       {/if}
       <button class="action-btn danger" on:click={clearHistory} title="Clear history">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"
+          />
         </svg>
       </button>
     </div>
@@ -208,7 +231,11 @@
           <div class="empty-state">No render history yet</div>
         {:else}
           {#each [...history].reverse() as render}
-            <div class="history-item" class:success={render.success} class:failure={!render.success}>
+            <div
+              class="history-item"
+              class:success={render.success}
+              class:failure={!render.success}
+            >
               <div class="history-header">
                 <span class="history-engine" class:wasm={render.engineType === 'wasm'}>
                   {render.engineType.toUpperCase()}
@@ -238,7 +265,9 @@
             {#each history as render, i}
               <div
                 class="chart-bar-container"
-                title="{render.engineType.toUpperCase()} - {render.quality}: {formatTime(render.duration)}"
+                title="{render.engineType.toUpperCase()} - {render.quality}: {formatTime(
+                  render.duration
+                )}"
               >
                 <div
                   class="chart-bar"

@@ -62,7 +62,9 @@ declare global {
   }
 
   interface BluetoothRemoteGATTService {
-    getCharacteristic(characteristic: BluetoothCharacteristicUUID): Promise<BluetoothRemoteGATTCharacteristic>;
+    getCharacteristic(
+      characteristic: BluetoothCharacteristicUUID
+    ): Promise<BluetoothRemoteGATTCharacteristic>;
   }
 
   interface BluetoothRemoteGATTCharacteristic {
@@ -86,17 +88,32 @@ interface CloudflareAI {
 
 // Cloudflare KV types
 interface CloudflareKV {
-  get(key: string, options?: { type?: 'text' | 'json' | 'arrayBuffer' | 'stream' }): Promise<unknown>;
-  put(key: string, value: string | ArrayBuffer | ReadableStream, options?: { expirationTtl?: number; expiration?: number; metadata?: Record<string, unknown> }): Promise<void>;
+  get(
+    key: string,
+    options?: { type?: 'text' | 'json' | 'arrayBuffer' | 'stream' }
+  ): Promise<unknown>;
+  put(
+    key: string,
+    value: string | ArrayBuffer | ReadableStream,
+    options?: { expirationTtl?: number; expiration?: number; metadata?: Record<string, unknown> }
+  ): Promise<void>;
   delete(key: string): Promise<void>;
-  list(options?: { prefix?: string; limit?: number; cursor?: string }): Promise<{ keys: { name: string; expiration?: number; metadata?: unknown }[]; list_complete: boolean; cursor?: string }>;
+  list(options?: { prefix?: string; limit?: number; cursor?: string }): Promise<{
+    keys: { name: string; expiration?: number; metadata?: unknown }[];
+    list_complete: boolean;
+    cursor?: string;
+  }>;
 }
 
 // Cloudflare R2 types
 interface CloudflareR2Bucket {
   head(key: string): Promise<R2Object | null>;
   get(key: string): Promise<R2ObjectBody | null>;
-  put(key: string, value: ReadableStream | ArrayBuffer | string, options?: R2PutOptions): Promise<R2Object>;
+  put(
+    key: string,
+    value: ReadableStream | ArrayBuffer | string,
+    options?: R2PutOptions
+  ): Promise<R2Object>;
   delete(keys: string | string[]): Promise<void>;
   list(options?: R2ListOptions): Promise<R2Objects>;
 }

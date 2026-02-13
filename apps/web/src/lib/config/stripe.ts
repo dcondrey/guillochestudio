@@ -5,18 +5,18 @@ import {
   STRIPE_PRICE_PRO_MONTHLY,
   STRIPE_PRICE_PRO_YEARLY,
   STRIPE_PRICE_ENTERPRISE_MONTHLY,
-  STRIPE_PRICE_ENTERPRISE_YEARLY
+  STRIPE_PRICE_ENTERPRISE_YEARLY,
 } from '$env/static/private';
 
 export const STRIPE_PRICES = {
   pro: {
     monthly: STRIPE_PRICE_PRO_MONTHLY,
-    yearly: STRIPE_PRICE_PRO_YEARLY
+    yearly: STRIPE_PRICE_PRO_YEARLY,
   },
   enterprise: {
     monthly: STRIPE_PRICE_ENTERPRISE_MONTHLY,
-    yearly: STRIPE_PRICE_ENTERPRISE_YEARLY
-  }
+    yearly: STRIPE_PRICE_ENTERPRISE_YEARLY,
+  },
 } as const;
 
 export function getTierFromPriceId(priceId: string): 'pro' | 'enterprise' | 'free' {

@@ -15,13 +15,10 @@
     redo,
     canUndo,
     canRedo,
-    currentPath
+    currentPath,
   } from '$lib/stores/pattern';
   import { isAuthenticated, isPro } from '$lib/stores/auth';
-  import {
-    aiSuggestionsEnabled,
-    advancedExportEnabled,
-  } from '$lib/stores/feature-flags';
+  import { aiSuggestionsEnabled, advancedExportEnabled } from '$lib/stores/feature-flags';
   import { randomizeParams } from '@guilloche/core';
   import AIAssistant from '$lib/components/ai/AIAssistant.svelte';
 
@@ -76,7 +73,7 @@
       glow: $params.glow,
       vignette: $params.vignette,
       dashed: $params.dashed,
-      dashRatio: $params.dashRatio
+      dashRatio: $params.dashRatio,
     });
   }
 
@@ -87,7 +84,7 @@
       geometry: true,
       modulation: true,
       symmetry: true,
-      colors: true
+      colors: true,
     });
     setParams(newParams);
     saveToHistory('Randomized pattern');
@@ -101,7 +98,7 @@
       updateParams({
         useGradient: true,
         startColor: preset.gradient[0],
-        endColor: preset.gradient[1]
+        endColor: preset.gradient[1],
       });
     }
     saveToHistory(`Applied preset: ${preset.name}`);
@@ -120,7 +117,7 @@
       gradient: $params.useGradient ? [$params.startColor, $params.endColor] : undefined,
       glow: $params.glow,
       dashed: $params.dashed,
-      dashRatio: $params.dashRatio
+      dashRatio: $params.dashRatio,
     });
 
     const blob = new Blob([svg], { type: 'image/svg+xml' });
@@ -225,7 +222,7 @@
     { id: 'style', label: 'Style' },
     { id: 'ai', label: 'AI' },
     { id: 'layers', label: 'Layers' },
-    { id: 'export', label: 'Export' }
+    { id: 'export', label: 'Export' },
   ];
 
   // AI handlers
@@ -244,16 +241,14 @@
 
 <svelte:head>
   <title>Studio - Guilloche Studio Pro</title>
-  <meta name="description" content="Create and edit guilloche patterns with the Guilloche Studio pattern editor." />
+  <meta
+    name="description"
+    content="Create and edit guilloche patterns with the Guilloche Studio pattern editor."
+  />
 </svelte:head>
 
 <!-- Screen reader announcements -->
-<div
-  aria-live="polite"
-  aria-atomic="true"
-  class="sr-only"
-  role="status"
->
+<div aria-live="polite" aria-atomic="true" class="sr-only" role="status">
   {announcement}
 </div>
 
@@ -268,14 +263,7 @@
         class="flex items-center gap-2 text-xl font-bold"
         aria-label="Guilloche Studio Home"
       >
-        <img
-          src="/logo.svg"
-          alt=""
-          class="h-6 w-6"
-          width="24"
-          height="24"
-          aria-hidden="true"
-        />
+        <img src="/logo.svg" alt="" class="h-6 w-6" width="24" height="24" aria-hidden="true" />
         <span class="hidden sm:inline">Guilloche Studio</span>
       </a>
       {#if $isPro}
@@ -328,7 +316,9 @@
              {panelCollapsed ? 'w-14' : 'w-80 lg:w-96'}"
       aria-label="Pattern controls"
     >
-      <div class="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-800">
+      <div
+        class="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-800"
+      >
         {#if !panelCollapsed}
           <h2 class="text-lg font-semibold" id="controls-heading">Controls</h2>
         {/if}
@@ -520,7 +510,8 @@
                       {#each PRESET_PATTERNS as preset}
                         <button
                           class="aspect-square rounded-lg p-2 text-xs font-medium text-white transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
-                          style="background: linear-gradient(135deg, {preset.gradient[0]}, {preset.gradient[1]})"
+                          style="background: linear-gradient(135deg, {preset.gradient[0]}, {preset
+                            .gradient[1]})"
                           on:click={() => handlePreset(preset)}
                           aria-label="Apply {preset.name} preset"
                         >
@@ -557,7 +548,9 @@
                       </div>
                       <div class="grid grid-cols-2 gap-2">
                         <div>
-                          <label for="color-start" class="block text-xs text-gray-500">Start Color</label>
+                          <label for="color-start" class="block text-xs text-gray-500"
+                            >Start Color</label
+                          >
                           <input
                             id="color-start"
                             type="color"
@@ -567,7 +560,9 @@
                           />
                         </div>
                         <div>
-                          <label for="color-end" class="block text-xs text-gray-500">End Color</label>
+                          <label for="color-end" class="block text-xs text-gray-500"
+                            >End Color</label
+                          >
                           <input
                             id="color-end"
                             type="color"
@@ -679,24 +674,34 @@
                       <span class="text-xs opacity-75">Raster</span>
                     </button>
                     <button
-                      class="btn btn-secondary flex-col gap-1 py-4 {!$advancedExportEnabled ? 'opacity-50' : ''}"
+                      class="btn btn-secondary flex-col gap-1 py-4 {!$advancedExportEnabled
+                        ? 'opacity-50'
+                        : ''}"
                       disabled={!$advancedExportEnabled}
                       aria-label="Export as PDF{!$advancedExportEnabled ? ' (Pro feature)' : ''}"
                       aria-disabled={!$advancedExportEnabled}
                     >
                       <span class="text-xl" aria-hidden="true">📄</span>
                       <span>PDF</span>
-                      <span class="text-xs opacity-75">{$advancedExportEnabled ? 'Print Ready' : 'Pro Only'}</span>
+                      <span class="text-xs opacity-75"
+                        >{$advancedExportEnabled ? 'Print Ready' : 'Pro Only'}</span
+                      >
                     </button>
                     <button
-                      class="btn btn-secondary flex-col gap-1 py-4 {!$advancedExportEnabled ? 'opacity-50' : ''}"
+                      class="btn btn-secondary flex-col gap-1 py-4 {!$advancedExportEnabled
+                        ? 'opacity-50'
+                        : ''}"
                       disabled={!$advancedExportEnabled}
-                      aria-label="Export as DXF for CNC/Laser{!$advancedExportEnabled ? ' (Pro feature)' : ''}"
+                      aria-label="Export as DXF for CNC/Laser{!$advancedExportEnabled
+                        ? ' (Pro feature)'
+                        : ''}"
                       aria-disabled={!$advancedExportEnabled}
                     >
                       <span class="text-xl" aria-hidden="true">✏️</span>
                       <span>DXF</span>
-                      <span class="text-xs opacity-75">{$advancedExportEnabled ? 'CNC/Laser' : 'Pro Only'}</span>
+                      <span class="text-xs opacity-75"
+                        >{$advancedExportEnabled ? 'CNC/Laser' : 'Pro Only'}</span
+                      >
                     </button>
                   </div>
 
@@ -712,9 +717,7 @@
                       <p class="mt-1 text-sm text-primary-700 dark:text-primary-400">
                         Get PDF, DXF, GCODE exports, AI assistant, and more.
                       </p>
-                      <a href="/pricing" class="btn btn-primary btn-sm mt-3">
-                        View Plans
-                      </a>
+                      <a href="/pricing" class="btn btn-primary btn-sm mt-3"> View Plans </a>
                     </div>
                   {/if}
                 </div>
@@ -722,19 +725,11 @@
             </div>
 
             <!-- AI Tab -->
-            <div
-              id="panel-ai"
-              role="tabpanel"
-              aria-labelledby="tab-ai"
-              hidden={activeTab !== 'ai'}
-            >
+            <div id="panel-ai" role="tabpanel" aria-labelledby="tab-ai" hidden={activeTab !== 'ai'}>
               {#if activeTab === 'ai'}
                 <div class="space-y-4">
                   {#if $aiSuggestionsEnabled}
-                    <AIAssistant
-                      on:apply={handleAIApply}
-                      on:applyFull={handleAIApplyFull}
-                    />
+                    <AIAssistant on:apply={handleAIApply} on:applyFull={handleAIApplyFull} />
                   {:else}
                     <div
                       class="rounded-xl bg-gradient-to-br from-indigo-900/40 to-purple-900/40 p-6 border border-indigo-700/50"
@@ -743,8 +738,18 @@
                     >
                       <div class="flex items-center gap-3 mb-4">
                         <div class="p-2 rounded-full bg-indigo-600/30" aria-hidden="true">
-                          <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                          <svg
+                            class="w-6 h-6 text-indigo-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                            />
                           </svg>
                         </div>
                         <h3 class="text-lg font-semibold text-white">AI Assistant</h3>
@@ -754,20 +759,53 @@
                       </p>
                       <ul class="space-y-2 text-sm text-gray-400 mb-6" aria-label="AI features">
                         <li class="flex items-center gap-2">
-                          <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                          <svg
+                            class="w-4 h-4 text-indigo-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M5 13l4 4L19 7"
+                            />
                           </svg>
                           <span>Style Keywords - Generate patterns from descriptive words</span>
                         </li>
                         <li class="flex items-center gap-2">
-                          <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                          <svg
+                            class="w-4 h-4 text-indigo-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M5 13l4 4L19 7"
+                            />
                           </svg>
                           <span>Image Analysis - Upload photos to extract parameters</span>
                         </li>
                         <li class="flex items-center gap-2">
-                          <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                          <svg
+                            class="w-4 h-4 text-indigo-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M5 13l4 4L19 7"
+                            />
                           </svg>
                           <span>Text Prompts - Describe your vision in natural language</span>
                         </li>
@@ -794,7 +832,8 @@
               {#if activeTab === 'layers'}
                 <div class="space-y-4">
                   <p class="text-sm text-gray-500">
-                    Multi-layer support coming soon! Create complex patterns with multiple overlapping curves.
+                    Multi-layer support coming soon! Create complex patterns with multiple
+                    overlapping curves.
                   </p>
                 </div>
               {/if}

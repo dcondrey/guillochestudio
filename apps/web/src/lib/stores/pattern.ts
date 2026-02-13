@@ -25,8 +25,8 @@ export const layers = writable<PatternLayer[]>([
     color: '#4f46e5',
     blendMode: 'normal',
     params: {},
-    opacity: 1
-  }
+    opacity: 1,
+  },
 ]);
 export const activeLayerId = writable<string | null>(null);
 export const patternLoading = writable(false);
@@ -80,10 +80,7 @@ export const activeLayer: Readable<PatternLayer | null> = derived(
 );
 
 // Derived: can undo/redo
-export const canUndo: Readable<boolean> = derived(
-  historyIndex,
-  ($index) => $index > 0
-);
+export const canUndo: Readable<boolean> = derived(historyIndex, ($index) => $index > 0);
 
 export const canRedo: Readable<boolean> = derived(
   [history, historyIndex],
@@ -130,10 +127,14 @@ export function addLayer(name?: string): void {
     id: generateId(),
     name: name || `Layer ${get(layers).length + 1}`,
     visible: true,
-    color: '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0'),
+    color:
+      '#' +
+      Math.floor(Math.random() * 16777215)
+        .toString(16)
+        .padStart(6, '0'),
     blendMode: 'normal',
     params: {},
-    opacity: 1
+    opacity: 1,
   };
   layers.update((l) => [...l, newLayer]);
   activeLayerId.set(newLayer.id);
@@ -170,7 +171,7 @@ export function duplicateLayer(id: string): void {
   const newLayer: PatternLayer = {
     ...deepClone(layer),
     id: generateId(),
-    name: `${layer.name} (copy)`
+    name: `${layer.name} (copy)`,
   };
 
   const index = currentLayers.findIndex((l) => l.id === id);
@@ -206,7 +207,7 @@ export function saveToHistory(description: string): void {
     params: deepClone(get(params)),
     layers: deepClone(get(layers)),
     timestamp: new Date(),
-    description
+    description,
   };
 
   history.update((h) => {

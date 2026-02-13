@@ -31,7 +31,11 @@ export const PatternParamsSchema = z.object({
   // Lissajous parameters
   a: z.number().min(1).max(20).optional(),
   b: z.number().min(1).max(20).optional(),
-  delta: z.number().min(0).max(Math.PI * 2).optional(),
+  delta: z
+    .number()
+    .min(0)
+    .max(Math.PI * 2)
+    .optional(),
 
   // Rendering parameters
   steps: z.number().min(100).max(100000).default(10000),
@@ -45,9 +49,18 @@ export const PatternParamsSchema = z.object({
   rotation: z.number().min(0).max(360).default(0),
 
   // Colors
-  bgColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).default('#0f172a'),
-  startColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).default('#3B82F6'),
-  endColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).default('#8B5CF6'),
+  bgColor: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/)
+    .default('#0f172a'),
+  startColor: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/)
+    .default('#3B82F6'),
+  endColor: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/)
+    .default('#8B5CF6'),
   useGradient: z.boolean().default(true),
 
   // Effects
@@ -85,14 +98,16 @@ export const AIRequestSchema = z.object({
 export const ExportRequestSchema = z.object({
   format: z.enum(['svg', 'png', 'pdf', 'dxf', 'gcode', 'hpgl']),
   parameters: PatternParamsSchema,
-  options: z.object({
-    width: z.number().min(100).max(16000).default(1920),
-    height: z.number().min(100).max(16000).default(1080),
-    dpi: z.number().min(72).max(600).default(300),
-    background: z.boolean().default(true),
-    optimizePath: z.boolean().default(true),
-    tolerance: z.number().min(0.01).max(10).default(0.5),
-  }).optional(),
+  options: z
+    .object({
+      width: z.number().min(100).max(16000).default(1920),
+      height: z.number().min(100).max(16000).default(1080),
+      dpi: z.number().min(72).max(600).default(300),
+      background: z.boolean().default(true),
+      optimizePath: z.boolean().default(true),
+      tolerance: z.number().min(0.01).max(10).default(0.5),
+    })
+    .optional(),
 });
 
 export const PurchaseRequestSchema = z.object({
@@ -113,7 +128,10 @@ export const ProfileUpdateSchema = z.object({
     .string()
     .min(3)
     .max(30)
-    .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, underscores, and hyphens')
+    .regex(
+      /^[a-zA-Z0-9_-]+$/,
+      'Username can only contain letters, numbers, underscores, and hyphens'
+    )
     .optional(),
   displayName: z.string().min(1).max(100).optional(),
   bio: z.string().max(500).optional(),
@@ -185,7 +203,9 @@ export function sanitizeParams(params: unknown): Partial<PatternParams> {
 // =============================================================================
 
 export function createValidator<T>(schema: z.ZodSchema<T>) {
-  return async (data: unknown): Promise<{ valid: true; data: T } | { valid: false; error: string }> => {
+  return async (
+    data: unknown
+  ): Promise<{ valid: true; data: T } | { valid: false; error: string }> => {
     const result = schema.safeParse(data);
 
     if (result.success) {

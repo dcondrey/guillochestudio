@@ -21,7 +21,9 @@ test.describe('Homepage', () => {
     await expect(page.getByText(/Guilloch[ée] Studio/i).first()).toBeVisible();
   });
 
-  test('should show sign in and get started buttons for unauthenticated users', async ({ page }) => {
+  test('should show sign in and get started buttons for unauthenticated users', async ({
+    page,
+  }) => {
     // Check for auth buttons
     await expect(page.getByRole('link', { name: /sign in/i })).toBeVisible();
     await expect(page.getByRole('link', { name: /get started/i })).toBeVisible();
@@ -70,7 +72,10 @@ test.describe('Homepage', () => {
 
   test('should navigate to signup when clicking "Get Started Free"', async ({ page }) => {
     // Click get started
-    await page.getByRole('link', { name: /get started/i }).first().click();
+    await page
+      .getByRole('link', { name: /get started/i })
+      .first()
+      .click();
 
     // Should navigate to signup page
     await expect(page).toHaveURL(/\/auth\/signup/);

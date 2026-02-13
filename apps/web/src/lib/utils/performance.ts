@@ -167,9 +167,15 @@ export class PerformanceMonitor {
 
     // Log slow queries
     if (metrics.duration > 100) {
-      this.logger?.warn(`Slow query: ${metrics.operation} on ${metrics.table}`, metrics as unknown as Record<string, unknown>);
+      this.logger?.warn(
+        `Slow query: ${metrics.operation} on ${metrics.table}`,
+        metrics as unknown as Record<string, unknown>
+      );
     } else {
-      this.logger?.debug(`Query: ${metrics.operation} on ${metrics.table}`, metrics as unknown as Record<string, unknown>);
+      this.logger?.debug(
+        `Query: ${metrics.operation} on ${metrics.table}`,
+        metrics as unknown as Record<string, unknown>
+      );
     }
   }
 
@@ -245,15 +251,11 @@ export class PerformanceMonitor {
   /**
    * Wrap a fetch call with timing and tracking
    */
-  async trackedFetch(
-    service: string,
-    url: string,
-    options?: RequestInit
-  ): Promise<Response> {
+  async trackedFetch(service: string, url: string, options?: RequestInit): Promise<Response> {
     const startTime = performance.now();
     const method = options?.method || 'GET';
     let status = 0;
-    let retries = 0;
+    const retries = 0;
 
     try {
       const response = await fetch(url, options);
@@ -363,7 +365,10 @@ export class PerformanceMonitor {
 
   private sanitizeTimingName(name: string): string {
     // Server-Timing names must be valid tokens (no spaces, quotes, etc.)
-    return name.toLowerCase().replace(/[^a-z0-9_-]/g, '-').substring(0, 64);
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9_-]/g, '-')
+      .substring(0, 64);
   }
 }
 

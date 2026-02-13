@@ -410,22 +410,23 @@ export class ContextualLearningService {
     // Update complexity score
     if (params.steps) {
       const normalizedSteps = Math.min(params.steps / 10000, 1);
-      profile.complexityScore = (profile.complexityScore * 0.9) + (normalizedSteps * 0.1);
+      profile.complexityScore = profile.complexityScore * 0.9 + normalizedSteps * 0.1;
     }
 
     // Update symmetry preference
     if (params.k !== undefined) {
       const symmetryIndicator = params.k > 1 ? 0.8 : 0.2;
-      profile.symmetryPreference = (profile.symmetryPreference * 0.9) + (symmetryIndicator * 0.1);
+      profile.symmetryPreference = profile.symmetryPreference * 0.9 + symmetryIndicator * 0.1;
     }
 
     // Update organic vs geometric based on family
     if (params.family) {
       const geometricFamilies = ['spirograph', 'lissajous'];
       const indicator = geometricFamilies.includes(params.family) ? 0.7 : -0.3;
-      profile.organicVsGeometric = Math.max(-1, Math.min(1,
-        profile.organicVsGeometric * 0.9 + indicator * 0.1
-      ));
+      profile.organicVsGeometric = Math.max(
+        -1,
+        Math.min(1, profile.organicVsGeometric * 0.9 + indicator * 0.1)
+      );
     }
 
     // Track dominant styles
@@ -580,7 +581,8 @@ export class ContextualLearningService {
           id: 'tip_export',
           type: 'workflow_tip',
           title: 'Try different export formats',
-          description: 'SVG exports are perfect for scaling, while PNG works better for web sharing.',
+          description:
+            'SVG exports are perfect for scaling, while PNG works better for web sharing.',
           confidence: 0.65,
         },
       ],
@@ -589,7 +591,8 @@ export class ContextualLearningService {
           id: 'tip_wasm',
           type: 'workflow_tip',
           title: 'Enable WASM engine',
-          description: 'The WebAssembly engine renders patterns up to 5x faster for complex designs.',
+          description:
+            'The WebAssembly engine renders patterns up to 5x faster for complex designs.',
           confidence: 0.7,
         },
         {
@@ -664,10 +667,7 @@ export class ContextualLearningService {
   /**
    * Calculate distance between parameter sets
    */
-  private calculateParamDistance(
-    a: Partial<PatternParams>,
-    b: Partial<PatternParams>
-  ): number {
+  private calculateParamDistance(a: Partial<PatternParams>, b: Partial<PatternParams>): number {
     const numericKeys = ['R', 'r', 'd', 'amplitude', 'frequency', 'steps', 'k'];
     let totalDistance = 0;
     let keyCount = 0;
@@ -678,7 +678,9 @@ export class ContextualLearningService {
 
       if (aVal !== undefined && bVal !== undefined) {
         // Normalize by typical range
-        const range = this.profile.parameterTendencies[key]?.max - this.profile.parameterTendencies[key]?.min || 100;
+        const range =
+          this.profile.parameterTendencies[key]?.max - this.profile.parameterTendencies[key]?.min ||
+          100;
         totalDistance += Math.abs(aVal - bVal) / (range || 1);
         keyCount++;
       }
@@ -744,12 +746,12 @@ export class ContextualLearningService {
     const familyCounts: Record<string, number> = {};
     for (const interaction of this.interactions) {
       if (interaction.params.family) {
-        familyCounts[interaction.params.family] = (familyCounts[interaction.params.family] || 0) + 1;
+        familyCounts[interaction.params.family] =
+          (familyCounts[interaction.params.family] || 0) + 1;
       }
     }
 
-    const topFamily = Object.entries(familyCounts)
-      .sort((a, b) => b[1] - a[1])[0];
+    const topFamily = Object.entries(familyCounts).sort((a, b) => b[1] - a[1])[0];
 
     if (topFamily) {
       insights.push({
@@ -789,10 +791,7 @@ export class ContextualLearningService {
   /**
    * Update user preference
    */
-  updatePreference<K extends keyof UserPreferences>(
-    key: K,
-    value: UserPreferences[K]
-  ): void {
+  updatePreference<K extends keyof UserPreferences>(key: K, value: UserPreferences[K]): void {
     this.profile.preferences[key] = value;
     this.profile.updatedAt = Date.now();
     this._profile.set(this.profile);
@@ -807,9 +806,21 @@ export class ContextualLearningService {
     const dominantStyle = this.profile.styleProfile.dominantStyles[0];
 
     // Map style to valid CurveFamily
-    const validFamilies: PatternParams['family'][] = ['hypo', 'hypotrochoid', 'epi', 'epitrochoid', 'rose', 'liss', 'spiral', 'hypocycloid', 'epicycloid', 'fermat', 'liss3d'];
+    const validFamilies: PatternParams['family'][] = [
+      'hypo',
+      'hypotrochoid',
+      'epi',
+      'epitrochoid',
+      'rose',
+      'liss',
+      'spiral',
+      'hypocycloid',
+      'epicycloid',
+      'fermat',
+      'liss3d',
+    ];
     const family = validFamilies.includes(dominantStyle as PatternParams['family'])
-      ? dominantStyle as PatternParams['family']
+      ? (dominantStyle as PatternParams['family'])
       : 'hypotrochoid';
 
     return {
@@ -901,10 +912,14 @@ export class ContextualLearningService {
    * Export learning data
    */
   exportData(): string {
-    return JSON.stringify({
-      profile: this.profile,
-      interactions: this.interactions.slice(-100),
-    }, null, 2);
+    return JSON.stringify(
+      {
+        profile: this.profile,
+        interactions: this.interactions.slice(-100),
+      },
+      null,
+      2
+    );
   }
 
   /**

@@ -124,9 +124,10 @@ export async function getPatternListing(
   supabase: SupabaseClient<Database>,
   patternId: string
 ): Promise<PatternListing | null> {
-  const { data: pattern, error } = await supabase
+  const { data: pattern, error } = (await supabase
     .from('patterns')
-    .select(`
+    .select(
+      `
       id,
       name,
       description,
@@ -145,10 +146,11 @@ export async function getPatternListing(
         display_name,
         avatar_url
       )
-    `)
+    `
+    )
     .eq('id', patternId)
     .eq('is_listed', true)
-    .single() as unknown as { data: PatternWithProfiles | null; error: Error | null };
+    .single()) as unknown as { data: PatternWithProfiles | null; error: Error | null };
 
   if (error || !pattern) {
     console.error('Failed to fetch pattern listing:', error);
@@ -195,16 +197,18 @@ async function getRemixChain(
 ): Promise<RemixChainItem[]> {
   if (depth >= maxDepth) return [];
 
-  const { data: pattern } = await supabase
+  const { data: pattern } = (await supabase
     .from('patterns')
-    .select(`
+    .select(
+      `
       id,
       name,
       remix_of,
       profiles (username)
-    `)
+    `
+    )
     .eq('id', patternId)
-    .single() as { data: PatternWithUsername | null; error: unknown };
+    .single()) as { data: PatternWithUsername | null; error: unknown };
 
   if (!pattern) return [];
 
@@ -251,12 +255,12 @@ export async function checkPurchase(
   userId: string,
   patternId: string
 ): Promise<{ purchased: boolean; license?: LicenseType }> {
-  const { data: purchase } = await supabase
+  const { data: purchase } = (await supabase
     .from('purchases')
     .select('license_type')
     .eq('user_id', userId)
     .eq('pattern_id', patternId)
-    .single() as unknown as { data: { license_type: string } | null; error: unknown };
+    .single()) as unknown as { data: { license_type: string } | null; error: unknown };
 
   if (purchase) {
     return {
@@ -290,28 +294,32 @@ export async function getSimilarPatterns(
   patternId: string,
   tags: string[],
   limit = 6
-): Promise<Array<{
-  id: string;
-  name: string;
-  thumbnail_url: string | null;
-  price_cents: number;
-  creator_username: string | null;
-}>> {
+): Promise<
+  Array<{
+    id: string;
+    name: string;
+    thumbnail_url: string | null;
+    price_cents: number;
+    creator_username: string | null;
+  }>
+> {
   // Find patterns with overlapping tags
-  const { data: patterns } = await supabase
+  const { data: patterns } = (await supabase
     .from('patterns')
-    .select(`
+    .select(
+      `
       id,
       name,
       thumbnail_url,
       price_cents,
       tags,
       profiles (username)
-    `)
+    `
+    )
     .eq('is_listed', true)
     .neq('id', patternId)
     .overlaps('tags', tags)
-    .limit(limit) as { data: PatternBasic[] | null; error: unknown };
+    .limit(limit)) as { data: PatternBasic[] | null; error: unknown };
 
   if (!patterns) return [];
 
@@ -332,12 +340,14 @@ export async function getCreatorPatterns(
   creatorId: string,
   excludePatternId?: string,
   limit = 6
-): Promise<Array<{
-  id: string;
-  name: string;
-  thumbnail_url: string | null;
-  price_cents: number;
-}>> {
+): Promise<
+  Array<{
+    id: string;
+    name: string;
+    thumbnail_url: string | null;
+    price_cents: number;
+  }>
+> {
   let query = supabase
     .from('patterns')
     .select('id, name, thumbnail_url, price_cents')
@@ -359,18 +369,21 @@ export async function getCreatorPatterns(
 export async function getUserPurchases(
   supabase: SupabaseClient<Database>,
   userId: string
-): Promise<Array<{
-  id: string;
-  pattern_id: string;
-  pattern_name: string;
-  thumbnail_url: string | null;
-  license_type: LicenseType;
-  price_cents: number;
-  created_at: string;
-}>> {
-  const { data: purchases } = await supabase
+): Promise<
+  Array<{
+    id: string;
+    pattern_id: string;
+    pattern_name: string;
+    thumbnail_url: string | null;
+    license_type: LicenseType;
+    price_cents: number;
+    created_at: string;
+  }>
+> {
+  const { data: purchases } = (await supabase
     .from('purchases')
-    .select(`
+    .select(
+      `
       id,
       pattern_id,
       license_type,
@@ -380,9 +393,13 @@ export async function getUserPurchases(
         name,
         thumbnail_url
       )
-    `)
+    `
+    )
     .eq('user_id', userId)
-    .order('created_at', { ascending: false }) as { data: PurchaseWithPattern[] | null; error: unknown };
+    .order('created_at', { ascending: false })) as {
+    data: PurchaseWithPattern[] | null;
+    error: unknown;
+  };
 
   if (!purchases) return [];
 
@@ -411,10 +428,10 @@ export async function getCreatorEarnings(
   monthly_earnings: Array<{ month: string; earnings: number; sales: number }>;
 }> {
   // Get patterns owned by creator
-  const { data: patterns } = await supabase
+  const { data: patterns } = (await supabase
     .from('patterns')
     .select('id')
-    .eq('user_id', creatorId) as unknown as { data: { id: string }[] | null; error: unknown };
+    .eq('user_id', creatorId)) as unknown as { data: { id: string }[] | null; error: unknown };
 
   const patternIds = patterns?.map((p) => p.id) || [];
 
@@ -429,13 +446,13 @@ export async function getCreatorEarnings(
   }
 
   // Get all purchases of creator's patterns
-  const { data: purchases } = await supabase
+  const { data: purchases } = (await supabase
     .from('purchases')
     .select('price_cents, royalty_paid_cents, created_at')
-    .in('pattern_id', patternIds) as unknown as {
-      data: { price_cents: number; royalty_paid_cents: number; created_at: string }[] | null;
-      error: unknown;
-    };
+    .in('pattern_id', patternIds)) as unknown as {
+    data: { price_cents: number; royalty_paid_cents: number; created_at: string }[] | null;
+    error: unknown;
+  };
 
   if (!purchases) {
     return {
@@ -447,7 +464,10 @@ export async function getCreatorEarnings(
     };
   }
 
-  const total_earnings_cents = purchases.reduce((sum, p) => sum + (p.price_cents - p.royalty_paid_cents), 0);
+  const total_earnings_cents = purchases.reduce(
+    (sum, p) => sum + (p.price_cents - p.royalty_paid_cents),
+    0
+  );
   const total_royalties_cents = purchases.reduce((sum, p) => sum + p.royalty_paid_cents, 0);
   const total_sales = purchases.length;
   const patterns_sold = new Set(patternIds).size;
@@ -567,16 +587,19 @@ export async function createRemixRelationship(
 export async function getPatternRemixes(
   supabase: SupabaseClient<Database>,
   patternId: string
-): Promise<Array<{
-  id: string;
-  name: string;
-  thumbnail_url: string | null;
-  creator_username: string | null;
-  similarity_score: number;
-}>> {
-  const { data: remixes } = await supabase
+): Promise<
+  Array<{
+    id: string;
+    name: string;
+    thumbnail_url: string | null;
+    creator_username: string | null;
+    similarity_score: number;
+  }>
+> {
+  const { data: remixes } = (await supabase
     .from('remixes')
-    .select(`
+    .select(
+      `
       similarity_score,
       patterns!remix_pattern_id (
         id,
@@ -584,16 +607,19 @@ export async function getPatternRemixes(
         thumbnail_url,
         profiles (username)
       )
-    `)
-    .eq('original_pattern_id', patternId) as { data: RemixWithPattern[] | null; error: unknown };
+    `
+    )
+    .eq('original_pattern_id', patternId)) as { data: RemixWithPattern[] | null; error: unknown };
 
   if (!remixes) return [];
 
-  return remixes.map((r) => ({
-    id: r.patterns?.id || '',
-    name: r.patterns?.name || '',
-    thumbnail_url: r.patterns?.thumbnail_url || null,
-    creator_username: r.patterns?.profiles?.username || null,
-    similarity_score: r.similarity_score ?? 0,
-  })).filter((r) => r.id !== '');
+  return remixes
+    .map((r) => ({
+      id: r.patterns?.id || '',
+      name: r.patterns?.name || '',
+      thumbnail_url: r.patterns?.thumbnail_url || null,
+      creator_username: r.patterns?.profiles?.username || null,
+      similarity_score: r.similarity_score ?? 0,
+    }))
+    .filter((r) => r.id !== '');
 }

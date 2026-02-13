@@ -6,10 +6,21 @@
 // Type alias for Cloudflare KV namespace
 interface KVNamespace {
   get(key: string, type?: 'text' | 'json' | 'arrayBuffer' | 'stream'): Promise<unknown>;
-  put(key: string, value: string | ArrayBuffer | ReadableStream, options?: { expirationTtl?: number; expiration?: number; metadata?: Record<string, unknown> }): Promise<void>;
+  put(
+    key: string,
+    value: string | ArrayBuffer | ReadableStream,
+    options?: { expirationTtl?: number; expiration?: number; metadata?: Record<string, unknown> }
+  ): Promise<void>;
   delete(key: string): Promise<void>;
-  list(options?: { prefix?: string; limit?: number; cursor?: string }): Promise<{ keys: { name: string; expiration?: number; metadata?: unknown }[]; list_complete: boolean; cursor?: string }>;
-  getWithMetadata<M = unknown>(key: string, type?: 'text' | 'json' | 'arrayBuffer' | 'stream'): Promise<{ value: unknown; metadata: M | null }>;
+  list(options?: { prefix?: string; limit?: number; cursor?: string }): Promise<{
+    keys: { name: string; expiration?: number; metadata?: unknown }[];
+    list_complete: boolean;
+    cursor?: string;
+  }>;
+  getWithMetadata<M = unknown>(
+    key: string,
+    type?: 'text' | 'json' | 'arrayBuffer' | 'stream'
+  ): Promise<{ value: unknown; metadata: M | null }>;
 }
 
 // =============================================================================

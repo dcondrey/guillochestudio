@@ -15,23 +15,24 @@
   $: {
     initializeAuth({
       session: data.session,
-      user: data.user
+      user: data.user,
     });
   }
 
   // Initialize feature flags
   onMount(() => {
     initializeFeatureFlags({
-      environment: import.meta.env.MODE === 'production'
-        ? 'production'
-        : import.meta.env.MODE === 'staging'
-          ? 'staging'
-          : 'development',
+      environment:
+        import.meta.env.MODE === 'production'
+          ? 'production'
+          : import.meta.env.MODE === 'staging'
+            ? 'staging'
+            : 'development',
     });
 
     // Listen for auth state changes
     const {
-      data: { subscription }
+      data: { subscription },
     } = data.supabase.auth.onAuthStateChange((event, newSession) => {
       if (newSession?.expires_at !== data.session?.expires_at) {
         invalidate('supabase:auth');
@@ -71,12 +72,7 @@
 </svelte:head>
 
 <!-- Live region for screen reader announcements -->
-<div
-  aria-live="polite"
-  aria-atomic="true"
-  class="sr-only"
-  role="status"
->
+<div aria-live="polite" aria-atomic="true" class="sr-only" role="status">
   {announcement}
 </div>
 

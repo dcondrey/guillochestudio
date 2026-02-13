@@ -59,7 +59,13 @@
   <!-- Status Bar -->
   {#if state}
     <div class="status-bar" class:rendering={state.status === 'rendering'}>
-      <div class="status-indicator" class:idle={state.status === 'idle'} class:rendering={state.status === 'rendering'} class:completed={state.status === 'completed'} class:error={state.status === 'error'} />
+      <div
+        class="status-indicator"
+        class:idle={state.status === 'idle'}
+        class:rendering={state.status === 'rendering'}
+        class:completed={state.status === 'completed'}
+        class:error={state.status === 'error'}
+      />
       <span class="status-text">
         {#if state.status === 'idle'}
           Ready
@@ -116,7 +122,9 @@
             class:active={preferWasm}
             on:click={() => updateConfig({ preferWasm: true })}
             disabled={disabled || !capabilities?.wasm}
-            title={capabilities?.wasm ? 'Use WebAssembly engine (faster)' : 'WebAssembly not available'}
+            title={capabilities?.wasm
+              ? 'Use WebAssembly engine (faster)'
+              : 'WebAssembly not available'}
           >
             WASM
             {#if capabilities?.simd}
@@ -148,7 +156,13 @@
         </button>
         <button class="action-button abort" on:click={() => dispatch('abort')} {disabled}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" />
+            <path
+              d="M18 6L6 18M6 6l12 12"
+              stroke="currentColor"
+              stroke-width="2"
+              fill="none"
+              stroke-linecap="round"
+            />
           </svg>
           Cancel
         </button>
@@ -161,7 +175,13 @@
         </button>
         <button class="action-button abort" on:click={() => dispatch('abort')} {disabled}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" />
+            <path
+              d="M18 6L6 18M6 6l12 12"
+              stroke="currentColor"
+              stroke-width="2"
+              fill="none"
+              stroke-linecap="round"
+            />
           </svg>
           Cancel
         </button>
@@ -176,11 +196,7 @@
     </div>
 
     <!-- Advanced Settings Toggle -->
-    <button
-      class="advanced-toggle"
-      on:click={() => (showAdvanced = !showAdvanced)}
-      {disabled}
-    >
+    <button class="advanced-toggle" on:click={() => (showAdvanced = !showAdvanced)} {disabled}>
       <svg
         width="12"
         height="12"
@@ -321,8 +337,13 @@
   }
 
   @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.8; }
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
   }
 
   .status-indicator {
@@ -332,14 +353,28 @@
     background: #94a3b8;
   }
 
-  .status-indicator.idle { background: #94a3b8; }
-  .status-indicator.rendering { background: #4f46e5; animation: blink 1s ease-in-out infinite; }
-  .status-indicator.completed { background: #22c55e; }
-  .status-indicator.error { background: #ef4444; }
+  .status-indicator.idle {
+    background: #94a3b8;
+  }
+  .status-indicator.rendering {
+    background: #4f46e5;
+    animation: blink 1s ease-in-out infinite;
+  }
+  .status-indicator.completed {
+    background: #22c55e;
+  }
+  .status-indicator.error {
+    background: #ef4444;
+  }
 
   @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
   }
 
   .status-text {
@@ -543,7 +578,7 @@
     color: #475569;
   }
 
-  .setting-row input[type="range"] {
+  .setting-row input[type='range'] {
     flex: 1;
     height: 4px;
     background: #e2e8f0;
@@ -551,7 +586,7 @@
     appearance: none;
   }
 
-  .setting-row input[type="range"]::-webkit-slider-thumb {
+  .setting-row input[type='range']::-webkit-slider-thumb {
     appearance: none;
     width: 14px;
     height: 14px;
@@ -580,7 +615,7 @@
     cursor: pointer;
   }
 
-  .setting-row.checkbox input[type="checkbox"] {
+  .setting-row.checkbox input[type='checkbox'] {
     width: 16px;
     height: 16px;
     accent-color: #4f46e5;

@@ -44,7 +44,10 @@ export async function generateQRCodeSVG(data: string): Promise<string> {
 /**
  * Create DNA share link
  */
-export function createDNALink(params: PatternParams, baseUrl = ''): {
+export function createDNALink(
+  params: PatternParams,
+  baseUrl = ''
+): {
   dna: string;
   url: string;
 } {
@@ -56,11 +59,14 @@ export function createDNALink(params: PatternParams, baseUrl = ''): {
 /**
  * Create embed code for pattern
  */
-export function createEmbedCode(dnaCode: string, options: {
-  width?: number;
-  height?: number;
-  theme?: 'light' | 'dark';
-} = {}): string {
+export function createEmbedCode(
+  dnaCode: string,
+  options: {
+    width?: number;
+    height?: number;
+    theme?: 'light' | 'dark';
+  } = {}
+): string {
   const { width = 400, height = 400, theme = 'dark' } = options;
   const embedUrl = `${window.location.origin}/embed/${dnaCode}?theme=${theme}`;
 
@@ -153,7 +159,10 @@ export async function nativeShare(options: ShareOptions & { url: string }): Prom
 /**
  * Download QR code as image
  */
-export async function downloadQRCode(data: string, filename = 'guilloche-pattern-qr.png'): Promise<void> {
+export async function downloadQRCode(
+  data: string,
+  filename = 'guilloche-pattern-qr.png'
+): Promise<void> {
   const dataUrl = await generateQRCode(data, 512);
   const a = document.createElement('a');
   a.href = dataUrl;

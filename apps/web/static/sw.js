@@ -20,10 +20,7 @@ const STATIC_ASSETS = [
 ];
 
 // WASM files to cache (will be cached on first use if not available at install)
-const WASM_ASSETS = [
-  '/wasm/guilloche_wasm.js',
-  '/wasm/guilloche_wasm_bg.wasm',
-];
+const WASM_ASSETS = ['/wasm/guilloche_wasm.js', '/wasm/guilloche_wasm_bg.wasm'];
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
@@ -56,20 +53,23 @@ self.addEventListener('install', (event) => {
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys
-          .filter((key) => {
-            return (
-              key.startsWith('guilloche-') &&
-              key !== STATIC_CACHE &&
-              key !== DYNAMIC_CACHE &&
-              key !== WASM_CACHE
-            );
-          })
-          .map((key) => caches.delete(key))
-      );
-    }).then(() => self.clients.claim())
+    caches
+      .keys()
+      .then((keys) => {
+        return Promise.all(
+          keys
+            .filter((key) => {
+              return (
+                key.startsWith('guilloche-') &&
+                key !== STATIC_CACHE &&
+                key !== DYNAMIC_CACHE &&
+                key !== WASM_CACHE
+              );
+            })
+            .map((key) => caches.delete(key))
+        );
+      })
+      .then(() => self.clients.claim())
   );
 });
 
@@ -262,9 +262,7 @@ self.addEventListener('push', (event) => {
       actions: data.actions || [],
     };
 
-    event.waitUntil(
-      self.registration.showNotification(data.title || 'Guilloché Studio', options)
-    );
+    event.waitUntil(self.registration.showNotification(data.title || 'Guilloché Studio', options));
   } catch (err) {
     console.error('Push notification error:', err);
   }

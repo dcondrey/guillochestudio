@@ -14,20 +14,20 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { z } from 'zod';
-import {
-  SecurityMiddleware,
-  createSecurityErrorResponse,
-} from '$lib/services/security-middleware';
+import { SecurityMiddleware, createSecurityErrorResponse } from '$lib/services/security-middleware';
 
 // =============================================================================
 // Response Helpers
 // =============================================================================
 
 function errorResponse(code: string, message: string, status: number): never {
-  throw error(status, JSON.stringify({
-    success: false,
-    error: { code, message },
-  }));
+  throw error(
+    status,
+    JSON.stringify({
+      success: false,
+      error: { code, message },
+    })
+  );
 }
 
 // =============================================================================
@@ -130,7 +130,11 @@ export const GET: RequestHandler = async (event) => {
 
     // Deny access if not owner and not purchased
     if (!isOwner && !hasPurchased) {
-      errorResponse('FORBIDDEN', 'You do not have permission to download this pattern. Please purchase it first.', 403);
+      errorResponse(
+        'FORBIDDEN',
+        'You do not have permission to download this pattern. Please purchase it first.',
+        403
+      );
     }
 
     // Track export usage and increment download count (fire and forget, don't block response)

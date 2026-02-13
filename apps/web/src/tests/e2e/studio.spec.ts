@@ -161,7 +161,10 @@ test.describe('Studio Page', () => {
 
   test('should collapse and expand control panel', async ({ page }) => {
     // Find the collapse button (the < or > character)
-    const collapseButton = page.locator('aside button').filter({ hasText: /[<>‹›]/ }).first();
+    const collapseButton = page
+      .locator('aside button')
+      .filter({ hasText: /[<>‹›]/ })
+      .first();
 
     // Check initial state - panel should be expanded
     const aside = page.locator('aside');

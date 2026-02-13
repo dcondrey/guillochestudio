@@ -22,10 +22,7 @@ import type { RequestHandler } from './$types';
 import { createHash } from 'crypto';
 import { CreatePatternSchema, validate } from '$lib/utils/validation';
 import { getCacheHeaders } from '$lib/utils/cache';
-import {
-  SecurityMiddleware,
-  createSecurityErrorResponse,
-} from '$lib/services/security-middleware';
+import { SecurityMiddleware, createSecurityErrorResponse } from '$lib/services/security-middleware';
 
 // =============================================================================
 // Response Helpers
@@ -49,11 +46,19 @@ function successResponse<T>(data: T, status = 200, cacheType?: 'USER_DATA' | 'AP
   });
 }
 
-function errorResponse(code: string, message: string, status: number, details?: Array<{ path: string; message: string }>): never {
-  throw error(status, JSON.stringify({
-    success: false,
-    error: { code, message, details },
-  }));
+function errorResponse(
+  code: string,
+  message: string,
+  status: number,
+  details?: Array<{ path: string; message: string }>
+): never {
+  throw error(
+    status,
+    JSON.stringify({
+      success: false,
+      error: { code, message, details },
+    })
+  );
 }
 
 // =============================================================================
@@ -251,7 +256,11 @@ export const POST: RequestHandler = async (event) => {
 
       // Check for duplicate constraint violation
       if (insertError.code === '23505') {
-        errorResponse('DUPLICATE_PATTERN', 'A pattern with identical parameters already exists', 409);
+        errorResponse(
+          'DUPLICATE_PATTERN',
+          'A pattern with identical parameters already exists',
+          409
+        );
       }
 
       errorResponse('DATABASE_ERROR', 'Failed to save pattern', 500);

@@ -25,10 +25,7 @@ import { createHash } from 'crypto';
 import { UpdatePatternSchema, validate } from '$lib/utils/validation';
 import { getCacheHeaders } from '$lib/utils/cache';
 import { z } from 'zod';
-import {
-  SecurityMiddleware,
-  createSecurityErrorResponse,
-} from '$lib/services/security-middleware';
+import { SecurityMiddleware, createSecurityErrorResponse } from '$lib/services/security-middleware';
 
 // =============================================================================
 // Response Helpers
@@ -44,7 +41,11 @@ interface ApiResponse<T> {
   };
 }
 
-function successResponse<T>(data: T, status = 200, cacheType?: 'USER_DATA' | 'PATTERNS' | 'API'): Response {
+function successResponse<T>(
+  data: T,
+  status = 200,
+  cacheType?: 'USER_DATA' | 'PATTERNS' | 'API'
+): Response {
   const response: ApiResponse<T> = { success: true, data };
   return json(response, {
     status,
@@ -52,11 +53,19 @@ function successResponse<T>(data: T, status = 200, cacheType?: 'USER_DATA' | 'PA
   });
 }
 
-function errorResponse(code: string, message: string, status: number, details?: Array<{ path: string; message: string }>): never {
-  throw error(status, JSON.stringify({
-    success: false,
-    error: { code, message, details },
-  }));
+function errorResponse(
+  code: string,
+  message: string,
+  status: number,
+  details?: Array<{ path: string; message: string }>
+): never {
+  throw error(
+    status,
+    JSON.stringify({
+      success: false,
+      error: { code, message, details },
+    })
+  );
 }
 
 // =============================================================================
@@ -361,10 +370,7 @@ export const DELETE: RequestHandler = async (event) => {
       errorResponse('FORBIDDEN', 'You do not have permission to delete this pattern', 403);
     }
 
-    const { error: deleteError } = await locals.supabase
-      .from('patterns')
-      .delete()
-      .eq('id', id);
+    const { error: deleteError } = await locals.supabase.from('patterns').delete().eq('id', id);
 
     if (deleteError) {
       console.error('Pattern delete error:', deleteError);

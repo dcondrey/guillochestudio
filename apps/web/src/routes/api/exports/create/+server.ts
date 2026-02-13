@@ -81,14 +81,17 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     });
 
     if (tier === 'free') {
-      return json({
-        success: false,
-        error: {
-          code: 'PRO_REQUIRED',
-          message: `${format.toUpperCase()} export requires Pro subscription`,
-          details: { requiredTier: 'pro' },
+      return json(
+        {
+          success: false,
+          error: {
+            code: 'PRO_REQUIRED',
+            message: `${format.toUpperCase()} export requires Pro subscription`,
+            details: { requiredTier: 'pro' },
+          },
         },
-      }, { status: 403 });
+        { status: 403 }
+      );
     }
   }
 
@@ -99,14 +102,17 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   });
 
   if (limitCheck && !limitCheck.allowed) {
-    return json({
-      success: false,
-      error: {
-        code: 'LIMIT_EXCEEDED',
-        message: `Export limit reached for ${format.toUpperCase()} (${limitCheck.current}/${limitCheck.limit})`,
-        details: { tier: limitCheck.tier },
+    return json(
+      {
+        success: false,
+        error: {
+          code: 'LIMIT_EXCEEDED',
+          message: `Export limit reached for ${format.toUpperCase()} (${limitCheck.current}/${limitCheck.limit})`,
+          details: { tier: limitCheck.tier },
+        },
       },
-    }, { status: 403 });
+      { status: 403 }
+    );
   }
 
   // 6. Determine version to export

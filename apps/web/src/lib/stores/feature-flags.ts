@@ -57,7 +57,7 @@ function updateContextFromAuth(
   tier: SubscriptionTier,
   authenticated: boolean
 ): void {
-  featureFlagContext.update(ctx => ({
+  featureFlagContext.update((ctx) => ({
     ...ctx,
     userId,
     subscriptionTier: tier,
@@ -76,7 +76,7 @@ if (browser) {
   let previousTier: SubscriptionTier = 'free';
   let previousAuth = false;
 
-  user.subscribe($user => {
+  user.subscribe(($user) => {
     const newUserId = $user?.id;
     const newTier = get(subscriptionTier);
     const newAuth = get(isAuthenticated);
@@ -89,7 +89,7 @@ if (browser) {
     }
   });
 
-  subscriptionTier.subscribe($tier => {
+  subscriptionTier.subscribe(($tier) => {
     const newUserId = get(user)?.id;
     const newAuth = get(isAuthenticated);
 
@@ -108,17 +108,15 @@ if (browser) {
  * All evaluated flags based on current context.
  * Automatically updates when context changes.
  */
-export const evaluatedFlags: Readable<Record<FeatureFlagName, FeatureFlagEvaluationResult>> = derived(
-  featureFlagContext,
-  $context => evaluateAllFlags($context)
-);
+export const evaluatedFlags: Readable<Record<FeatureFlagName, FeatureFlagEvaluationResult>> =
+  derived(featureFlagContext, ($context) => evaluateAllFlags($context));
 
 /**
  * Simple boolean flags map for convenience.
  */
 export const flags: Readable<Record<FeatureFlagName, boolean>> = derived(
   evaluatedFlags,
-  $evaluated => {
+  ($evaluated) => {
     const result: Partial<Record<FeatureFlagName, boolean>> = {};
     for (const [name, evaluation] of Object.entries($evaluated)) {
       result[name as FeatureFlagName] = evaluation.enabled;
@@ -135,14 +133,16 @@ export const flags: Readable<Record<FeatureFlagName, boolean>> = derived(
  * Create a derived store for a specific flag.
  */
 export function createFlagStore(name: FeatureFlagName): Readable<boolean> {
-  return derived(flags, $flags => $flags[name] ?? false);
+  return derived(flags, ($flags) => $flags[name] ?? false);
 }
 
 /**
  * Create a detailed evaluation store for a specific flag.
  */
-export function createFlagEvaluationStore(name: FeatureFlagName): Readable<FeatureFlagEvaluationResult> {
-  return derived(evaluatedFlags, $evaluated => $evaluated[name]);
+export function createFlagEvaluationStore(
+  name: FeatureFlagName
+): Readable<FeatureFlagEvaluationResult> {
+  return derived(evaluatedFlags, ($evaluated) => $evaluated[name]);
 }
 
 // Pre-defined stores for commonly used flags
@@ -164,9 +164,9 @@ export const experimentalCurvesEnabled = createFlagStore('experimental_curves');
 /**
  * Store for current overrides.
  */
-export const featureFlagOverrides = writable<Partial<Record<FeatureFlagName, import('$lib/services/feature-flags').FeatureFlagOverride>>>(
-  browser ? getOverrides() : {}
-);
+export const featureFlagOverrides = writable<
+  Partial<Record<FeatureFlagName, import('$lib/services/feature-flags').FeatureFlagOverride>>
+>(browser ? getOverrides() : {});
 
 /**
  * Enable a flag override.
@@ -203,7 +203,11 @@ export function clearFlagOverride(name: FeatureFlagName): void {
  */
 export function clearAllFlagOverrides(): void {
   clearAllOverrides();
-  featureFlagOverrides.set({} as Partial<Record<FeatureFlagName, import('$lib/services/feature-flags').FeatureFlagOverride>>);
+  featureFlagOverrides.set(
+    {} as Partial<
+      Record<FeatureFlagName, import('$lib/services/feature-flags').FeatureFlagOverride>
+    >
+  );
 }
 
 // ============================================================================
@@ -222,7 +226,7 @@ export function isFlagEnabled(name: FeatureFlagName): boolean {
  */
 export function getEnabledFlags(): FeatureFlagName[] {
   const $flags = get(flags);
-  return (Object.keys(FEATURE_FLAGS) as FeatureFlagName[]).filter(name => $flags[name]);
+  return (Object.keys(FEATURE_FLAGS) as FeatureFlagName[]).filter((name) => $flags[name]);
 }
 
 /**
@@ -251,7 +255,11 @@ export function hydrateFlags(serverFlags: Partial<Record<FeatureFlagName, boolea
   // Server flags are used to initialize context hints
   // The actual evaluation still happens client-side for reactivity
   if (browser) {
-    console.debug('[Feature Flags] Hydrated from server:', Object.keys(serverFlags).length, 'flags');
+    console.debug(
+      '[Feature Flags] Hydrated from server:',
+      Object.keys(serverFlags).length,
+      'flags'
+    );
   }
 }
 
@@ -271,7 +279,12 @@ export function debugFlags(): void {
 
   console.group('[Feature Flags] Debug Info');
   console.log('Context:', context);
-  console.log('Enabled flags:', Object.entries($flags).filter(([, v]) => v).map(([k]) => k));
+  console.log(
+    'Enabled flags:',
+    Object.entries($flags)
+      .filter(([, v]) => v)
+      .map(([k]) => k)
+  );
   console.log('All evaluations:', $evaluated);
   console.log('Overrides:', getOverrides());
   console.groupEnd();
