@@ -1,0 +1,72 @@
+# Cloudflare Pages & Workers Configuration
+# For Guilloché Studio Pro - https://guillochestudio.com
+
+name = "guilloche-studio"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = ".svelte-kit/cloudflare"
+
+# Main domain
+route = { pattern = "guillochestudio.com/*", zone_name = "guillochestudio.com" }
+
+# Environment variables (set these in Cloudflare Dashboard or via wrangler secret)
+# SUPABASE_URL = ""
+# SUPABASE_ANON_KEY = ""
+# STRIPE_SECRET_KEY = ""
+# STRIPE_WEBHOOK_SECRET = ""
+
+[vars]
+APP_NAME = "Guilloché Studio"
+APP_URL = "https://guillochestudio.com"
+API_VERSION = "v1"
+
+# Development environment
+[env.development]
+vars = { ENVIRONMENT = "development" }
+
+# Staging environment
+[env.staging]
+vars = { ENVIRONMENT = "staging" }
+route = { pattern = "staging.guillochestudio.com/*", zone_name = "guillochestudio.com" }
+
+# Production environment
+[env.production]
+vars = { ENVIRONMENT = "production" }
+
+# AI Worker bindings
+[[ai]]
+binding = "AI"
+
+# KV Namespace for caching
+[[kv_namespaces]]
+binding = "PATTERN_CACHE"
+id = "placeholder_kv_id"
+preview_id = "placeholder_preview_kv_id"
+
+# D1 Database (optional, for additional data)
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "guilloche-db"
+# database_id = "placeholder_d1_id"
+
+# R2 Bucket for pattern assets
+[[r2_buckets]]
+binding = "ASSETS"
+bucket_name = "guilloche-assets"
+preview_bucket_name = "guilloche-assets-preview"
+
+# Durable Objects for real-time collaboration
+# [[durable_objects.bindings]]
+# name = "COLLABORATION"
+# class_name = "CollaborationRoom"
+
+# Rate limiting rules
+# [[rules]]
+# type = "RateLimit"
+
+# Build settings
+[build]
+command = "pnpm run build"
+
+# Triggers for GitHub Actions
+[triggers]
+branches = ["main", "staging"]

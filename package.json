@@ -1,0 +1,58 @@
+{
+  "name": "guilloche-studio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Guilloche Studio Pro - Mathematical pattern generation SaaS platform",
+  "homepage": "https://guillochestudio.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/guilloche-studio/guilloche.git"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @guilloche/web dev",
+    "build": "pnpm run build:wasm && pnpm --filter @guilloche/web build",
+    "build:web": "pnpm --filter @guilloche/web build",
+    "build:analyze": "pnpm --filter @guilloche/web build:analyze",
+    "build:wasm": "cd packages/guilloche-wasm && wasm-pack build --target web --release",
+    "build:wasm:dev": "cd packages/guilloche-wasm && wasm-pack build --target web --dev",
+    "preview": "pnpm --filter @guilloche/web preview",
+    "check": "pnpm -r check",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "lint:fix": "pnpm -r lint:fix",
+    "test": "pnpm -r test",
+    "test:watch": "pnpm -r test:watch",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "clean": "pnpm -r clean && rm -rf node_modules",
+    "dedupe": "pnpm dedupe",
+    "deploy": "pnpm run build && npx wrangler pages deploy apps/web/.svelte-kit/cloudflare --project-name=guilloche-studio",
+    "deploy:staging": "pnpm run build && npx wrangler pages deploy apps/web/.svelte-kit/cloudflare --project-name=guilloche-studio --branch=staging",
+    "db:push": "supabase db push",
+    "db:migrate": "supabase migration new",
+    "db:reset": "supabase db reset"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@vitest/coverage-v8": "^4.0.18",
+    "@vitest/expect": "^4.0.18",
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.0",
+    "vitest": "^4.0.18",
+    "wrangler": "^3.28.0",
+    "zod": "^3.22.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "typescript": "^5.4.0",
+      "svelte": "^4.2.12",
+      "vite": "^5.1.6",
+      "zod": "^3.22.0"
+    }
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}

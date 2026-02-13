@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a"/>
+      <stop offset="100%" style="stop-color:#1e293b"/>
+    </linearGradient>
+    <linearGradient id="pattern" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6"/>
+      <stop offset="100%" style="stop-color:#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <!-- Header -->
+  <rect x="0" y="0" width="1920" height="64" fill="#1e293b"/>
+  <text x="32" y="42" fill="#f8fafc" font-family="system-ui" font-size="24" font-weight="600">Guilloche Studio</text>
+  <!-- Sidebar -->
+  <rect x="0" y="64" width="280" height="1016" fill="#1e293b"/>
+  <!-- Main Canvas -->
+  <rect x="280" y="64" width="1360" height="1016" fill="#0f172a"/>
+  <!-- Pattern Preview -->
+  <g fill="none" stroke="url(#pattern)" stroke-width="2" transform="translate(960,540)">
+    <circle r="300" opacity="0.3"/>
+    <circle r="250" opacity="0.4"/>
+    <circle r="200" opacity="0.5"/>
+    <circle r="150" opacity="0.6"/>
+    <circle r="100" opacity="0.7"/>
+    <path d="M 0 -300 Q 300 0 0 300 Q -300 0 0 -300" opacity="0.6"/>
+    <path d="M -300 0 Q 0 -300 300 0 Q 0 300 -300 0" opacity="0.6"/>
+  </g>
+  <!-- Right Panel -->
+  <rect x="1640" y="64" width="280" height="1016" fill="#1e293b"/>
+</svg>

@@ -1,0 +1,28 @@
+name = "guilloche-ai"
+main = "src/index.ts"
+compatibility_date = "2024-03-14"
+compatibility_flags = ["nodejs_compat"]
+
+# Workers AI binding
+[ai]
+binding = "AI"
+
+# Environment variables
+[vars]
+ENVIRONMENT = "production"
+
+# KV namespace for caching AI responses
+[[kv_namespaces]]
+binding = "AI_CACHE"
+id = "REPLACE_WITH_KV_ID"
+preview_id = "REPLACE_WITH_PREVIEW_KV_ID"
+
+# Secrets (set via wrangler secret put)
+# SUPABASE_URL
+# SUPABASE_SERVICE_KEY
+
+[env.development]
+vars = { ENVIRONMENT = "development" }
+
+[env.staging]
+vars = { ENVIRONMENT = "staging" }

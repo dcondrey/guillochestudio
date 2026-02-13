@@ -1,0 +1,331 @@
+name: Deploy to Cloudflare
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '9'
+  RUST_TOOLCHAIN: 'stable'
+
+# Cancel in-progress runs on same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Lint and type check - runs in parallel with test and build-wasm
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Type check
+        run: pnpm typecheck
+
+      - name: Format check
+        run: pnpm format:check
+
+  # Matrix test across Node versions
+  test:
+    name: Test (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ['20', '22']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-node${{ matrix.node-version }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-node${{ matrix.node-version }}-
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests with coverage
+        run: pnpm test -- --coverage
+
+      - name: Upload coverage reports
+        if: matrix.node-version == '20'
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: unittests
+          fail_ci_if_error: false
+
+  # Build WASM engine - runs in parallel with lint and test
+  build-wasm:
+    name: Build WASM Engine
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          targets: wasm32-unknown-unknown
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages/guilloche-wasm
+          cache-on-failure: true
+          cache-all-crates: true
+
+      - name: Cache wasm-pack
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/wasm-pack
+          key: ${{ runner.os }}-wasm-pack-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install wasm-pack
+        run: |
+          if ! command -v wasm-pack &> /dev/null; then
+            cargo install wasm-pack --locked
+          fi
+
+      - name: Build WASM
+        working-directory: packages/guilloche-wasm
+        run: wasm-pack build --target web --release
+
+      - name: Upload WASM artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasm-build
+          path: packages/guilloche-wasm/pkg/
+          retention-days: 1
+
+  # Build web application (can be reused by deploy jobs)
+  build-web:
+    name: Build Web Application
+    needs: [lint, test, build-wasm]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Cache SvelteKit build
+        uses: actions/cache@v4
+        with:
+          path: |
+            apps/web/.svelte-kit
+            apps/web/node_modules/.vite
+          key: ${{ runner.os }}-sveltekit-${{ hashFiles('apps/web/**/*.svelte', 'apps/web/**/*.ts', 'apps/web/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-sveltekit-
+
+      - name: Download WASM artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: wasm-build
+          path: packages/guilloche-wasm/pkg/
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build application
+        run: pnpm build:web
+        env:
+          PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
+          PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+
+      - name: Upload web build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: apps/web/.svelte-kit/cloudflare/
+          retention-days: 1
+
+  # Deploy to staging
+  deploy-staging:
+    name: Deploy to Staging
+    if: github.ref == 'refs/heads/staging' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
+    needs: build-web
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.guillochestudio.com
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download web build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: web-build
+          path: apps/web/.svelte-kit/cloudflare/
+
+      - name: Deploy to Cloudflare Pages (Staging)
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy apps/web/.svelte-kit/cloudflare --project-name=guilloche-studio --branch=staging
+
+      - name: Post deployment summary
+        run: |
+          echo "## Staging Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **URL:** https://staging.guillochestudio.com" >> $GITHUB_STEP_SUMMARY
+
+  # Deploy to production
+  deploy-production:
+    name: Deploy to Production
+    if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+    needs: build-web
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://guillochestudio.com
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download web build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: web-build
+          path: apps/web/.svelte-kit/cloudflare/
+
+      - name: Deploy to Cloudflare Pages (Production)
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy apps/web/.svelte-kit/cloudflare --project-name=guilloche-studio --branch=main
+
+      - name: Purge Cloudflare Cache
+        run: |
+          curl -X POST "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}'
+
+      - name: Post deployment summary
+        run: |
+          echo "## Production Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **URL:** https://guillochestudio.com" >> $GITHUB_STEP_SUMMARY
+
+  # Deploy Supabase migrations
+  deploy-migrations:
+    name: Deploy Database Migrations
+    if: github.ref == 'refs/heads/main'
+    needs: deploy-production
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Deploy migrations
+        run: |
+          supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+          supabase db push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Post migration summary
+        run: |
+          echo "## Database Migrations Applied" >> $GITHUB_STEP_SUMMARY
+          echo "- **Project:** ${{ secrets.SUPABASE_PROJECT_REF }}" >> $GITHUB_STEP_SUMMARY
