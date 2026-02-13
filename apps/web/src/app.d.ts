@@ -206,7 +206,7 @@ declare global {
         PATTERN_CACHE: CloudflareKV;
 
         // Cloudflare R2 - Asset storage
-        ASSETS: CloudflareR2Bucket;
+        PATTERN_ASSETS: CloudflareR2Bucket;
       };
       context?: {
         waitUntil(promise: Promise<unknown>): void;

@@ -19,6 +19,10 @@ import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { ProfileUpdateSchema, validate } from '$lib/utils/validation';
 import { getCacheHeaders } from '$lib/utils/cache';
+import {
+  SecurityMiddleware,
+  createSecurityErrorResponse,
+} from '$lib/services/security-middleware';
 
 // =============================================================================
 // Response Helpers
@@ -94,18 +98,24 @@ function errorResponse(code: string, message: string, status: number, details?: 
  *   }
  * }
  */
-export const GET: RequestHandler = async ({ locals }) => {
-  const { session, user } = await locals.safeGetSession();
+export const GET: RequestHandler = async (event) => {
+  const { locals } = event;
 
-  if (!session || !user) {
-    errorResponse('UNAUTHORIZED', 'Authentication required', 401);
+  // Security check - authentication required
+  const security = new SecurityMiddleware(locals.supabase);
+  const securityResult = await security.check(event, {});
+
+  if (!securityResult.allowed) {
+    return createSecurityErrorResponse(securityResult);
   }
+
+  const userId = securityResult.context!.userId;
 
   try {
     const { data: profile, error: fetchError } = await locals.supabase
       .from('profiles')
       .select('*')
-      .eq('id', user.id)
+      .eq('id', userId)
       .single();
 
     if (fetchError) {
@@ -176,12 +186,18 @@ export const GET: RequestHandler = async ({ locals }) => {
  *   }
  * }
  */
-export const PATCH: RequestHandler = async ({ request, locals }) => {
-  const { session, user } = await locals.safeGetSession();
+export const PATCH: RequestHandler = async (event) => {
+  const { request, locals } = event;
 
-  if (!session || !user) {
-    errorResponse('UNAUTHORIZED', 'Authentication required', 401);
+  // Security check - authentication required
+  const security = new SecurityMiddleware(locals.supabase);
+  const securityResult = await security.check(event, {});
+
+  if (!securityResult.allowed) {
+    return createSecurityErrorResponse(securityResult);
   }
+
+  const userId = securityResult.context!.userId;
 
   // Parse request body
   let body: unknown;
@@ -206,7 +222,7 @@ export const PATCH: RequestHandler = async ({ request, locals }) => {
         .from('profiles')
         .select('id')
         .eq('username', username)
-        .neq('id', user.id)
+        .neq('id', userId)
         .single();
 
       if (existing) {
@@ -225,7 +241,7 @@ export const PATCH: RequestHandler = async ({ request, locals }) => {
     const { data, error: updateError } = await locals.supabase
       .from('profiles')
       .update(updates)
-      .eq('id', user.id)
+      .eq('id', userId)
       .select()
       .single();
 

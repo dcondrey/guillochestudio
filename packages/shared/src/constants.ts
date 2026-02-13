@@ -125,6 +125,12 @@ export const PRESET_PATTERNS = [
 export const MAX_FREE_SAVES = 3;
 export const MAX_PRO_SAVES = 100;
 
+export const PATTERN_LIMITS = {
+  free: 3,
+  pro: 100,
+  enterprise: Infinity,
+} as const;
+
 export const DNA_CODE_LENGTH = 8;
 export const DNA_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 

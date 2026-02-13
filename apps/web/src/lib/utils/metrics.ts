@@ -93,27 +93,27 @@ export interface MetricsSnapshot {
 
 export class MetricsCollector {
   private startTime: number;
-  private requestCount: number;
-  private requestsByStatus: Map<number, number>;
-  private requestsByMethod: Map<string, number>;
-  private requestsByPath: Map<string, number>;
-  private responseTimes: number[];
-  private responseTimeBuckets: Map<string, number>;
-  private databaseMetrics: {
+  private requestCount!: number;
+  private requestsByStatus!: Map<number, number>;
+  private requestsByMethod!: Map<string, number>;
+  private requestsByPath!: Map<string, number>;
+  private responseTimes!: number[];
+  private responseTimeBuckets!: Map<string, number>;
+  private databaseMetrics!: {
     queryCount: number;
     totalTime: number;
     slowQueries: number;
     byOperation: Map<string, number>;
   };
-  private apiMetrics: {
+  private apiMetrics!: {
     callCount: number;
     totalTime: number;
     failedCalls: number;
     byService: Map<string, number>;
   };
-  private errorCount: number;
-  private errorsByType: Map<string, number>;
-  private customMetrics: Map<string, number>;
+  private errorCount!: number;
+  private errorsByType!: Map<string, number>;
+  private customMetrics!: Map<string, number>;
   private maxSampleSize: number;
 
   constructor(maxSampleSize = 10000) {

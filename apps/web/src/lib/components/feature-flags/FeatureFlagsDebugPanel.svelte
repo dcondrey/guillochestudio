@@ -32,7 +32,8 @@
       def.description.toLowerCase().includes(filterText.toLowerCase())
   );
 
-  function toggleFlag(name: FeatureFlagName) {
+  function toggleFlag(flagName: string) {
+    const name = flagName as FeatureFlagName;
     const currentValue = $flags[name];
     const hasOverride = $featureFlagOverrides[name];
 
@@ -62,6 +63,19 @@
 
   // Only show in development
   const isDev = import.meta.env.DEV;
+
+  // Helper functions for type-safe access in templates
+  function getFlagValue(name: string): boolean {
+    return $flags[name as FeatureFlagName] ?? false;
+  }
+
+  function getFlagEvaluation(name: string) {
+    return $evaluatedFlags[name as FeatureFlagName];
+  }
+
+  function hasOverride(name: string): boolean {
+    return !!$featureFlagOverrides[name as FeatureFlagName];
+  }
 </script>
 
 <svelte:window on:keydown={handleKeydown} />
@@ -127,16 +141,16 @@
       <!-- Flags List -->
       <div class="flex-1 overflow-y-auto">
         {#each filteredFlags as [name, definition]}
-          {@const isEnabled = $flags[name]}
-          {@const evaluation = $evaluatedFlags[name]}
-          {@const hasOverride = !!$featureFlagOverrides[name]}
+          {@const isEnabled = getFlagValue(name)}
+          {@const evaluation = getFlagEvaluation(name)}
+          {@const flagHasOverride = hasOverride(name)}
 
           <div class="px-4 py-3 border-b border-gray-800 hover:bg-gray-800/50">
             <div class="flex items-start justify-between gap-3">
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2">
                   <span class="font-mono text-sm text-white">{name}</span>
-                  {#if hasOverride}
+                  {#if flagHasOverride}
                     <span class="px-1.5 py-0.5 text-[10px] font-medium bg-yellow-600 text-white rounded">
                       OVERRIDE
                     </span>
@@ -152,7 +166,7 @@
               </div>
 
               <button
-                on:click={() => toggleFlag(flagName)}
+                on:click={() => toggleFlag(name)}
                 class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900"
                 class:bg-indigo-600={isEnabled}
                 class:bg-gray-600={!isEnabled}

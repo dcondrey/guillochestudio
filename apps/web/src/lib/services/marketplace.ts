@@ -5,7 +5,7 @@
 
 import { browser } from '$app/environment';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '$lib/types/database';
+import type { Database, Json } from '$lib/types/database';
 
 export type LicenseType = 'personal' | 'commercial' | 'remix';
 
@@ -60,6 +60,63 @@ export const LICENSE_MULTIPLIERS: Record<LicenseType, number> = {
   remix: 2,
 };
 
+// Types for Supabase query results with joins
+interface PatternWithProfiles {
+  id: string;
+  name: string;
+  description: string | null;
+  parameters: Json;
+  thumbnail_url: string | null;
+  price_cents: number;
+  license_type: string;
+  tags: string[] | null;
+  view_count: number;
+  download_count: number;
+  created_at: string;
+  remix_of: string | null;
+  profiles: {
+    id: string;
+    username: string | null;
+    display_name: string | null;
+    avatar_url: string | null;
+  } | null;
+}
+
+interface PatternWithUsername {
+  id: string;
+  name: string;
+  remix_of: string | null;
+  profiles: { username: string | null } | null;
+}
+
+interface PatternBasic {
+  id: string;
+  name: string;
+  thumbnail_url: string | null;
+  price_cents: number;
+  tags: string[] | null;
+  profiles: { username: string | null } | null;
+}
+
+interface PurchaseWithPattern {
+  id: string;
+  pattern_id: string;
+  license_type: string;
+  price_cents: number;
+  created_at: string;
+  patterns: { name: string; thumbnail_url: string | null } | null;
+}
+
+interface RemixWithPattern {
+  similarity_score: number | null;
+  patterns: {
+    id: string;
+    name: string;
+    thumbnail_url: string | null;
+    profiles: { username: string | null } | null;
+  } | null;
+}
+
 /**
  * Get pattern details for marketplace listing
  */
@@ -91,7 +148,7 @@ export async function getPatternListing(
     `)
     .eq('id', patternId)
     .eq('is_listed', true)
-    .single();
+    .single() as unknown as { data: PatternWithProfiles | null; error: Error | null };
 
   if (error || !pattern) {
     console.error('Failed to fetch pattern listing:', error);
@@ -118,10 +175,10 @@ export async function getPatternListing(
     created_at: pattern.created_at,
     remix_of: pattern.remix_of,
     creator: {
-      id: (pattern.profiles as any).id,
-      username: (pattern.profiles as any).username,
-      display_name: (pattern.profiles as any).display_name,
-      avatar_url: (pattern.profiles as any).avatar_url,
+      id: pattern.profiles?.id || '',
+      username: pattern.profiles?.username || null,
+      display_name: pattern.profiles?.display_name || null,
+      avatar_url: pattern.profiles?.avatar_url || null,
     },
     remix_chain: remixChain,
   };
@@ -147,14 +204,14 @@ async function getRemixChain(
       profiles (username)
     `)
     .eq('id', patternId)
-    .single();
+    .single() as { data: PatternWithUsername | null; error: unknown };
 
   if (!pattern) return [];
 
   const item: RemixChainItem = {
     id: pattern.id,
     name: pattern.name,
-    creator_username: (pattern.profiles as any)?.username || null,
+    creator_username: pattern.profiles?.username || null,
   };
 
   if (pattern.remix_of) {
@@ -199,7 +256,7 @@ export async function checkPurchase(
     .select('license_type')
     .eq('user_id', userId)
     .eq('pattern_id', patternId)
-    .single();
+    .single() as unknown as { data: { license_type: string } | null; error: unknown };
 
   if (purchase) {
     return {
@@ -218,7 +275,11 @@ export async function incrementViewCount(
   supabase: SupabaseClient<Database>,
   patternId: string
 ): Promise<void> {
-  await supabase.rpc('increment_pattern_view', { pattern_uuid: patternId });
+  // Use type assertion to bypass strict type checking for RPC calls
+  const client = supabase as unknown as {
+    rpc: (fn: string, params: Record<string, string>) => Promise<unknown>;
+  };
+  await client.rpc('increment_pattern_view', { pattern_uuid: patternId });
 }
 
 /**
@@ -250,7 +311,7 @@ export async function getSimilarPatterns(
     .eq('is_listed', true)
     .neq('id', patternId)
     .overlaps('tags', tags)
-    .limit(limit);
+    .limit(limit) as { data: PatternBasic[] | null; error: unknown };
 
   if (!patterns) return [];
 
@@ -259,7 +320,7 @@ export async function getSimilarPatterns(
     name: p.name,
     thumbnail_url: p.thumbnail_url,
     price_cents: p.price_cents,
-    creator_username: (p.profiles as any)?.username || null,
+    creator_username: p.profiles?.username || null,
   }));
 }
 
@@ -321,15 +382,15 @@ export async function getUserPurchases(
       )
     `)
     .eq('user_id', userId)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false }) as { data: PurchaseWithPattern[] | null; error: unknown };
 
   if (!purchases) return [];
 
   return purchases.map((p) => ({
     id: p.id,
     pattern_id: p.pattern_id,
-    pattern_name: (p.patterns as any)?.name || 'Unknown Pattern',
-    thumbnail_url: (p.patterns as any)?.thumbnail_url || null,
+    pattern_name: p.patterns?.name || 'Unknown Pattern',
+    thumbnail_url: p.patterns?.thumbnail_url || null,
     license_type: p.license_type as LicenseType,
     price_cents: p.price_cents,
     created_at: p.created_at,
@@ -353,7 +414,7 @@ export async function getCreatorEarnings(
   const { data: patterns } = await supabase
     .from('patterns')
     .select('id')
-    .eq('user_id', creatorId);
+    .eq('user_id', creatorId) as unknown as { data: { id: string }[] | null; error: unknown };
 
   const patternIds = patterns?.map((p) => p.id) || [];
 
@@ -371,7 +432,10 @@ export async function getCreatorEarnings(
   const { data: purchases } = await supabase
     .from('purchases')
     .select('price_cents, royalty_paid_cents, created_at')
-    .in('pattern_id', patternIds);
+    .in('pattern_id', patternIds) as unknown as {
+      data: { price_cents: number; royalty_paid_cents: number; created_at: string }[] | null;
+      error: unknown;
+    };
 
   if (!purchases) {
     return {
@@ -426,19 +490,20 @@ export async function listPatternOnMarketplace(
     tags?: string[];
   }
 ): Promise<{ success: boolean; error?: string }> {
-  // Verify ownership
-  const { data: pattern } = await supabase
+  // Verify ownership - use any to bypass strict typing
+  const client = supabase as SupabaseClient;
+  const { data: pattern } = await client
     .from('patterns')
     .select('user_id')
     .eq('id', patternId)
     .single();
 
-  if (!pattern || pattern.user_id !== userId) {
+  if (!pattern || (pattern as { user_id: string }).user_id !== userId) {
     return { success: false, error: 'Pattern not found or unauthorized' };
   }
 
   // Update pattern listing
-  const { error } = await supabase
+  const { error } = await client
     .from('patterns')
     .update({
       is_public: true,
@@ -465,11 +530,10 @@ export async function unlistPattern(
   patternId: string,
   userId: string
 ): Promise<{ success: boolean; error?: string }> {
-  const { error } = await supabase
+  const client = supabase as SupabaseClient;
+  const { error } = await client
     .from('patterns')
-    .update({
-      is_listed: false,
-    })
+    .update({ is_listed: false })
     .eq('id', patternId)
     .eq('user_id', userId);
 
@@ -489,7 +553,8 @@ export async function createRemixRelationship(
   remixPatternId: string,
   similarityScore: number
 ): Promise<void> {
-  await supabase.from('remixes').upsert({
+  const client = supabase as SupabaseClient;
+  await client.from('remixes').upsert({
     original_pattern_id: originalPatternId,
     remix_pattern_id: remixPatternId,
     similarity_score: similarityScore,
@@ -520,15 +585,15 @@ export async function getPatternRemixes(
         profiles (username)
       )
     `)
-    .eq('original_pattern_id', patternId);
+    .eq('original_pattern_id', patternId) as { data: RemixWithPattern[] | null; error: unknown };
 
   if (!remixes) return [];
 
   return remixes.map((r) => ({
-    id: (r.patterns as any)?.id,
-    name: (r.patterns as any)?.name,
-    thumbnail_url: (r.patterns as any)?.thumbnail_url,
-    creator_username: (r.patterns as any)?.profiles?.username || null,
+    id: r.patterns?.id || '',
+    name: r.patterns?.name || '',
+    thumbnail_url: r.patterns?.thumbnail_url || null,
+    creator_username: r.patterns?.profiles?.username || null,
     similarity_score: r.similarity_score ?? 0,
-  })).filter((r): r is { id: string; name: string; thumbnail_url: string | null; creator_username: string | null; similarity_score: number } => r.id != null);
+  })).filter((r) => r.id !== '');
 }

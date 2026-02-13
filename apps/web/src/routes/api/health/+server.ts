@@ -108,13 +108,13 @@ async function checkCloudflareKV(platform: App.Platform | undefined): Promise<Se
 }
 
 async function checkCloudflareR2(platform: App.Platform | undefined): Promise<ServiceStatus> {
-  if (!platform?.env?.ASSETS) {
+  if (!platform?.env?.PATTERN_ASSETS) {
     return { name: 'cloudflare-r2', status: 'down', error: 'Not configured' };
   }
 
   const startMs = Date.now();
   try {
-    await platform.env.ASSETS.head('health-check');
+    await platform.env.PATTERN_ASSETS.head('health-check');
     return { name: 'cloudflare-r2', status: 'up', latency: Date.now() - startMs };
   } catch {
     // R2 returns error for non-existent keys, that's expected behavior

@@ -158,10 +158,7 @@ test.describe('Authenticated User Flow', () => {
   test.use({ storageState: 'playwright/.auth/user.json' });
 
   // Skip if no auth state exists (in CI without credentials)
-  test.skip(({ }, testInfo) => {
-    // This will skip if auth setup was skipped
-    return !process.env.TEST_USER_EMAIL;
-  });
+  test.skip(!process.env.TEST_USER_EMAIL, 'No test credentials available');
 
   test('should show authenticated UI elements', async ({ page }) => {
     await page.goto('/studio');

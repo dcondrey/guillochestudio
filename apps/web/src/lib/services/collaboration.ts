@@ -4,9 +4,39 @@
  */
 
 import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '$lib/types/database';
+import type { Database, Json } from '$lib/types/database';
 import type { PatternParams } from '@guilloche/shared';
 import { writable, derived, get } from 'svelte/store';
+
+// Type helpers for Supabase query results
+interface CommentRow {
+  id: string;
+  user_id: string;
+  content: string;
+  position_x: number | null;
+  position_y: number | null;
+  resolved: boolean;
+  created_at: string;
+}
+
+interface ProfileRow {
+  id: string;
+  display_name: string | null;
+  avatar_url: string | null;
+}
+
+interface VersionRow {
+  id: string;
+  name: string;
+  parameters: Json;
+  created_by: string;
+  created_at: string;
+  parent_version_id: string | null;
+}
+
+interface SessionRow {
+  id: string;
+}
 
 export interface Collaborator {
   id: string;
@@ -111,7 +141,8 @@ export class CollaborationManager {
       this.sessionId = sessionId;
     } else {
       // Create new session
-      const { data: session, error } = await this.supabase
+      const client = this.supabase as SupabaseClient;
+      const { data: session, error } = await client
         .from('collaboration_sessions')
         .insert({
           pattern_id: patternId,
@@ -119,7 +150,7 @@ export class CollaborationManager {
           is_active: true,
         })
         .select('id')
-        .single();
+        .single() as { data: SessionRow | null; error: Error | null };
 
       if (error || !session) {
         console.error('Failed to create collaboration session:', error);
@@ -216,7 +247,7 @@ export class CollaborationManager {
     // Start heartbeat
     this.startHeartbeat();
 
-    return this.sessionId;
+    return this.sessionId!;
   }
 
   /**
@@ -312,7 +343,8 @@ export class CollaborationManager {
     };
 
     // Save to database
-    await this.supabase.from('pattern_comments').insert({
+    const client = this.supabase as SupabaseClient;
+    await client.from('pattern_comments').insert({
       id: comment.id,
       pattern_id: this.patternId,
       session_id: this.sessionId,
@@ -347,7 +379,8 @@ export class CollaborationManager {
     };
 
     // Save to database
-    await this.supabase.from('comment_replies').insert({
+    const client = this.supabase as SupabaseClient;
+    await client.from('comment_replies').insert({
       id: reply.id,
       comment_id: commentId,
       user_id: this.userId,
@@ -369,7 +402,8 @@ export class CollaborationManager {
    * Resolve comment
    */
   async resolveComment(commentId: string): Promise<void> {
-    await this.supabase
+    const client = this.supabase as SupabaseClient;
+    await client
       .from('pattern_comments')
       .update({ resolved: true })
       .eq('id', commentId);
@@ -408,11 +442,12 @@ export class CollaborationManager {
     };
 
     // Save to database
-    await this.supabase.from('pattern_versions').insert({
+    const client = this.supabase as SupabaseClient;
+    await client.from('pattern_versions').insert({
       id: version.id,
       pattern_id: this.patternId,
       name: version.name,
-      parameters: version.params as any,
+      parameters: version.params as unknown as Json,
       created_by: version.created_by,
       parent_version_id: version.parent_version_id,
     });
@@ -515,7 +550,8 @@ export class CollaborationManager {
   private async loadComments() {
     if (!this.patternId) return;
 
-    const { data } = await this.supabase
+    const client = this.supabase as SupabaseClient;
+    const { data } = await client
       .from('pattern_comments')
       .select(`
         id,
@@ -527,15 +563,15 @@ export class CollaborationManager {
         created_at
       `)
       .eq('pattern_id', this.patternId)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: true }) as { data: CommentRow[] | null; error: unknown };
 
     if (data) {
       // Fetch profile info separately for each user
       const userIds = [...new Set(data.map(c => c.user_id))];
-      const { data: profiles } = await this.supabase
+      const { data: profiles } = await client
         .from('profiles')
         .select('id, display_name, avatar_url')
-        .in('id', userIds);
+        .in('id', userIds) as { data: ProfileRow[] | null; error: unknown };
 
       const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
 
@@ -561,11 +597,12 @@ export class CollaborationManager {
   private async loadVersions() {
     if (!this.patternId) return;
 
-    const { data } = await this.supabase
+    const client = this.supabase as SupabaseClient;
+    const { data } = await client
       .from('pattern_versions')
       .select('*')
       .eq('pattern_id', this.patternId)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: true }) as { data: VersionRow[] | null; error: unknown };
 
     if (data) {
       versions.set(

@@ -19,6 +19,10 @@ import { z } from 'zod';
 import { STRIPE_SECRET_KEY } from '$env/static/private';
 import { STRIPE_PRICES } from '$lib/config/stripe';
 import { validate } from '$lib/utils/validation';
+import {
+  SecurityMiddleware,
+  createSecurityErrorResponse,
+} from '$lib/services/security-middleware';
 
 // =============================================================================
 // Stripe Client
@@ -111,11 +115,31 @@ const CheckoutSchema = z.object({
  *   }
  * }
  */
-export const POST: RequestHandler = async ({ request, locals, url }) => {
-  const { session, user } = await locals.safeGetSession();
+export const POST: RequestHandler = async (event) => {
+  const { request, locals, url } = event;
 
-  if (!session || !user) {
-    errorResponse('UNAUTHORIZED', 'Authentication required', 401);
+  // Security check with request signing (sensitive payment operation)
+  const security = new SecurityMiddleware(locals.supabase);
+  const securityResult = await security.check(event, {
+    requireSignature: true, // Require signed request for payment operations
+    checkAbuse: true, // Check for abuse patterns
+  });
+
+  if (!securityResult.allowed) {
+    return createSecurityErrorResponse(securityResult);
+  }
+
+  const user = { id: securityResult.context!.userId, email: '' };
+
+  // Get user email from profile
+  const { data: profile } = await locals.supabase
+    .from('profiles')
+    .select('email')
+    .eq('id', user.id)
+    .single();
+
+  if (profile?.email) {
+    user.email = profile.email;
   }
 
   // Parse and validate request body

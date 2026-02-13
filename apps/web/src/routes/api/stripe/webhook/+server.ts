@@ -8,7 +8,7 @@ import type { RequestHandler } from './$types';
 import Stripe from 'stripe';
 import { STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, SUPABASE_SERVICE_ROLE_KEY } from '$env/static/private';
 import { PUBLIC_SUPABASE_URL } from '$env/static/public';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '$lib/types/database';
 
 // =============================================================================
@@ -20,10 +20,13 @@ const stripe = new Stripe(STRIPE_SECRET_KEY, {
 });
 
 // Use service role key for webhook operations (bypasses RLS)
-const supabase = createClient<Database>(
+const supabaseTyped = createClient<Database>(
   PUBLIC_SUPABASE_URL,
   SUPABASE_SERVICE_ROLE_KEY
 );
+
+// Untyped client for operations where type inference fails
+const supabase = supabaseTyped as SupabaseClient;
 
 // =============================================================================
 // Response Helpers
@@ -128,7 +131,7 @@ export const POST: RequestHandler = async ({ request }) => {
           .from('profiles')
           .select('id')
           .eq('stripe_customer_id', customerId)
-          .single();
+          .single() as { data: { id: string } | null; error: unknown };
 
         if (profileError || !profile) {
           console.warn(`No profile found for Stripe customer ${customerId}`);
@@ -177,7 +180,7 @@ export const POST: RequestHandler = async ({ request }) => {
           .from('profiles')
           .select('id')
           .eq('stripe_customer_id', customerId)
-          .single();
+          .single() as { data: { id: string } | null; error: unknown };
 
         if (profileError || !profile) {
           console.warn(`No profile found for Stripe customer ${customerId}`);

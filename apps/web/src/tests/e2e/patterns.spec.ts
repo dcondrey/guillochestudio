@@ -67,9 +67,7 @@ test.describe('Pattern Saving and Loading', () => {
     test.use({ storageState: 'playwright/.auth/user.json' });
 
     // Skip if no auth state exists
-    test.skip(({ }, testInfo) => {
-      return !process.env.TEST_USER_EMAIL;
-    });
+    test.skip(!process.env.TEST_USER_EMAIL, 'No test credentials available');
 
     test('should display my patterns page', async ({ page }) => {
       await page.goto('/patterns');

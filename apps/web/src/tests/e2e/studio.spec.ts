@@ -165,7 +165,7 @@ test.describe('Studio Page', () => {
 
     // Check initial state - panel should be expanded
     const aside = page.locator('aside');
-    const initialWidth = await aside.evaluate((el) => el.offsetWidth);
+    const initialWidth = await aside.evaluate((el) => (el as HTMLElement).offsetWidth);
     expect(initialWidth).toBeGreaterThan(200);
 
     // Click collapse button
@@ -173,7 +173,7 @@ test.describe('Studio Page', () => {
     await page.waitForTimeout(300); // Wait for animation
 
     // Panel should be collapsed (narrower)
-    const collapsedWidth = await aside.evaluate((el) => el.offsetWidth);
+    const collapsedWidth = await aside.evaluate((el) => (el as HTMLElement).offsetWidth);
     expect(collapsedWidth).toBeLessThan(100);
 
     // Click to expand again
@@ -181,7 +181,7 @@ test.describe('Studio Page', () => {
     await page.waitForTimeout(300);
 
     // Panel should be expanded again
-    const expandedWidth = await aside.evaluate((el) => el.offsetWidth);
+    const expandedWidth = await aside.evaluate((el) => (el as HTMLElement).offsetWidth);
     expect(expandedWidth).toBeGreaterThan(200);
   });
 
