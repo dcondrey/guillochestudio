@@ -41,7 +41,7 @@
     "typescript": "^5.4.0",
     "vitest": "^4.0.18",
     "wrangler": "^3.28.0",
-    "zod": "^3.22.3"
+    "zod": "^4.3.6"
   },
   "pnpm": {
     "overrides": {

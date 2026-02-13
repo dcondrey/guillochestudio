@@ -37,7 +37,7 @@ importers:
         version: 3.114.17(@cloudflare/workers-types@4.20260213.0)
       zod:
         specifier: ^3.22.0
-        version: 3.22.3
+        version: 3.25.76
 
   apps/web:
     dependencies:
@@ -76,7 +76,7 @@ importers:
         version: 3.5.2
       zod:
         specifier: ^3.22.0
-        version: 3.22.3
+        version: 3.25.76
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20240314.0
@@ -4294,8 +4294,8 @@ packages:
   youch@3.3.4:
     resolution: {integrity: sha512-UeVBXie8cA35DS6+nBkls68xaBBXCye0CNznrhszZjTbRVnJKQuNsyLKBTTL4ln1o1rh2PKtv35twV7irj5SEg==}
 
-  zod@3.22.3:
-    resolution: {integrity: sha512-EjIevzuJRiRPbVH4mGc8nApb/lVLKVpmUhAaR5R5doKGfAnGJ6Gr3CViAVjP+4FWSxCsybeWQdcgCtbX+7oZug==}
+  zod@3.25.76:
+    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
 snapshots:
 
@@ -7050,7 +7050,7 @@ snapshots:
       workerd: 1.20250718.0
       ws: 8.18.0
       youch: 3.3.4
-      zod: 3.22.3
+      zod: 3.25.76
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -8290,4 +8290,4 @@ snapshots:
       mustache: 4.2.0
       stacktracey: 2.1.8
 
-  zod@3.22.3: {}
+  zod@3.25.76: {}
