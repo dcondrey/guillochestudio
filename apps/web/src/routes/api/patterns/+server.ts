@@ -22,6 +22,10 @@ import type { RequestHandler } from './$types';
 import { createHash } from 'crypto';
 import { CreatePatternSchema, validate } from '$lib/utils/validation';
 import { getCacheHeaders } from '$lib/utils/cache';
+import {
+  SecurityMiddleware,
+  createSecurityErrorResponse,
+} from '$lib/services/security-middleware';
 
 // =============================================================================
 // Response Helpers
@@ -51,16 +55,6 @@ function errorResponse(code: string, message: string, status: number, details?: 
     error: { code, message, details },
   }));
 }
-
-// =============================================================================
-// Constants
-// =============================================================================
-
-const PATTERN_LIMITS: Record<string, number> = {
-  free: 3,
-  pro: 100,
-  enterprise: Infinity,
-};
 
 // =============================================================================
 // GET /api/patterns - List user's patterns
@@ -106,18 +100,26 @@ const PATTERN_LIMITS: Record<string, number> = {
  *   }
  * }
  */
-export const GET: RequestHandler = async ({ locals }) => {
-  const { session, user } = await locals.safeGetSession();
+export const GET: RequestHandler = async (event) => {
+  const { locals } = event;
 
-  if (!session || !user) {
-    errorResponse('UNAUTHORIZED', 'Authentication required', 401);
+  // Security check - authentication only
+  const security = new SecurityMiddleware(locals.supabase);
+  const securityResult = await security.check(event, {
+    feature: 'pattern.save', // Basic feature, available to all tiers
+  });
+
+  if (!securityResult.allowed) {
+    return createSecurityErrorResponse(securityResult);
   }
+
+  const userId = securityResult.context!.userId;
 
   try {
     const { data: patterns, error: fetchError } = await locals.supabase
       .from('patterns')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .order('updated_at', { ascending: false });
 
     if (fetchError) {
@@ -189,12 +191,22 @@ export const GET: RequestHandler = async ({ locals }) => {
  *   "isPublic": true
  * }
  */
-export const POST: RequestHandler = async ({ request, locals }) => {
-  const { session, user } = await locals.safeGetSession();
+export const POST: RequestHandler = async (event) => {
+  const { request, locals } = event;
 
-  if (!session || !user) {
-    errorResponse('UNAUTHORIZED', 'Authentication required', 401);
+  // Security check with usage tracking
+  const security = new SecurityMiddleware(locals.supabase);
+  const securityResult = await security.check(event, {
+    feature: 'pattern.save',
+    action: 'pattern_save',
+    checkAbuse: true, // Check for multi-account abuse on pattern creation
+  });
+
+  if (!securityResult.allowed) {
+    return createSecurityErrorResponse(securityResult);
   }
+
+  const userId = securityResult.context!.userId;
 
   // Parse request body
   let body: unknown;
@@ -213,29 +225,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   const { name, description, parameters, isPublic, isListed, tags } = validation.data!;
 
   try {
-    // Check pattern limit based on subscription tier
-    const { data: profile } = await locals.supabase
-      .from('profiles')
-      .select('subscription_tier')
-      .eq('id', user.id)
-      .single();
-
-    const tier = profile?.subscription_tier || 'free';
-    const limit = PATTERN_LIMITS[tier] ?? PATTERN_LIMITS.free;
-
-    const { count } = await locals.supabase
-      .from('patterns')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id);
-
-    if ((count || 0) >= limit) {
-      errorResponse(
-        'LIMIT_EXCEEDED',
-        `Pattern limit reached (${limit} patterns). Upgrade your plan to save more patterns.`,
-        403
-      );
-    }
-
     // Create parameter hash for duplicate detection
     const parameterHash = createHash('sha256')
       .update(JSON.stringify(parameters))
@@ -245,7 +234,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     const { data: pattern, error: insertError } = await locals.supabase
       .from('patterns')
       .insert({
-        user_id: user.id,
+        user_id: userId,
         name,
         description: description || null,
         parameters,
@@ -267,6 +256,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
       errorResponse('DATABASE_ERROR', 'Failed to save pattern', 500);
     }
+
+    // Record usage after successful creation
+    await security.recordUsage(userId, 'patterns_created', 1);
 
     return successResponse({ pattern }, 201);
   } catch (err) {

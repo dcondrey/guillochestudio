@@ -14,6 +14,10 @@
 import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { z } from 'zod';
+import {
+  SecurityMiddleware,
+  createSecurityErrorResponse,
+} from '$lib/services/security-middleware';
 
 // =============================================================================
 // Response Helpers
@@ -75,8 +79,20 @@ const PatternIdSchema = z.string().uuid('Invalid pattern ID format');
  *   "version": "1.0"
  * }
  */
-export const GET: RequestHandler = async ({ params, locals }) => {
-  const { user } = await locals.safeGetSession();
+export const GET: RequestHandler = async (event) => {
+  const { params, locals } = event;
+
+  // Security check - authentication required
+  const security = new SecurityMiddleware(locals.supabase);
+  const securityResult = await security.check(event, {
+    action: 'export',
+  });
+
+  if (!securityResult.allowed) {
+    return createSecurityErrorResponse(securityResult);
+  }
+
+  const userId = securityResult.context!.userId;
   const patternId = params.id;
 
   // Validate pattern ID format
@@ -98,14 +114,14 @@ export const GET: RequestHandler = async ({ params, locals }) => {
     }
 
     // Check access rights
-    const isOwner = user?.id === pattern.user_id;
+    const isOwner = userId === pattern.user_id;
     let hasPurchased = false;
 
-    if (user && !isOwner) {
+    if (!isOwner) {
       const { data: purchase } = await locals.supabase
         .from('purchases')
         .select('id')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('pattern_id', patternId)
         .single();
 
@@ -114,21 +130,16 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 
     // Deny access if not owner and not purchased
     if (!isOwner && !hasPurchased) {
-      if (!user) {
-        errorResponse('UNAUTHORIZED', 'Authentication required to download this pattern', 401);
-      }
       errorResponse('FORBIDDEN', 'You do not have permission to download this pattern. Please purchase it first.', 403);
     }
 
-    // Increment download count (fire and forget, don't block response)
-    void locals.supabase.rpc('increment_pattern_download', { pattern_uuid: patternId }).then(
-      () => {
-        // Success, no action needed
-      },
-      (err: Error) => {
-        console.error('Failed to increment download count:', err);
-      }
-    );
+    // Track export usage and increment download count (fire and forget, don't block response)
+    void Promise.all([
+      locals.supabase.rpc('increment_pattern_download', { pattern_uuid: patternId }),
+      security.recordUsage(userId, 'exports_count', 1),
+    ]).catch((err: Error) => {
+      console.error('Failed to track download:', err);
+    });
 
     // Sanitize filename
     const safeFilename = pattern.name

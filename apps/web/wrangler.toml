@@ -33,7 +33,7 @@ route = { pattern = "staging.guillochestudio.com/*", zone_name = "guillochestudi
 vars = { ENVIRONMENT = "production" }
 
 # AI Worker bindings
-[[ai]]
+[ai]
 binding = "AI"
 
 # KV Namespace for caching
@@ -50,7 +50,7 @@ preview_id = "placeholder_preview_kv_id"
 
 # R2 Bucket for pattern assets
 [[r2_buckets]]
-binding = "ASSETS"
+binding = "PATTERN_ASSETS"
 bucket_name = "guilloche-assets"
 preview_bucket_name = "guilloche-assets-preview"
 
@@ -67,6 +67,5 @@ preview_bucket_name = "guilloche-assets-preview"
 [build]
 command = "pnpm run build"
 
-# Triggers for GitHub Actions
-[triggers]
-branches = ["main", "staging"]
+# Note: Branch triggers are configured in Cloudflare Pages dashboard
+# or via GitHub Actions workflow, not in wrangler.toml

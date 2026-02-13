@@ -1,5 +1,10 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
+export type AccountStatus = 'active' | 'suspended' | 'banned' | 'under_review';
+export type PeriodType = 'hourly' | 'daily' | 'monthly';
+export type SecurityEventSeverity = 'low' | 'medium' | 'high' | 'critical';
+export type AccountLinkType = 'device_fingerprint' | 'ip_address' | 'payment_method' | 'email_pattern' | 'behavioral';
+
 export interface Database {
   public: {
     Tables: {
@@ -13,6 +18,17 @@ export interface Database {
           subscription_tier: 'free' | 'pro' | 'enterprise';
           stripe_customer_id: string | null;
           created_at: string;
+          // Security fields
+          email_verified: boolean;
+          phone_verified: boolean;
+          phone_number: string | null;
+          account_status: AccountStatus;
+          trust_score: number;
+          risk_flags: string[];
+          last_activity_at: string | null;
+          failed_login_attempts: number;
+          locked_until: string | null;
+          require_verification_for_premium: boolean;
         };
         Insert: {
           id: string;
@@ -23,6 +39,17 @@ export interface Database {
           subscription_tier?: 'free' | 'pro' | 'enterprise';
           stripe_customer_id?: string | null;
           created_at?: string;
+          // Security fields
+          email_verified?: boolean;
+          phone_verified?: boolean;
+          phone_number?: string | null;
+          account_status?: AccountStatus;
+          trust_score?: number;
+          risk_flags?: string[];
+          last_activity_at?: string | null;
+          failed_login_attempts?: number;
+          locked_until?: string | null;
+          require_verification_for_premium?: boolean;
         };
         Update: {
           id?: string;
@@ -33,6 +60,17 @@ export interface Database {
           subscription_tier?: 'free' | 'pro' | 'enterprise';
           stripe_customer_id?: string | null;
           created_at?: string;
+          // Security fields
+          email_verified?: boolean;
+          phone_verified?: boolean;
+          phone_number?: string | null;
+          account_status?: AccountStatus;
+          trust_score?: number;
+          risk_flags?: string[];
+          last_activity_at?: string | null;
+          failed_login_attempts?: number;
+          locked_until?: string | null;
+          require_verification_for_premium?: boolean;
         };
         Relationships: [];
       };
@@ -456,6 +494,582 @@ export interface Database {
           }
         ];
       };
+      device_fingerprints: {
+        Row: {
+          id: string;
+          fingerprint_hash: string;
+          user_id: string | null;
+          user_agent_hash: string;
+          screen_hash: string | null;
+          timezone: string | null;
+          language: string | null;
+          platform: string | null;
+          webgl_hash: string | null;
+          canvas_hash: string | null;
+          audio_hash: string | null;
+          fonts_hash: string | null;
+          is_incognito: boolean;
+          is_headless: boolean;
+          is_automated: boolean;
+          has_webdriver: boolean;
+          first_seen_at: string;
+          last_seen_at: string;
+          visit_count: number;
+          associated_user_ids: string[];
+        };
+        Insert: {
+          id?: string;
+          fingerprint_hash: string;
+          user_id?: string | null;
+          user_agent_hash: string;
+          screen_hash?: string | null;
+          timezone?: string | null;
+          language?: string | null;
+          platform?: string | null;
+          webgl_hash?: string | null;
+          canvas_hash?: string | null;
+          audio_hash?: string | null;
+          fonts_hash?: string | null;
+          is_incognito?: boolean;
+          is_headless?: boolean;
+          is_automated?: boolean;
+          has_webdriver?: boolean;
+          first_seen_at?: string;
+          last_seen_at?: string;
+          visit_count?: number;
+          associated_user_ids?: string[];
+        };
+        Update: {
+          id?: string;
+          fingerprint_hash?: string;
+          user_id?: string | null;
+          user_agent_hash?: string;
+          screen_hash?: string | null;
+          timezone?: string | null;
+          language?: string | null;
+          platform?: string | null;
+          webgl_hash?: string | null;
+          canvas_hash?: string | null;
+          audio_hash?: string | null;
+          fonts_hash?: string | null;
+          is_incognito?: boolean;
+          is_headless?: boolean;
+          is_automated?: boolean;
+          has_webdriver?: boolean;
+          first_seen_at?: string;
+          last_seen_at?: string;
+          visit_count?: number;
+          associated_user_ids?: string[];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'device_fingerprints_user_id_fkey';
+            columns: ['user_id'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
+      user_sessions: {
+        Row: {
+          id: string;
+          user_id: string;
+          device_fingerprint_id: string | null;
+          session_token_hash: string;
+          refresh_token_hash: string | null;
+          ip_address: string;
+          user_agent: string | null;
+          country_code: string | null;
+          city: string | null;
+          is_suspicious: boolean;
+          risk_score: number;
+          mfa_verified: boolean;
+          created_at: string;
+          last_activity_at: string;
+          expires_at: string;
+          revoked_at: string | null;
+          revocation_reason: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          device_fingerprint_id?: string | null;
+          session_token_hash: string;
+          refresh_token_hash?: string | null;
+          ip_address: string;
+          user_agent?: string | null;
+          country_code?: string | null;
+          city?: string | null;
+          is_suspicious?: boolean;
+          risk_score?: number;
+          mfa_verified?: boolean;
+          created_at?: string;
+          last_activity_at?: string;
+          expires_at: string;
+          revoked_at?: string | null;
+          revocation_reason?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          device_fingerprint_id?: string | null;
+          session_token_hash?: string;
+          refresh_token_hash?: string | null;
+          ip_address?: string;
+          user_agent?: string | null;
+          country_code?: string | null;
+          city?: string | null;
+          is_suspicious?: boolean;
+          risk_score?: number;
+          mfa_verified?: boolean;
+          created_at?: string;
+          last_activity_at?: string;
+          expires_at?: string;
+          revoked_at?: string | null;
+          revocation_reason?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'user_sessions_user_id_fkey';
+            columns: ['user_id'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_sessions_device_fingerprint_id_fkey';
+            columns: ['device_fingerprint_id'];
+            referencedRelation: 'device_fingerprints';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
+      usage_records: {
+        Row: {
+          id: string;
+          user_id: string;
+          period_type: PeriodType;
+          period_start: string;
+          period_end: string;
+          patterns_created: number;
+          patterns_saved: number;
+          ai_requests: number;
+          exports_png: number;
+          exports_svg: number;
+          exports_pdf: number;
+          exports_dxf: number;
+          api_calls: number;
+          bandwidth_bytes: number;
+          total_operations: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          period_type: PeriodType;
+          period_start: string;
+          period_end: string;
+          patterns_created?: number;
+          patterns_saved?: number;
+          ai_requests?: number;
+          exports_png?: number;
+          exports_svg?: number;
+          exports_pdf?: number;
+          exports_dxf?: number;
+          api_calls?: number;
+          bandwidth_bytes?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          period_type?: PeriodType;
+          period_start?: string;
+          period_end?: string;
+          patterns_created?: number;
+          patterns_saved?: number;
+          ai_requests?: number;
+          exports_png?: number;
+          exports_svg?: number;
+          exports_pdf?: number;
+          exports_dxf?: number;
+          api_calls?: number;
+          bandwidth_bytes?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'usage_records_user_id_fkey';
+            columns: ['user_id'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
+      usage_lifetime: {
+        Row: {
+          user_id: string;
+          total_patterns_created: number;
+          total_ai_requests: number;
+          total_exports: number;
+          total_api_calls: number;
+          total_bandwidth_bytes: number;
+          current_period_patterns: number;
+          current_period_ai_requests: number;
+          current_period_exports: number;
+          current_period_start: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          total_patterns_created?: number;
+          total_ai_requests?: number;
+          total_exports?: number;
+          total_api_calls?: number;
+          total_bandwidth_bytes?: number;
+          current_period_patterns?: number;
+          current_period_ai_requests?: number;
+          current_period_exports?: number;
+          current_period_start?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          total_patterns_created?: number;
+          total_ai_requests?: number;
+          total_exports?: number;
+          total_api_calls?: number;
+          total_bandwidth_bytes?: number;
+          current_period_patterns?: number;
+          current_period_ai_requests?: number;
+          current_period_exports?: number;
+          current_period_start?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'usage_lifetime_user_id_fkey';
+            columns: ['user_id'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
+      security_events: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          device_fingerprint_id: string | null;
+          session_id: string | null;
+          event_type: string;
+          severity: SecurityEventSeverity;
+          description: string | null;
+          ip_address: string | null;
+          user_agent: string | null;
+          request_path: string | null;
+          request_method: string | null;
+          metadata: Json;
+          resolved_at: string | null;
+          resolved_by: string | null;
+          resolution_notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          device_fingerprint_id?: string | null;
+          session_id?: string | null;
+          event_type: string;
+          severity: SecurityEventSeverity;
+          description?: string | null;
+          ip_address?: string | null;
+          user_agent?: string | null;
+          request_path?: string | null;
+          request_method?: string | null;
+          metadata?: Json;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          resolution_notes?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          device_fingerprint_id?: string | null;
+          session_id?: string | null;
+          event_type?: string;
+          severity?: SecurityEventSeverity;
+          description?: string | null;
+          ip_address?: string | null;
+          user_agent?: string | null;
+          request_path?: string | null;
+          request_method?: string | null;
+          metadata?: Json;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          resolution_notes?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'security_events_user_id_fkey';
+            columns: ['user_id'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'security_events_device_fingerprint_id_fkey';
+            columns: ['device_fingerprint_id'];
+            referencedRelation: 'device_fingerprints';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'security_events_session_id_fkey';
+            columns: ['session_id'];
+            referencedRelation: 'user_sessions';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'security_events_resolved_by_fkey';
+            columns: ['resolved_by'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
+      ip_reputation: {
+        Row: {
+          ip_address: string;
+          reputation_score: number;
+          total_requests: number;
+          failed_logins: number;
+          rate_limit_hits: number;
+          abuse_reports: number;
+          is_vpn: boolean;
+          is_proxy: boolean;
+          is_tor: boolean;
+          is_datacenter: boolean;
+          is_blocked: boolean;
+          country_code: string | null;
+          asn: number | null;
+          org_name: string | null;
+          first_seen_at: string;
+          last_seen_at: string;
+          blocked_until: string | null;
+        };
+        Insert: {
+          ip_address: string;
+          reputation_score?: number;
+          total_requests?: number;
+          failed_logins?: number;
+          rate_limit_hits?: number;
+          abuse_reports?: number;
+          is_vpn?: boolean;
+          is_proxy?: boolean;
+          is_tor?: boolean;
+          is_datacenter?: boolean;
+          is_blocked?: boolean;
+          country_code?: string | null;
+          asn?: number | null;
+          org_name?: string | null;
+          first_seen_at?: string;
+          last_seen_at?: string;
+          blocked_until?: string | null;
+        };
+        Update: {
+          ip_address?: string;
+          reputation_score?: number;
+          total_requests?: number;
+          failed_logins?: number;
+          rate_limit_hits?: number;
+          abuse_reports?: number;
+          is_vpn?: boolean;
+          is_proxy?: boolean;
+          is_tor?: boolean;
+          is_datacenter?: boolean;
+          is_blocked?: boolean;
+          country_code?: string | null;
+          asn?: number | null;
+          org_name?: string | null;
+          first_seen_at?: string;
+          last_seen_at?: string;
+          blocked_until?: string | null;
+        };
+        Relationships: [];
+      };
+      account_links: {
+        Row: {
+          id: string;
+          user_id_1: string;
+          user_id_2: string;
+          link_type: AccountLinkType;
+          confidence_score: number;
+          evidence: Json;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          is_legitimate: boolean | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id_1: string;
+          user_id_2: string;
+          link_type: AccountLinkType;
+          confidence_score: number;
+          evidence: Json;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          is_legitimate?: boolean | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id_1?: string;
+          user_id_2?: string;
+          link_type?: AccountLinkType;
+          confidence_score?: number;
+          evidence?: Json;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          is_legitimate?: boolean | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'account_links_user_id_1_fkey';
+            columns: ['user_id_1'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'account_links_user_id_2_fkey';
+            columns: ['user_id_2'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'account_links_reviewed_by_fkey';
+            columns: ['reviewed_by'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
+      rate_limit_state: {
+        Row: {
+          key: string;
+          count: number;
+          window_start: string;
+          window_end: string;
+          violation_count: number;
+          last_violation_at: string | null;
+          penalty_multiplier: number;
+        };
+        Insert: {
+          key: string;
+          count?: number;
+          window_start: string;
+          window_end: string;
+          violation_count?: number;
+          last_violation_at?: string | null;
+          penalty_multiplier?: number;
+        };
+        Update: {
+          key?: string;
+          count?: number;
+          window_start?: string;
+          window_end?: string;
+          violation_count?: number;
+          last_violation_at?: string | null;
+          penalty_multiplier?: number;
+        };
+        Relationships: [];
+      };
+      request_signatures: {
+        Row: {
+          signature_hash: string;
+          user_id: string | null;
+          request_timestamp: string;
+          expires_at: string;
+          used_at: string | null;
+          endpoint: string;
+          ip_address: string | null;
+        };
+        Insert: {
+          signature_hash: string;
+          user_id?: string | null;
+          request_timestamp: string;
+          expires_at: string;
+          used_at?: string | null;
+          endpoint: string;
+          ip_address?: string | null;
+        };
+        Update: {
+          signature_hash?: string;
+          user_id?: string | null;
+          request_timestamp?: string;
+          expires_at?: string;
+          used_at?: string | null;
+          endpoint?: string;
+          ip_address?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'request_signatures_user_id_fkey';
+            columns: ['user_id'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
+      feature_access: {
+        Row: {
+          id: string;
+          user_id: string;
+          feature_name: string;
+          is_enabled: boolean;
+          granted_at: string;
+          expires_at: string | null;
+          granted_by: string | null;
+          usage_count: number;
+          usage_limit: number | null;
+          last_used_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          feature_name: string;
+          is_enabled?: boolean;
+          granted_at?: string;
+          expires_at?: string | null;
+          granted_by?: string | null;
+          usage_count?: number;
+          usage_limit?: number | null;
+          last_used_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          feature_name?: string;
+          is_enabled?: boolean;
+          granted_at?: string;
+          expires_at?: string | null;
+          granted_by?: string | null;
+          usage_count?: number;
+          usage_limit?: number | null;
+          last_used_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'feature_access_user_id_fkey';
+            columns: ['user_id'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
     };
     Views: {
       marketplace_patterns: {
@@ -606,10 +1220,85 @@ export interface Database {
         Args: Record<string, never>;
         Returns: string;
       };
+      check_tier_limit: {
+        Args: {
+          p_user_id: string;
+          p_action: string;
+          p_tier?: 'free' | 'pro' | 'enterprise' | null;
+        };
+        Returns: {
+          allowed: boolean;
+          current: number;
+          limit: number;
+          remaining: number;
+          tier: 'free' | 'pro' | 'enterprise';
+        };
+      };
+      increment_usage: {
+        Args: {
+          p_user_id: string;
+          p_action: string;
+          p_amount?: number;
+        };
+        Returns: boolean;
+      };
+      log_security_event: {
+        Args: {
+          p_user_id: string | null;
+          p_event_type: string;
+          p_severity: SecurityEventSeverity;
+          p_description: string;
+          p_metadata?: Json;
+          p_ip_address?: string | null;
+          p_device_fingerprint_id?: string | null;
+        };
+        Returns: string;
+      };
+      detect_account_link: {
+        Args: {
+          p_user_id: string;
+          p_fingerprint_hash: string;
+          p_ip_address: string;
+        };
+        Returns: {
+          has_linked_accounts: boolean;
+          linked_count: number;
+          linked_user_ids: string[];
+        };
+      };
+      validate_request_signature: {
+        Args: {
+          p_signature_hash: string;
+          p_user_id: string | null;
+          p_endpoint: string;
+          p_timestamp: string;
+          p_ip_address: string | null;
+        };
+        Returns: {
+          valid: boolean;
+          reason?: string;
+        };
+      };
+      cleanup_expired_signatures: {
+        Args: Record<string, never>;
+        Returns: void;
+      };
+      reset_monthly_usage: {
+        Args: Record<string, never>;
+        Returns: void;
+      };
+      cleanup_rate_limits: {
+        Args: Record<string, never>;
+        Returns: void;
+      };
     };
     Enums: {
       subscription_tier: 'free' | 'pro' | 'enterprise';
       license_type: 'personal' | 'commercial' | 'remix';
+      account_status: 'active' | 'suspended' | 'banned' | 'under_review';
+      period_type: 'hourly' | 'daily' | 'monthly';
+      security_event_severity: 'low' | 'medium' | 'high' | 'critical';
+      account_link_type: 'device_fingerprint' | 'ip_address' | 'payment_method' | 'email_pattern' | 'behavioral';
     };
     CompositeTypes: {
       [_ in never]: never;

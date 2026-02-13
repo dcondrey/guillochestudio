@@ -62,22 +62,31 @@
 
   function reportError() {
     if (browser && 'Sentry' in window) {
-      // @ts-ignore
+      // @ts-expect-error Sentry may not be available on window
       window.Sentry.captureMessage(`User reported error: ${status} - ${message}`);
     }
   }
 </script>
 
 <svelte:head>
-  <title>{status} - {error.title} | Guilloché Studio</title>
+  <title>{status} - {error.title} | Guilloche Studio</title>
+  <meta name="description" content="{error.title}: {error.description}" />
   <meta name="robots" content="noindex" />
 </svelte:head>
 
-<div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center px-4" role="main">
+<main
+  id="main-content"
+  class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center px-4"
+  aria-labelledby="error-heading"
+>
   <div class="max-w-lg w-full text-center">
     <!-- Animated Guilloché Pattern -->
-    <div class="relative w-48 h-48 mx-auto mb-8" aria-hidden="true">
-      <svg viewBox="0 0 200 200" class="w-full h-full animate-spin-slow" aria-hidden="true">
+    <figure class="relative w-48 h-48 mx-auto mb-8" aria-hidden="true">
+      <svg
+        viewBox="0 0 200 200"
+        class="w-full h-full animate-spin-slow"
+        role="presentation"
+      >
         <defs>
           <linearGradient id="errorGradient" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" style="stop-color:#ef4444" />
@@ -98,66 +107,107 @@
         </g>
       </svg>
       <div class="absolute inset-0 flex items-center justify-center">
-        <span class="text-6xl font-bold text-white">{status}</span>
+        <span class="text-6xl font-bold text-white" aria-hidden="true">{status}</span>
       </div>
-    </div>
+    </figure>
 
     <!-- Error Content -->
-    <h1 class="text-3xl font-bold text-white mb-2">{error.title}</h1>
+    <header>
+      <p class="sr-only">Error {status}</p>
+      <h1 id="error-heading" class="text-3xl font-bold text-white mb-2">
+        {error.title}
+      </h1>
+    </header>
+
     <p class="text-gray-400 mb-2">{error.description}</p>
     <p class="text-gray-500 text-sm mb-8">{error.action}</p>
 
     <!-- Actions -->
-    <div class="flex flex-col sm:flex-row gap-3 justify-center" role="group" aria-label="Navigation options">
+    <nav
+      class="flex flex-col sm:flex-row gap-3 justify-center"
+      aria-label="Error recovery options"
+    >
       <button
         on:click={goBack}
         type="button"
         class="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+        aria-label="Go back to previous page"
       >
+        <span aria-hidden="true">←</span>
         Go Back
       </button>
       <a
         href="/"
         class="px-6 py-3 bg-primary-600 hover:bg-primary-500 text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-gray-900"
       >
+        <span aria-hidden="true">🏠</span>
         Go Home
       </a>
       <a
         href="/studio"
         class="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900"
       >
+        <span aria-hidden="true">🎨</span>
         Open Studio
       </a>
-    </div>
+    </nav>
 
     <!-- Report Link -->
     {#if status >= 500}
-      <button
-        on:click={reportError}
-        type="button"
-        class="mt-6 text-sm text-gray-500 hover:text-gray-400 underline focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
-        aria-label="Report this error to our support team"
-      >
-        Report this issue
-      </button>
+      <div class="mt-6">
+        <button
+          on:click={reportError}
+          type="button"
+          class="text-sm text-gray-500 hover:text-gray-400 underline focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
+          aria-describedby="report-description"
+        >
+          Report this issue
+        </button>
+        <p id="report-description" class="sr-only">
+          Send an error report to our support team
+        </p>
+      </div>
     {/if}
 
     <!-- Technical Details (collapsible) -->
     {#if browser && status >= 500}
       <details class="mt-8 text-left">
-        <summary class="text-gray-500 cursor-pointer hover:text-gray-400 text-sm">
+        <summary class="text-gray-500 cursor-pointer hover:text-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-gray-500 rounded">
           Technical Details
         </summary>
-        <pre class="mt-2 p-4 bg-gray-800 rounded-lg text-xs text-gray-400 overflow-x-auto">
-Status: {status}
-Message: {message}
-URL: {$page.url.pathname}
-Time: {new Date().toISOString()}
-        </pre>
+        <div
+          class="mt-2 p-4 bg-gray-800 rounded-lg text-xs text-gray-400 overflow-x-auto"
+          role="region"
+          aria-label="Technical error details"
+        >
+          <dl class="space-y-1">
+            <div class="flex gap-2">
+              <dt class="font-medium">Status:</dt>
+              <dd>{status}</dd>
+            </div>
+            <div class="flex gap-2">
+              <dt class="font-medium">Message:</dt>
+              <dd>{message}</dd>
+            </div>
+            <div class="flex gap-2">
+              <dt class="font-medium">URL:</dt>
+              <dd>{$page.url.pathname}</dd>
+            </div>
+            <div class="flex gap-2">
+              <dt class="font-medium">Time:</dt>
+              <dd><time datetime={new Date().toISOString()}>{new Date().toISOString()}</time></dd>
+            </div>
+          </dl>
+        </div>
       </details>
     {/if}
+
+    <!-- Back to safety link for screen readers -->
+    <p class="sr-only">
+      <a href="/">Return to Guilloche Studio homepage</a>
+    </p>
   </div>
-</div>
+</main>
 
 <style>
   @keyframes spin-slow {
@@ -171,5 +221,11 @@ Time: {new Date().toISOString()}
 
   .animate-spin-slow {
     animation: spin-slow 20s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-spin-slow {
+      animation: none;
+    }
   }
 </style>

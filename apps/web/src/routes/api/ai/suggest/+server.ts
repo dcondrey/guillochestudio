@@ -18,6 +18,10 @@ import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { AIRequestSchema, validate } from '$lib/utils/validation';
 import { getCacheHeaders, memoryCache } from '$lib/utils/cache';
+import {
+  SecurityMiddleware,
+  createSecurityErrorResponse,
+} from '$lib/services/security-middleware';
 
 // =============================================================================
 // Types
@@ -200,7 +204,23 @@ Respond with JSON only, no explanation. Format:
  *   }
  * }
  */
-export const POST: RequestHandler = async ({ request, platform }) => {
+export const POST: RequestHandler = async (event) => {
+  const { request, platform, locals } = event;
+
+  // Security check - Pro tier required for AI features
+  const security = new SecurityMiddleware(locals.supabase);
+  const securityResult = await security.check(event, {
+    feature: 'ai.suggest',
+    action: 'ai_request',
+    requireVerification: true,
+  });
+
+  if (!securityResult.allowed) {
+    return createSecurityErrorResponse(securityResult);
+  }
+
+  const userId = securityResult.context!.userId;
+
   // Parse request body
   let body: unknown;
   try {
@@ -250,6 +270,8 @@ Complexity: ${complexity || 'moderate'}`;
         if (jsonMatch) {
           const suggestion: PatternSuggestion = JSON.parse(jsonMatch[0]);
           memoryCache.set(cacheKey, suggestion, CACHE_TTL);
+          // Record AI usage
+          await security.recordUsage(userId, 'ai_requests', 1);
           return successResponse({ suggestion, source: 'ai' }, 'API');
         }
       } catch (aiError) {
@@ -261,6 +283,8 @@ Complexity: ${complexity || 'moderate'}`;
     // Fallback: Use keyword matching with presets
     const suggestion = generateFromPresets(keywords, style, complexity);
     memoryCache.set(cacheKey, suggestion, CACHE_TTL);
+    // Record AI usage (even for fallback, as it counts against quota)
+    await security.recordUsage(userId, 'ai_requests', 1);
 
     return successResponse({ suggestion, source: 'presets' }, 'API');
   } catch (err) {

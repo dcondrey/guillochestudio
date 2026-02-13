@@ -19,6 +19,10 @@ import Stripe from 'stripe';
 import { STRIPE_SECRET_KEY } from '$env/static/private';
 import { PurchaseRequestSchema, validate } from '$lib/utils/validation';
 import { calculateLicensePrices, calculateRoyalty } from '$lib/services/marketplace';
+import {
+  SecurityMiddleware,
+  createSecurityErrorResponse,
+} from '$lib/services/security-middleware';
 
 // =============================================================================
 // Stripe Client
@@ -121,12 +125,30 @@ const MAX_REMIX_CHAIN_DEPTH = 10;
  *   }
  * }
  */
-export const POST: RequestHandler = async ({ request, locals, url }) => {
-  const { session, user } = await locals.safeGetSession();
+export const POST: RequestHandler = async (event) => {
+  const { request, locals, url } = event;
 
-  if (!session || !user) {
-    errorResponse('UNAUTHORIZED', 'Authentication required', 401);
+  // Security check with request signing (sensitive payment operation)
+  const security = new SecurityMiddleware(locals.supabase);
+  const securityResult = await security.check(event, {
+    requireSignature: true, // Require signed request for marketplace purchases
+    checkAbuse: true, // Check for abuse patterns
+  });
+
+  if (!securityResult.allowed) {
+    return createSecurityErrorResponse(securityResult);
   }
+
+  const userId = securityResult.context!.userId;
+
+  // Get user details for Stripe
+  const { data: userProfile } = await locals.supabase
+    .from('profiles')
+    .select('email, stripe_customer_id')
+    .eq('id', userId)
+    .single();
+
+  const user = { id: userId, email: userProfile?.email || '' };
 
   // Parse and validate request body
   let body: unknown;

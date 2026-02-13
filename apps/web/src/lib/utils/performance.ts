@@ -167,15 +167,9 @@ export class PerformanceMonitor {
 
     // Log slow queries
     if (metrics.duration > 100) {
-      this.logger?.warn(`Slow query: ${metrics.operation} on ${metrics.table}`, {
-        duration: metrics.duration,
-        ...metrics,
-      });
+      this.logger?.warn(`Slow query: ${metrics.operation} on ${metrics.table}`, metrics as unknown as Record<string, unknown>);
     } else {
-      this.logger?.debug(`Query: ${metrics.operation} on ${metrics.table}`, {
-        duration: metrics.duration,
-        ...metrics,
-      });
+      this.logger?.debug(`Query: ${metrics.operation} on ${metrics.table}`, metrics as unknown as Record<string, unknown>);
     }
   }
 

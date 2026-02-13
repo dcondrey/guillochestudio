@@ -258,9 +258,7 @@ test.describe('Export Functionality', () => {
     test.use({ storageState: 'playwright/.auth/user.json' });
 
     // Skip if no auth state exists
-    test.skip(({ }, testInfo) => {
-      return !process.env.TEST_USER_EMAIL;
-    });
+    test.skip(!process.env.TEST_USER_EMAIL, 'No test credentials available');
 
     test('should enable all export formats for pro users', async ({ page }) => {
       await page.goto('/studio');

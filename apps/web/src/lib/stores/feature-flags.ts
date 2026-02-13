@@ -164,7 +164,9 @@ export const experimentalCurvesEnabled = createFlagStore('experimental_curves');
 /**
  * Store for current overrides.
  */
-export const featureFlagOverrides = writable(browser ? getOverrides() : {});
+export const featureFlagOverrides = writable<Partial<Record<FeatureFlagName, import('$lib/services/feature-flags').FeatureFlagOverride>>>(
+  browser ? getOverrides() : {}
+);
 
 /**
  * Enable a flag override.
@@ -201,7 +203,7 @@ export function clearFlagOverride(name: FeatureFlagName): void {
  */
 export function clearAllFlagOverrides(): void {
   clearAllOverrides();
-  featureFlagOverrides.set({});
+  featureFlagOverrides.set({} as Partial<Record<FeatureFlagName, import('$lib/services/feature-flags').FeatureFlagOverride>>);
 }
 
 // ============================================================================

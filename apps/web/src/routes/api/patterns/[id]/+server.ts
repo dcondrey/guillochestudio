@@ -25,6 +25,10 @@ import { createHash } from 'crypto';
 import { UpdatePatternSchema, validate } from '$lib/utils/validation';
 import { getCacheHeaders } from '$lib/utils/cache';
 import { z } from 'zod';
+import {
+  SecurityMiddleware,
+  createSecurityErrorResponse,
+} from '$lib/services/security-middleware';
 
 // =============================================================================
 // Response Helpers
@@ -185,13 +189,20 @@ export const GET: RequestHandler = async ({ params, locals }) => {
  *
  * @see {@link UpdatePatternSchema} Zod schema for validation rules
  */
-export const PATCH: RequestHandler = async ({ params, request, locals }) => {
-  const { session, user } = await locals.safeGetSession();
+export const PATCH: RequestHandler = async (event) => {
+  const { params, request, locals } = event;
 
-  if (!session || !user) {
-    errorResponse('UNAUTHORIZED', 'Authentication required', 401);
+  // Security check - authentication required
+  const security = new SecurityMiddleware(locals.supabase);
+  const securityResult = await security.check(event, {
+    feature: 'pattern.save',
+  });
+
+  if (!securityResult.allowed) {
+    return createSecurityErrorResponse(securityResult);
   }
 
+  const userId = securityResult.context!.userId;
   const { id } = params;
 
   // Validate pattern ID format
@@ -226,7 +237,7 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
       errorResponse('NOT_FOUND', 'Pattern not found', 404);
     }
 
-    if (existing.user_id !== user.id) {
+    if (existing.user_id !== userId) {
       errorResponse('FORBIDDEN', 'You do not have permission to modify this pattern', 403);
     }
 
@@ -312,13 +323,20 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
  *   }
  * }
  */
-export const DELETE: RequestHandler = async ({ params, locals }) => {
-  const { session, user } = await locals.safeGetSession();
+export const DELETE: RequestHandler = async (event) => {
+  const { params, locals } = event;
 
-  if (!session || !user) {
-    errorResponse('UNAUTHORIZED', 'Authentication required', 401);
+  // Security check - authentication required
+  const security = new SecurityMiddleware(locals.supabase);
+  const securityResult = await security.check(event, {
+    feature: 'pattern.save',
+  });
+
+  if (!securityResult.allowed) {
+    return createSecurityErrorResponse(securityResult);
   }
 
+  const userId = securityResult.context!.userId;
   const { id } = params;
 
   // Validate pattern ID format
@@ -339,7 +357,7 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
       errorResponse('NOT_FOUND', 'Pattern not found', 404);
     }
 
-    if (existing.user_id !== user.id) {
+    if (existing.user_id !== userId) {
       errorResponse('FORBIDDEN', 'You do not have permission to delete this pattern', 403);
     }
 
