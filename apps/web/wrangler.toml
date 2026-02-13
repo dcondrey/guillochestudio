@@ -1,12 +1,10 @@
-# Cloudflare Pages & Workers Configuration
+# Cloudflare Pages Configuration
 # For Guilloché Studio Pro - https://guillochestudio.com
 
-name = "guilloche-studio"
+name = "guillochestudio"
 compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = ".svelte-kit/cloudflare"
-
-# Main domain
-route = { pattern = "guillochestudio.com/*", zone_name = "guillochestudio.com" }
 
 # Environment variables (set these in Cloudflare Dashboard or via wrangler secret)
 # SUPABASE_URL = ""
@@ -18,15 +16,11 @@ route = { pattern = "guillochestudio.com/*", zone_name = "guillochestudio.com" }
 APP_NAME = "Guilloché Studio"
 APP_URL = "https://guillochestudio.com"
 API_VERSION = "v1"
+ENVIRONMENT = "production"
 
-# Development environment
-[env.development]
-vars = { ENVIRONMENT = "development" }
-
-# Staging environment
-[env.staging]
-vars = { ENVIRONMENT = "staging" }
-route = { pattern = "staging.guillochestudio.com/*", zone_name = "guillochestudio.com" }
+# Preview environment (for non-production branches)
+[env.preview]
+vars = { ENVIRONMENT = "preview", APP_URL = "https://preview.guillochestudio.pages.dev" }
 
 # Production environment
 [env.production]
@@ -62,10 +56,3 @@ preview_bucket_name = "guilloche-assets-preview"
 # Rate limiting rules
 # [[rules]]
 # type = "RateLimit"
-
-# Build settings
-[build]
-command = "pnpm run build"
-
-# Note: Branch triggers are configured in Cloudflare Pages dashboard
-# or via GitHub Actions workflow, not in wrangler.toml
