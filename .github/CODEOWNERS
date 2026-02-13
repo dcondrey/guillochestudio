@@ -1,0 +1,41 @@
+# CODEOWNERS file for Guilloche Studio
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# These owners will be the default owners for everything in the repo.
+# Unless a later match takes precedence, they will be requested for
+# review when someone opens a pull request.
+* @guilloche-studio/maintainers
+
+# Frontend application (SvelteKit)
+/apps/web/ @guilloche-studio/frontend
+
+# WASM/Rust engine
+/packages/guilloche-wasm/ @guilloche-studio/rust
+
+# CI/CD and DevOps configuration
+/.github/ @guilloche-studio/devops
+/wrangler.toml @guilloche-studio/devops
+
+# Database and backend configuration
+/supabase/ @guilloche-studio/backend
+
+# Documentation
+/docs/ @guilloche-studio/docs
+*.md @guilloche-studio/docs
+LICENSE @guilloche-studio/maintainers
+
+# Package configuration (requires careful review)
+package.json @guilloche-studio/maintainers
+pnpm-lock.yaml @guilloche-studio/maintainers
+pnpm-workspace.yaml @guilloche-studio/maintainers
+Cargo.toml @guilloche-studio/rust
+Cargo.lock @guilloche-studio/rust
+
+# Security-sensitive files
+.env* @guilloche-studio/security
+**/secrets* @guilloche-studio/security
+
+# TypeScript/JavaScript configuration
+tsconfig*.json @guilloche-studio/frontend
+svelte.config.js @guilloche-studio/frontend
+vite.config.* @guilloche-studio/frontend

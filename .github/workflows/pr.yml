@@ -1,0 +1,574 @@
+name: Pull Request
+
+on:
+  pull_request:
+    branches:
+      - main
+      - staging
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '9'
+  RUST_TOOLCHAIN: 'stable'
+
+# Cancel in-progress runs for the same PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  # Collect changed files for conditional job execution
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      src: ${{ steps.changes.outputs.src }}
+      rust: ${{ steps.changes.outputs.rust }}
+      deps: ${{ steps.changes.outputs.deps }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect changes
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            src:
+              - 'apps/**'
+              - 'packages/**'
+              - '!packages/guilloche-wasm/**'
+            rust:
+              - 'packages/guilloche-wasm/**'
+            deps:
+              - 'pnpm-lock.yaml'
+              - '**/package.json'
+              - '**/Cargo.toml'
+              - '**/Cargo.lock'
+
+  # Lint and type check
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.src == 'true' || needs.changes.outputs.deps == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run ESLint
+        id: eslint
+        run: |
+          pnpm lint 2>&1 | tee lint-results.txt
+          echo "lint_output<<EOF" >> $GITHUB_OUTPUT
+          cat lint-results.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Run TypeScript check
+        id: typecheck
+        run: |
+          pnpm typecheck 2>&1 | tee typecheck-results.txt
+          echo "typecheck_output<<EOF" >> $GITHUB_OUTPUT
+          cat typecheck-results.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Check formatting
+        id: format
+        run: |
+          pnpm format:check 2>&1 | tee format-results.txt
+          echo "format_output<<EOF" >> $GITHUB_OUTPUT
+          cat format-results.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Post lint results comment
+        uses: actions/github-script@v7
+        if: always()
+        with:
+          script: |
+            const eslintPassed = '${{ steps.eslint.outcome }}' === 'success';
+            const typecheckPassed = '${{ steps.typecheck.outcome }}' === 'success';
+            const formatPassed = '${{ steps.format.outcome }}' === 'success';
+
+            const allPassed = eslintPassed && typecheckPassed && formatPassed;
+
+            let body = `## Code Quality Report\n\n`;
+            body += `| Check | Status |\n`;
+            body += `|-------|--------|\n`;
+            body += `| ESLint | ${eslintPassed ? ':white_check_mark: Passed' : ':x: Failed'} |\n`;
+            body += `| TypeScript | ${typecheckPassed ? ':white_check_mark: Passed' : ':x: Failed'} |\n`;
+            body += `| Formatting | ${formatPassed ? ':white_check_mark: Passed' : ':x: Failed'} |\n`;
+
+            if (!allPassed) {
+              body += `\n<details><summary>View Details</summary>\n\n`;
+
+              if (!eslintPassed) {
+                body += `### ESLint Errors\n\`\`\`\n${process.env.ESLINT_OUTPUT || 'See workflow logs'}\n\`\`\`\n\n`;
+              }
+              if (!typecheckPassed) {
+                body += `### TypeScript Errors\n\`\`\`\n${process.env.TYPECHECK_OUTPUT || 'See workflow logs'}\n\`\`\`\n\n`;
+              }
+              if (!formatPassed) {
+                body += `### Formatting Issues\n\`\`\`\n${process.env.FORMAT_OUTPUT || 'See workflow logs'}\n\`\`\`\n\n`;
+              }
+
+              body += `</details>\n`;
+            }
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('## Code Quality Report')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+        env:
+          ESLINT_OUTPUT: ${{ steps.eslint.outputs.lint_output }}
+          TYPECHECK_OUTPUT: ${{ steps.typecheck.outputs.typecheck_output }}
+          FORMAT_OUTPUT: ${{ steps.format.outputs.format_output }}
+
+      - name: Fail if checks failed
+        if: steps.eslint.outcome == 'failure' || steps.typecheck.outcome == 'failure' || steps.format.outcome == 'failure'
+        run: exit 1
+
+  # Unit tests with coverage
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.src == 'true' || needs.changes.outputs.deps == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests with coverage
+        run: pnpm test -- --coverage --reporter=json --outputFile=test-results.json
+        continue-on-error: true
+
+      - name: Generate coverage report
+        id: coverage
+        run: |
+          # Parse coverage from vitest output
+          if [ -f apps/web/coverage/coverage-summary.json ]; then
+            LINES=$(jq '.total.lines.pct' apps/web/coverage/coverage-summary.json)
+            BRANCHES=$(jq '.total.branches.pct' apps/web/coverage/coverage-summary.json)
+            FUNCTIONS=$(jq '.total.functions.pct' apps/web/coverage/coverage-summary.json)
+            STATEMENTS=$(jq '.total.statements.pct' apps/web/coverage/coverage-summary.json)
+
+            echo "lines=$LINES" >> $GITHUB_OUTPUT
+            echo "branches=$BRANCHES" >> $GITHUB_OUTPUT
+            echo "functions=$FUNCTIONS" >> $GITHUB_OUTPUT
+            echo "statements=$STATEMENTS" >> $GITHUB_OUTPUT
+          else
+            echo "lines=0" >> $GITHUB_OUTPUT
+            echo "branches=0" >> $GITHUB_OUTPUT
+            echo "functions=0" >> $GITHUB_OUTPUT
+            echo "statements=0" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Post coverage comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const lines = parseFloat('${{ steps.coverage.outputs.lines }}') || 0;
+            const branches = parseFloat('${{ steps.coverage.outputs.branches }}') || 0;
+            const functions = parseFloat('${{ steps.coverage.outputs.functions }}') || 0;
+            const statements = parseFloat('${{ steps.coverage.outputs.statements }}') || 0;
+
+            const getCoverageEmoji = (pct) => {
+              if (pct >= 80) return ':green_circle:';
+              if (pct >= 60) return ':yellow_circle:';
+              return ':red_circle:';
+            };
+
+            let body = `## Test Coverage Report\n\n`;
+            body += `| Metric | Coverage | Status |\n`;
+            body += `|--------|----------|--------|\n`;
+            body += `| Lines | ${lines.toFixed(2)}% | ${getCoverageEmoji(lines)} |\n`;
+            body += `| Branches | ${branches.toFixed(2)}% | ${getCoverageEmoji(branches)} |\n`;
+            body += `| Functions | ${functions.toFixed(2)}% | ${getCoverageEmoji(functions)} |\n`;
+            body += `| Statements | ${statements.toFixed(2)}% | ${getCoverageEmoji(statements)} |\n`;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('## Test Coverage Report')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: unittests
+          fail_ci_if_error: false
+
+  # Build WASM if Rust files changed
+  build-wasm:
+    name: Build WASM
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          targets: wasm32-unknown-unknown
+          components: clippy, rustfmt
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages/guilloche-wasm
+          cache-on-failure: true
+
+      - name: Run Rust lints
+        working-directory: packages/guilloche-wasm
+        run: |
+          cargo fmt -- --check
+          cargo clippy -- -D warnings
+
+      - name: Run Rust tests
+        working-directory: packages/guilloche-wasm
+        run: cargo test
+
+      - name: Install wasm-pack
+        run: cargo install wasm-pack --locked
+
+      - name: Build WASM
+        working-directory: packages/guilloche-wasm
+        run: wasm-pack build --target web --release
+
+  # Bundle size check
+  bundle-size:
+    name: Bundle Size Analysis
+    runs-on: ubuntu-latest
+    needs: [changes]
+    if: needs.changes.outputs.src == 'true' || needs.changes.outputs.deps == 'true'
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build PR branch
+        run: pnpm build:web
+        env:
+          PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
+          PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+
+      - name: Measure PR bundle size
+        id: pr_size
+        run: |
+          PR_SIZE=$(du -sb apps/web/.svelte-kit/cloudflare | cut -f1)
+          PR_SIZE_HR=$(du -sh apps/web/.svelte-kit/cloudflare | cut -f1)
+          echo "size=$PR_SIZE" >> $GITHUB_OUTPUT
+          echo "size_hr=$PR_SIZE_HR" >> $GITHUB_OUTPUT
+
+      - name: Checkout base branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+          path: base
+
+      - name: Build base branch
+        id: base_build
+        run: |
+          cd base
+          pnpm install --frozen-lockfile
+          pnpm build:web || echo "Base build failed"
+        env:
+          PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
+          PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+        continue-on-error: true
+
+      - name: Measure base bundle size
+        id: base_size
+        run: |
+          if [ -d "base/apps/web/.svelte-kit/cloudflare" ]; then
+            BASE_SIZE=$(du -sb base/apps/web/.svelte-kit/cloudflare | cut -f1)
+            BASE_SIZE_HR=$(du -sh base/apps/web/.svelte-kit/cloudflare | cut -f1)
+          else
+            BASE_SIZE=0
+            BASE_SIZE_HR="N/A"
+          fi
+          echo "size=$BASE_SIZE" >> $GITHUB_OUTPUT
+          echo "size_hr=$BASE_SIZE_HR" >> $GITHUB_OUTPUT
+
+      - name: Calculate size difference
+        id: diff
+        run: |
+          PR_SIZE=${{ steps.pr_size.outputs.size }}
+          BASE_SIZE=${{ steps.base_size.outputs.size }}
+
+          if [ "$BASE_SIZE" -eq 0 ]; then
+            DIFF_BYTES=$PR_SIZE
+            DIFF_PERCENT="N/A"
+          else
+            DIFF_BYTES=$((PR_SIZE - BASE_SIZE))
+            DIFF_PERCENT=$(echo "scale=2; ($DIFF_BYTES / $BASE_SIZE) * 100" | bc)
+          fi
+
+          if [ $DIFF_BYTES -gt 0 ]; then
+            DIFF_HR="+$(numfmt --to=iec $DIFF_BYTES)"
+            EMOJI=":chart_with_upwards_trend:"
+          elif [ $DIFF_BYTES -lt 0 ]; then
+            DIFF_HR="$(numfmt --to=iec -- $DIFF_BYTES)"
+            EMOJI=":chart_with_downwards_trend:"
+          else
+            DIFF_HR="No change"
+            EMOJI=":heavy_minus_sign:"
+          fi
+
+          echo "bytes=$DIFF_BYTES" >> $GITHUB_OUTPUT
+          echo "hr=$DIFF_HR" >> $GITHUB_OUTPUT
+          echo "percent=$DIFF_PERCENT" >> $GITHUB_OUTPUT
+          echo "emoji=$EMOJI" >> $GITHUB_OUTPUT
+
+      - name: Post bundle size comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prSize = '${{ steps.pr_size.outputs.size_hr }}';
+            const baseSize = '${{ steps.base_size.outputs.size_hr }}';
+            const diffHr = '${{ steps.diff.outputs.hr }}';
+            const diffPercent = '${{ steps.diff.outputs.percent }}';
+            const emoji = '${{ steps.diff.outputs.emoji }}';
+            const diffBytes = parseInt('${{ steps.diff.outputs.bytes }}');
+
+            let status = ':white_check_mark: Size is acceptable';
+            if (diffBytes > 500000) { // 500KB increase
+              status = ':warning: Large size increase detected!';
+            } else if (diffBytes > 100000) { // 100KB increase
+              status = ':eyes: Moderate size increase';
+            } else if (diffBytes < 0) {
+              status = ':tada: Bundle size reduced!';
+            }
+
+            let body = `## Bundle Size Report ${emoji}\n\n`;
+            body += `| Metric | Size |\n`;
+            body += `|--------|------|\n`;
+            body += `| This PR | ${prSize} |\n`;
+            body += `| Base (${context.payload.pull_request.base.ref}) | ${baseSize} |\n`;
+            body += `| Difference | ${diffHr} (${diffPercent}%) |\n`;
+            body += `\n${status}\n`;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('## Bundle Size Report')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+  # E2E tests (if playwright is set up)
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    if: false  # Enable when Playwright is configured
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Build application
+        run: pnpm build:web
+        env:
+          PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
+          PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+
+      - name: Run E2E tests
+        run: pnpm exec playwright test
+        env:
+          CI: true
+
+      - name: Upload E2E test results
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  # Final status check
+  pr-status:
+    name: PR Status
+    runs-on: ubuntu-latest
+    needs: [lint, test, bundle-size]
+    if: always()
+    steps:
+      - name: Check job results
+        run: |
+          if [[ "${{ needs.lint.result }}" == "failure" ]] || \
+             [[ "${{ needs.test.result }}" == "failure" ]]; then
+            echo "Required checks failed"
+            exit 1
+          fi
+          echo "All required checks passed"

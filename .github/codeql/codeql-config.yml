@@ -1,0 +1,46 @@
+# CodeQL configuration for Guilloche Studio
+# https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/customizing-code-scanning
+
+name: "Guilloche Studio CodeQL Config"
+
+# Specify additional queries to run
+queries:
+  - uses: security-extended
+  - uses: security-and-quality
+
+# Paths to include in the analysis
+paths:
+  - apps
+  - packages
+
+# Paths to exclude from analysis
+paths-ignore:
+  - '**/node_modules'
+  - '**/dist'
+  - '**/build'
+  - '**/.svelte-kit'
+  - '**/coverage'
+  - '**/*.test.ts'
+  - '**/*.spec.ts'
+  - '**/tests'
+  - '**/__tests__'
+  - '**/test'
+  - '**/pkg'  # WASM build output
+  - '**/target'  # Rust build output
+
+# Query filters to customize which alerts are reported
+query-filters:
+  # Exclude test-related issues
+  - exclude:
+      tags contain: /test/
+
+# Threat models to consider
+threat-models:
+  - remote
+
+# Configure extraction behavior
+extraction:
+  javascript:
+    # Include TypeScript files
+    typescript:
+      enabled: true

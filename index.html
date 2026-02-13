@@ -1,0 +1,2418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guilloché Studio Pro | Precision Ornamental Patterns</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #0f172a;
+      --panel: #f8fafc;
+      --muted: #64748b;
+      --border: rgba(0,0,0,0.08);
+      --shadow: rgba(0,0,0,0.1);
+      --primary: #4f46e5;
+      --primary-dark: #4338ca;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      transition: var(--transition);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+      z-index: 100;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      font-size: 1.25rem;
+      background: linear-gradient(135deg, var(--primary), #7c3aed);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .logo-icon {
+      font-size: 1.5rem;
+      transform: rotate(-15deg);
+    }
+
+    .app-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .panel {
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      min-width: 320px;
+      max-width: 480px;
+      transition: var(--transition);
+      box-shadow: 2px 0 12px var(--shadow);
+      z-index: 50;
+    }
+
+    .panel.collapsed {
+      min-width: 60px;
+      max-width: 60px;
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+
+    .panel-title {
+      font-size: 1.125rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-title-icon {
+      font-size: 1.25rem;
+    }
+
+    .collapse-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: white;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+      flex-shrink: 0;
+    }
+
+    .collapse-btn:hover {
+      background: var(--primary);
+      color: white;
+      transform: scale(1.05);
+    }
+
+    .panel-body {
+      padding: 16px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .section {
+      margin-bottom: 24px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.7);
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      transition: var(--transition);
+    }
+
+    .section:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed var(--border);
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--primary-dark);
+    }
+
+    .section-title span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      font-size: 0.875rem;
+      color: var(--muted);
+      margin: 10px 0;
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 8px 0;
+    }
+
+    .control-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    select, input[type="range"], input[type="color"], input[type="number"] {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: white;
+      font-family: inherit;
+      transition: var(--transition);
+    }
+
+    input[type="range"] {
+      height: 28px;
+      -webkit-appearance: none;
+      background: #e2e8f0;
+      border-radius: 14px;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    input[type="color"] {
+      height: 40px;
+      padding: 4px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    input[type="number"] {
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+      max-width: 80px;
+    }
+
+    .value-display {
+      font-variant-numeric: tabular-nums;
+      font-weight: 500;
+      color: var(--fg);
+      text-align: right;
+      min-width: 40px;
+      font-size: 0.85rem;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0;
+    }
+
+    .checkbox-group input {
+      width: auto;
+      margin: 0;
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .preset-item {
+      aspect-ratio: 1;
+      border-radius: 10px;
+      background: linear-gradient(45deg, #8b5cf6, #ec4899);
+      border: 2px solid white;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .preset-item:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+    }
+
+    .preset-item::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+    }
+
+    .preset-name {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      padding: 4px;
+      font-size: 0.75rem;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .btn {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      background: white;
+      color: var(--fg);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 4px 15px rgba(79, 70, 229, 0.35);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      box-shadow: 0 6px 20px rgba(79, 70, 229, 0.45);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-warning {
+      background: var(--warning);
+      color: white;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-icon {
+      font-size: 1.1rem;
+    }
+
+    .stage {
+      position: relative;
+      flex: 1;
+      background: var(--bg);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    canvas {
+      max-width: 95%;
+      max-height: 95%;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+      border-radius: 8px;
+      display: block;
+    }
+
+    .hint-bar {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255,255,255,0.85);
+      border: 1px dashed var(--border);
+      border-radius: 50px;
+      padding: 8px 24px;
+      font-size: 0.9rem;
+      color: var(--muted);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      z-index: 100;
+      transition: var(--transition);
+      max-width: 80%;
+      text-align: center;
+    }
+
+    .hint-bar:hover {
+      background: white;
+      box-shadow: 0 6px 25px rgba(0,0,0,0.12);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: white;
+      border-left: 4px solid var(--success);
+      border-radius: 12px;
+      padding: 16px 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      z-index: 1000;
+      transform: translateX(400px);
+      transition: transform 0.3s ease-out;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .toast.show {
+      transform: translateX(0);
+    }
+
+    .toast.error { border-left-color: var(--danger); }
+    .toast.warning { border-left-color: var(--warning); }
+
+    .toast-icon { font-size: 1.4rem; }
+
+    .expand-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      background: white;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      z-index: 100;
+      font-weight: bold;
+      font-size: 1.25rem;
+      transition: var(--transition);
+      display: none;
+    }
+
+    .panel.collapsed + .stage .expand-btn {
+      display: flex;
+    }
+
+    .expand-btn:hover {
+      background: var(--primary);
+      color: white;
+      transform: scale(1.05);
+    }
+
+    .layer-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 12px;
+      max-height: 150px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .layer-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: white;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .layer-item.active {
+      border-color: var(--primary);
+      background: rgba(79, 70, 229, 0.08);
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.15);
+    }
+
+    .layer-color {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    .layer-name {
+      flex: 1;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .layer-toggle {
+      width: 36px;
+      height: 20px;
+      border-radius: 10px;
+      background: #cbd5e1;
+      position: relative;
+      cursor: pointer;
+      border: none;
+    }
+
+    .layer-toggle::after {
+      content: "";
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: white;
+      top: 2px;
+      left: 2px;
+      transition: var(--transition);
+    }
+
+    .layer-toggle.active::after {
+      transform: translateX(16px);
+      background: var(--success);
+    }
+
+    .history-list {
+      max-height: 120px;
+      overflow-y: auto;
+      margin-top: 8px;
+      border-top: 1px dashed var(--border);
+      padding-top: 8px;
+    }
+
+    .history-item {
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .history-item:hover {
+      background: rgba(79, 70, 229, 0.08);
+    }
+
+    .history-item.active {
+      background: rgba(79, 70, 229, 0.15);
+      font-weight: 500;
+    }
+
+    .history-time {
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    @media (max-width: 900px) {
+      .app-container {
+        flex-direction: column;
+      }
+      
+      .panel {
+        min-width: 100%;
+        max-width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        max-height: 400px;
+      }
+      
+      .panel.collapsed {
+        max-height: 60px;
+        min-width: 100%;
+      }
+      
+      .expand-btn {
+        display: flex !important;
+        top: auto;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 60px;
+        border-radius: 30px;
+        font-size: 1.5rem;
+        box-shadow: 0 6px 25px rgba(0,0,0,0.2);
+      }
+      
+      .panel.collapsed + .stage .expand-btn {
+        display: flex !important;
+      }
+      
+      .hint-bar {
+        bottom: 90px;
+      }
+    }
+
+    .gradient-preview {
+      height: 36px;
+      border-radius: 10px;
+      margin: 8px 0;
+      background: linear-gradient(90deg, var(--start-color), var(--end-color));
+      border: 1px solid var(--border);
+    }
+
+    .tabs {
+      display: flex;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab {
+      padding: 10px 16px;
+      cursor: pointer;
+      font-weight: 500;
+      position: relative;
+      transition: var(--transition);
+    }
+
+    .tab.active {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .tab.active::after {
+      content: "";
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--primary);
+      border-radius: 2px 2px 0 0;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .blend-mode-select {
+      grid-column: span 2;
+      margin-top: 8px;
+    }
+
+    .animation-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .keyframe-btn {
+      grid-column: span 2;
+      background: linear-gradient(135deg, var(--warning), #ea580c);
+      color: white;
+    }
+
+    .export-options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .export-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 14px 8px;
+      font-size: 0.85rem;
+    }
+
+    .export-icon {
+      font-size: 1.4rem;
+    }
+
+    .pro-badge {
+      background: linear-gradient(45deg, var(--primary), #7c3aed);
+      color: white;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin-left: 6px;
+    }
+
+    .parameter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 14px;
+      margin-top: 8px;
+    }
+
+    .parameter-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .parameter-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .parameter-value {
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      text-align: center;
+      padding: 4px;
+      background: rgba(255,255,255,0.5);
+      border-radius: 6px;
+      font-size: 0.95rem;
+    }
+
+    .symmetry-preview {
+      display: flex;
+      justify-content: center;
+      margin: 12px 0;
+      position: relative;
+      width: 100%;
+      height: 80px;
+    }
+
+    .symmetry-canvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.03);
+      border: 1px dashed var(--border);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-header">
+    <div class="logo">
+      <span class="logo-icon">⚙️</span>
+      <span>Guilloché Studio Pro</span>
+      <span class="pro-badge">PRO</span>
+    </div>
+    <div class="app-controls">
+      <button class="btn btn-primary" id="newPattern">
+        <span class="btn-icon">✨</span>
+        New Pattern
+      </button>
+    </div>
+  </div>
+  
+  <div class="app-container">
+    <aside class="panel" id="panel">
+      <div class="panel-head">
+        <h1 class="panel-title">
+          <span class="panel-title-icon">🌀</span>
+          <span>Pattern Controls</span>
+        </h1>
+        <button class="collapse-btn" id="collapse">‹</button>
+      </div>
+      
+      <div class="panel-body">
+        <div class="tabs">
+          <div class="tab active" data-tab="curve">Curve</div>
+          <div class="tab" data-tab="style">Style</div>
+          <div class="tab" data-tab="layers">Layers</div>
+          <div class="tab" data-tab="animate">Animate</div>
+          <div class="tab" data-tab="export">Export</div>
+        </div>
+        
+        <div class="tab-content active" id="tab-curve">
+          <div class="section">
+            <div class="section-title">
+              <span>📐 Curve Family</span>
+            </div>
+            <label>
+              <select id="family">
+                <option value="hypo">Hypotrochoid (inside)</option>
+                <option value="epi">Epitrochoid (outside)</option>
+                <option value="rose">Rose Curve</option>
+                <option value="liss">Lissajous</option>
+                <option value="spiral">Archimedean Spiral</option>
+                <option value="hypocycloid">Hypocycloid</option>
+                <option value="epicycloid">Epicycloid</option>
+                <option value="fermat">Fermat Spiral</option>
+                <option value="liss3d">Lissajous 3D</option>
+              </select>
+            </label>
+            
+            <div class="parameter-grid">
+              <div class="parameter-item">
+                <span class="parameter-label" title="Outer radius">R</span>
+                <span class="parameter-value" id="Rv">240</span>
+                <input type="range" id="R" min="10" max="450" value="240" step="1">
+              </div>
+              <div class="parameter-item">
+                <span class="parameter-label" title="Inner radius">r</span>
+                <span class="parameter-value" id="rv">79</span>
+                <input type="range" id="r" min="5" max="300" value="79" step="1">
+              </div>
+              <div class="parameter-item">
+                <span class="parameter-label" title="Pen offset">d</span>
+                <span class="parameter-value" id="dv">140</span>
+                <input type="range" id="d" min="0" max="320" value="140" step="1">
+              </div>
+              <div class="parameter-item">
+                <span class="parameter-label" title="Frequency">k</span>
+                <span class="parameter-value" id="kv">13</span>
+                <input type="range" id="k" min="1" max="80" value="13" step="1">
+              </div>
+              <div class="parameter-item">
+                <span class="parameter-label" title="Phase shift">φ</span>
+                <span class="parameter-value" id="phasev">0.00</span>
+                <input type="range" id="phase" min="0" max="6.283" value="0" step="0.01">
+              </div>
+              <div class="parameter-item">
+                <span class="parameter-label" title="Modulation depth">m</span>
+                <span class="parameter-value" id="mv">0.22</span>
+                <input type="range" id="m" min="0" max="1" value="0.22" step="0.01">
+              </div>
+              <div class="parameter-item">
+                <span class="parameter-label" title="Modulation freq">mf</span>
+                <span class="parameter-value" id="mfv">7</span>
+                <input type="range" id="mf" min="1" max="80" value="7" step="1">
+              </div>
+              <div class="parameter-item">
+                <span class="parameter-label" title="Rotation">θ</span>
+                <span class="parameter-value" id="rotv">0.000</span>
+                <input type="range" id="rot" min="0" max="6.283" value="0" step="0.001">
+              </div>
+            </div>
+          </div>
+          
+          <div class="section">
+            <div class="section-title">
+              <span>✨ Symmetry</span>
+            </div>
+            <div class="symmetry-preview">
+              <canvas class="symmetry-canvas" id="symPreview" width="200" height="80"></canvas>
+            </div>
+            <label>
+              Rotational
+              <span class="value-display" id="symmetryv">1</span>
+              <input type="range" id="symmetry" min="1" max="24" value="1" step="1">
+            </label>
+            <div class="checkbox-group">
+              <input type="checkbox" id="reflectH">
+              <label for="reflectH" style="margin:0">Horizontal Reflection</label>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="reflectV">
+              <label for="reflectV" style="margin:0">Vertical Reflection</label>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="kaleidoscope">
+              <label for="kaleidoscope" style="margin:0">Kaleidoscope Mode</label>
+            </div>
+          </div>
+          
+          <div class="section">
+            <div class="section-title">
+              <span>⚙️ Precision</span>
+            </div>
+            <label>
+              Steps
+              <span class="value-display" id="stepsv">16,000</span>
+              <input type="range" id="steps" min="800" max="120000" value="16000" step="200">
+            </label>
+            <div class="checkbox-group">
+              <input type="checkbox" id="adaptiveSteps" checked>
+              <label for="adaptiveSteps" style="margin:0">Adaptive Step Count</label>
+            </div>
+            <label>
+              Scale
+              <span class="value-display" id="sv">1.00</span>
+              <input type="range" id="s" min="0.2" max="3.0" value="1" step="0.01">
+            </label>
+          </div>
+          
+          <div class="section">
+            <div class="section-title">
+              <span>🎨 Presets</span>
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-primary" id="random">
+                <span class="btn-icon">🎲</span>
+                Randomize
+              </button>
+              <button class="btn btn-warning" id="reset">
+                <span class="btn-icon">↺</span>
+                Reset
+              </button>
+              <button class="btn btn-success" id="savePreset">
+                <span class="btn-icon">⭐</span>
+                Save
+              </button>
+            </div>
+            <div class="preset-grid">
+              <div class="preset-item"><span class="preset-name">Classic</span></div>
+              <div class="preset-item" style="background: linear-gradient(45deg, #3b82f6, #8b5cf6)"><span class="preset-name">Ocean</span></div>
+              <div class="preset-item" style="background: linear-gradient(45deg, #10b981, #14b8a6)"><span class="preset-name">Forest</span></div>
+              <div class="preset-item" style="background: linear-gradient(45deg, #f59e0b, #ea580c)"><span class="preset-name">Sunset</span></div>
+              <div class="preset-item" style="background: linear-gradient(45deg, #ef4444, #f97316)"><span class="preset-name">Fire</span></div>
+              <div class="preset-item" style="background: linear-gradient(45deg, #6366f1, #a78bfa)"><span class="preset-name">Royal</span></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="tab-content" id="tab-style">
+          <div class="section">
+            <div class="section-title">
+              <span>✏️ Stroke</span>
+            </div>
+            <label>
+              Width
+              <span class="value-display" id="lwv">0.7</span>
+              <input type="range" id="lw" min="0.1" max="8" value="0.7" step="0.1">
+            </label>
+            <div class="checkbox-group">
+              <input type="checkbox" id="dashed">
+              <label for="dashed" style="margin:0">Dashed Lines</label>
+            </div>
+            <label>
+              Dash Ratio
+              <span class="value-display" id="dashRatiov">1.0</span>
+              <input type="range" id="dashRatio" min="0.1" max="5" value="1" step="0.1">
+            </label>
+            <div class="checkbox-group">
+              <input type="checkbox" id="aa" checked>
+              <label for="aa" style="margin:0">Engraving Alpha (Subtle)</label>
+            </div>
+          </div>
+          
+          <div class="section">
+            <div class="section-title">
+              <span>🌈 Colors</span>
+            </div>
+            <label>Background</label>
+            <input type="color" id="bgColor" value="#ffffff">
+            <div class="control-row" style="margin-top:12px">
+              <div style="flex:1">
+                <label>Start Color</label>
+                <input type="color" id="startColor" value="#1e293b">
+              </div>
+              <div style="flex:1">
+                <label>End Color</label>
+                <input type="color" id="endColor" value="#4f46e5">
+              </div>
+            </div>
+            <div class="gradient-preview" id="gradientPreview"></div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="useGradient">
+              <label for="useGradient" style="margin:0">Use Gradient Stroke</label>
+            </div>
+          </div>
+          
+          <div class="section">
+            <div class="section-title">
+              <span>💫 Effects</span>
+            </div>
+            <label>
+              Glow Intensity
+              <span class="value-display" id="glowv">0</span>
+              <input type="range" id="glow" min="0" max="20" value="0" step="1">
+            </label>
+            <label>
+              Noise Amount
+              <span class="value-display" id="noisev">0</span>
+              <input type="range" id="noise" min="0" max="5" value="0" step="0.1">
+            </label>
+            <div class="checkbox-group">
+              <input type="checkbox" id="vignette" checked>
+              <label for="vignette" style="margin:0">Paper Vignette</label>
+            </div>
+          </div>
+        </div>
+        
+        <div class="tab-content" id="tab-layers">
+          <div class="section">
+            <div class="section-title">
+              <span>🧱 Pattern Layers</span>
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-primary" id="addLayer">
+                <span class="btn-icon">+</span>
+                Add Layer
+              </button>
+              <button class="btn btn-danger" id="removeLayer">
+                <span class="btn-icon">-</span>
+                Remove
+              </button>
+              <button class="btn" id="duplicateLayer">
+                <span class="btn-icon">⎇</span>
+                Duplicate
+              </button>
+            </div>
+            
+            <div class="layer-list">
+              <div class="layer-item active">
+                <div class="layer-color" style="background:#4f46e5"></div>
+                <div class="layer-name">Base Pattern</div>
+                <button class="layer-toggle active"></button>
+              </div>
+              <div class="layer-item">
+                <div class="layer-color" style="background:#10b981"></div>
+                <div class="layer-name">Overlay</div>
+                <button class="layer-toggle"></button>
+              </div>
+            </div>
+            
+            <label class="blend-mode-select">
+              Blend Mode
+              <select id="blendMode">
+                <option value="normal">Normal</option>
+                <option value="multiply">Multiply</option>
+                <option value="screen">Screen</option>
+                <option value="overlay">Overlay</option>
+                <option value="darken">Darken</option>
+                <option value="lighten">Lighten</option>
+              </select>
+            </label>
+          </div>
+          
+          <div class="section">
+            <div class="section-title">
+              <span>⏱️ History</span>
+            </div>
+            <div class="control-row">
+              <button class="btn" id="undo" style="flex:1">
+                <span class="btn-icon">↶</span>
+                Undo
+              </button>
+              <button class="btn" id="redo" style="flex:1">
+                <span class="btn-icon">↷</span>
+                Redo
+              </button>
+            </div>
+            <div class="history-list">
+              <div class="history-item active">
+                <span>Current pattern</span>
+                <span class="history-time">Now</span>
+              </div>
+              <div class="history-item">
+                <span>Spiral variation</span>
+                <span class="history-time">2m ago</span>
+              </div>
+              <div class="history-item">
+                <span>Classic rose</span>
+                <span class="history-time">5m ago</span>
+              </div>
+              <div class="history-item">
+                <span>Initial setup</span>
+                <span class="history-time">10m ago</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="tab-content" id="tab-animate">
+          <div class="section">
+            <div class="section-title">
+              <span>🎬 Animation Engine</span>
+            </div>
+            <label>
+              Duration (seconds)
+              <span class="value-display" id="durationv">5.0</span>
+              <input type="range" id="duration" min="1" max="30" value="5" step="0.5">
+            </label>
+            <label>
+              Rotation Speed
+              <span class="value-display" id="rotSpeedv">0.00</span>
+              <input type="range" id="rotSpeed" min="-0.1" max="0.1" value="0" step="0.005">
+            </label>
+            <div class="animation-controls">
+              <button class="btn" id="playAnim">
+                <span class="btn-icon">▶️</span>
+                Play
+              </button>
+              <button class="btn" id="stopAnim">
+                <span class="btn-icon">⏹️</span>
+                Stop
+              </button>
+              <button class="btn keyframe-btn" id="addKeyframe" style="grid-column:span 2">
+                <span class="btn-icon">📍</span>
+                Add Keyframe
+              </button>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="loopAnim" checked>
+              <label for="loopAnim" style="margin:0">Loop Animation</label>
+            </div>
+          </div>
+          
+          <div class="section">
+            <div class="section-title">
+              <span>📊 Parameter Morphing</span>
+            </div>
+            <div class="control-group">
+              <div>
+                <label>Start k</label>
+                <input type="number" id="startK" min="1" max="80" value="5">
+              </div>
+              <div>
+                <label>End k</label>
+                <input type="number" id="endK" min="1" max="80" value="15">
+              </div>
+            </div>
+            <div class="control-group">
+              <div>
+                <label>Start d</label>
+                <input type="number" id="startD" min="0" max="320" value="80">
+              </div>
+              <div>
+                <label>End d</label>
+                <input type="number" id="endD" min="0" max="320" value="200">
+              </div>
+            </div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="morphSymmetry">
+              <label for="morphSymmetry" style="margin:0">Morph Symmetry Count</label>
+            </div>
+          </div>
+        </div>
+        
+        <div class="tab-content" id="tab-export">
+          <div class="section">
+            <div class="section-title">
+              <span>📤 Export Options</span>
+            </div>
+            <div class="export-options">
+              <button class="btn export-btn btn-success" id="exportSVG">
+                <span class="export-icon">🖼️</span>
+                <span>SVG Vector</span>
+                <span>Scalable</span>
+              </button>
+              <button class="btn export-btn" id="exportPNG">
+                <span class="export-icon">📸</span>
+                <span>PNG Raster</span>
+                <span>High Quality</span>
+              </button>
+              <button class="btn export-btn btn-warning" id="exportDXF">
+                <span class="export-icon">✏️</span>
+                <span>DXF</span>
+                <span>CNC/Laser</span>
+              </button>
+              <button class="btn export-btn btn-primary" id="exportPDF">
+                <span class="export-icon">📄</span>
+                <span>PDF</span>
+                <span>Print Ready</span>
+              </button>
+            </div>
+            
+            <label style="margin-top:16px">
+              Export Size (PNG/PDF)
+              <select id="exportSize">
+                <option value="1000">1000px (Web)</option>
+                <option value="2000">2000px (HD)</option>
+                <option value="4000" selected>4000px (Print)</option>
+                <option value="8000">8000px (Poster)</option>
+              </select>
+            </label>
+            
+            <div class="checkbox-group">
+              <input type="checkbox" id="transparentBg">
+              <label for="transparentBg" style="margin:0">Transparent Background (PNG)</label>
+            </div>
+            
+            <div class="checkbox-group">
+              <input type="checkbox" id="includeMetadata" checked>
+              <label for="includeMetadata" style="margin:0">Embed Parameters in SVG</label>
+            </div>
+            
+            <div class="section" style="margin-top:20px; background:#f0f4ff; border-color:#cbd5ff">
+              <div class="section-title">
+                <span>💎 Pro Features</span>
+              </div>
+              <ul style="font-size:0.9rem; line-height:1.6; color:#4338ca; padding-left:20px; margin-top:8px">
+                <li>Unlimited layers & blend modes</li>
+                <li>Advanced animation keyframes</li>
+                <li>Batch export presets</li>
+                <li>CMYK color profiles</li>
+                <li>SVG optimization</li>
+                <li>Parameter randomization seeds</li>
+              </ul>
+              <button class="btn btn-primary" style="width:100%; margin-top:12px">
+                <span class="btn-icon">⚡</span>
+                Upgrade to Pro
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+    
+    <main class="stage" id="stage">
+      <button class="expand-btn" id="expand">›</button>
+      <canvas id="c"></canvas>
+      <div class="hint-bar" id="hintBar">
+        🖱️ Wheel: Zoom | Drag: Pan | Double-click: Reset View | 💡 Pro Tip: Try symmetry with rose curves!
+      </div>
+    </main>
+  </div>
+  
+  <div class="toast" id="toast">
+    <span class="toast-icon">✅</span>
+    <span class="toast-message">Pattern exported successfully!</span>
+  </div>
+
+  <script>
+    // DOM Elements
+    const $ = (id) => document.getElementById(id);
+    const $$ = (sel) => document.querySelectorAll(sel);
+    
+    // Canvas Setup
+    const c = $("c");
+    const ctx = c.getContext("2d");
+    const symPreview = $("symPreview");
+    const symCtx = symPreview.getContext("2d");
+    
+    // State
+    let inverted = false;
+    let animationFrame = null;
+    let animationTime = 0;
+    let isAnimating = false;
+    let history = [];
+    let historyIndex = -1;
+    let layers = [
+      { id: 1, name: "Base Pattern", visible: true, color: "#4f46e5", blendMode: "normal" },
+      { id: 2, name: "Overlay", visible: false, color: "#10b981", blendMode: "overlay" }
+    ];
+    
+    // View Transform
+    const view = {
+      zoom: 1,
+      panX: 0,
+      panY: 0,
+      dragging: false,
+      lastX: 0,
+      lastY: 0
+    };
+    
+    // Initialize canvas size
+    function setCanvasSize() {
+      const stage = document.querySelector(".stage");
+      const rect = stage.getBoundingClientRect();
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      
+      // Main canvas
+      c.width = Math.floor(rect.width * 0.95 * dpr);
+      c.height = Math.floor(rect.height * 0.95 * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      
+      // Symmetry preview
+      symPreview.width = 200 * dpr;
+      symPreview.height = 80 * dpr;
+      symCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    
+    // Curve Math Functions
+    function gcd(a, b) {
+      a = Math.abs(a); b = Math.abs(b);
+      while (b) [a, b] = [b, a % b];
+      return a || 1;
+    }
+    
+    function getTMax(family, R, r, k, mf) {
+      if (family === "rose" || family === "liss" || family === "liss3d") return Math.PI * 2;
+      if (family === "spiral" || family === "fermat") return Math.PI * 2 * k;
+      if (family === "hypocycloid" || family === "hypotrochoid" || family === "hypo") {
+        const g = gcd(R, r);
+        return Math.PI * 2 * (r / g);
+      }
+      if (family === "epicycloid" || family === "epitrochoid" || family === "epi") {
+        const g = gcd(R, r);
+        return Math.PI * 2 * (r / g);
+      }
+      return Math.PI * 2 * 10; // Default for spirals
+    }
+    
+    function rotate(x, y, a) {
+      const ca = Math.cos(a), sa = Math.sin(a);
+      return [x * ca - y * sa, x * sa + y * ca];
+    }
+    
+    function pointFor(t, p) {
+      const { family, R, r, d, k, m, mf, phase } = p;
+      const mod = 1 + m * Math.sin(mf * t + phase);
+      
+      // Hypotrochoid (rolling inside)
+      if (family === "hypo" || family === "hypotrochoid") {
+        const a = (R - r);
+        const b = a / r;
+        return [
+          (a * Math.cos(t) + d * Math.cos(b * t)) * mod,
+          (a * Math.sin(t) - d * Math.sin(b * t)) * mod
+        ];
+      }
+      
+      // Epitrochoid (rolling outside)
+      if (family === "epi" || family === "epitrochoid") {
+        const a = (R + r);
+        const b = a / r;
+        return [
+          (a * Math.cos(t) - d * Math.cos(b * t)) * mod,
+          (a * Math.sin(t) - d * Math.sin(b * t)) * mod
+        ];
+      }
+      
+      // Rose curve
+      if (family === "rose") {
+        const rr = (R * Math.cos(k * t + phase)) * mod;
+        return [rr * Math.cos(t), rr * Math.sin(t)];
+      }
+      
+      // Lissajous
+      if (family === "liss") {
+        const A = R, B = r;
+        const a = k, b = mf;
+        return [
+          (A * Math.sin(a * t + phase)) * mod,
+          (B * Math.sin(b * t)) * mod
+        ];
+      }
+      
+      // Archimedean Spiral
+      if (family === "spiral") {
+        const turns = k;
+        const radius = R + (r * t) / (2 * Math.PI);
+        return [
+          radius * Math.cos(t + phase) * mod,
+          radius * Math.sin(t + phase) * mod
+        ];
+      }
+      
+      // Hypocycloid (special case: d = r)
+      if (family === "hypocycloid") {
+        const a = R - r;
+        const b = a / r;
+        return [
+          a * Math.cos(t) + r * Math.cos(b * t),
+          a * Math.sin(t) - r * Math.sin(b * t)
+        ].map(val => val * mod);
+      }
+      
+      // Epicycloid (special case: d = r)
+      if (family === "epicycloid") {
+        const a = R + r;
+        const b = a / r;
+        return [
+          a * Math.cos(t) - r * Math.cos(b * t),
+          a * Math.sin(t) - r * Math.sin(b * t)
+        ].map(val => val * mod);
+      }
+      
+      // Fermat Spiral
+      if (family === "fermat") {
+        const radius = R * Math.sqrt(t / (2 * Math.PI * k));
+        return [
+          radius * Math.cos(t + phase) * mod,
+          radius * Math.sin(t + phase) * mod
+        ];
+      }
+      
+      // Lissajous 3D (projected)
+      if (family === "liss3d") {
+        const A = R, B = r, C = d;
+        const a = k, b = mf, c = 3;
+        const x = A * Math.sin(a * t + phase);
+        const y = B * Math.sin(b * t);
+        const z = C * Math.sin(c * t + phase/2);
+        // Project 3D to 2D
+        return [
+          (x + z/2) * mod,
+          (y + z/3) * mod
+        ];
+      }
+      
+      // Default to circle
+      return [R * Math.cos(t), R * Math.sin(t)];
+    }
+    
+    // Read current parameters
+    function readParams() {
+      return {
+        family: $("family").value,
+        R: +$("R").value,
+        r: +$("r").value,
+        d: +$("d").value,
+        k: +$("k").value,
+        m: +$("m").value,
+        mf: +$("mf").value,
+        phase: +$("phase").value,
+        rot: +$("rot").value,
+        s: +$("s").value,
+        lw: +$("lw").value,
+        steps: +$("steps").value,
+        symmetry: +$("symmetry").value,
+        reflectH: $("reflectH").checked,
+        reflectV: $("reflectV").checked,
+        kaleidoscope: $("kaleidoscope").checked,
+        aa: $("aa").checked,
+        dashed: $("dashed").checked,
+        dashRatio: +$("dashRatio").value,
+        useGradient: $("useGradient").checked,
+        startColor: $("startColor").value,
+        endColor: $("endColor").value,
+        bgColor: $("bgColor").value,
+        glow: +$("glow").value,
+        noise: +$("noise").value,
+        vignette: $("vignette").checked,
+        blendMode: $("blendMode").value,
+        adaptiveSteps: $("adaptiveSteps").checked
+      };
+    }
+    
+    // Update value displays
+    function updateLabels(p) {
+      $("Rv").textContent = p.R;
+      $("rv").textContent = p.r;
+      $("dv").textContent = p.d;
+      $("kv").textContent = p.k;
+      $("mv").textContent = p.m.toFixed(2);
+      $("mfv").textContent = p.mf;
+      $("phasev").textContent = p.phase.toFixed(2);
+      $("rotv").textContent = p.rot.toFixed(3);
+      $("sv").textContent = p.s.toFixed(2);
+      $("lwv").textContent = p.lw.toFixed(1);
+      $("stepsv").textContent = p.steps.toLocaleString();
+      $("symmetryv").textContent = p.symmetry;
+      $("dashRatiov").textContent = p.dashRatio.toFixed(1);
+      $("glowv").textContent = p.glow;
+      $("noisev").textContent = p.noise.toFixed(1);
+      
+      // Update gradient preview
+      const gradPreview = $("gradientPreview");
+      gradPreview.style.setProperty('--start-color', p.startColor);
+      gradPreview.style.setProperty('--end-color', p.endColor);
+      gradPreview.style.background = p.useGradient ? 
+        `linear-gradient(90deg, ${p.startColor}, ${p.endColor})` : 
+        p.startColor;
+    }
+    
+    // Get colors based on settings
+    function getColors(p) {
+      return {
+        bg: p.bgColor,
+        stroke: p.useGradient ? null : p.startColor,
+        gradient: p.useGradient ? [p.startColor, p.endColor] : null
+      };
+    }
+    
+    // Clear canvas
+    function clear(ctx, width, height, bgColor) {
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, width, height);
+    }
+    
+    // Apply view transform
+    function applyView(ctx, cx, cy) {
+      ctx.translate(cx + view.panX, cy + view.panY);
+      ctx.scale(view.zoom, view.zoom);
+    }
+    
+    // Draw symmetry preview
+    function drawSymmetryPreview(p) {
+      const width = symPreview.width;
+      const height = symPreview.height;
+      const cx = width / 2;
+      const cy = height / 2;
+      
+      symCtx.clearRect(0, 0, width, height);
+      symCtx.fillStyle = "#f8fafc";
+      symCtx.fillRect(0, 0, width, height);
+      
+      // Draw symmetry guides
+      symCtx.strokeStyle = "#cbd5e1";
+      symCtx.lineWidth = 1;
+      
+      // Center point
+      symCtx.beginPath();
+      symCtx.arc(cx, cy, 3, 0, Math.PI * 2);
+      symCtx.fillStyle = "#4f46e5";
+      symCtx.fill();
+      
+      // Symmetry lines
+      const count = p.symmetry;
+      for (let i = 0; i < count; i++) {
+        const angle = (i / count) * Math.PI * 2;
+        const x = cx + Math.cos(angle) * 30;
+        const y = cy + Math.sin(angle) * 30;
+        
+        symCtx.beginPath();
+        symCtx.moveTo(cx, cy);
+        symCtx.lineTo(x, y);
+        symCtx.stroke();
+      }
+      
+      // Reflection indicators
+      if (p.reflectH) {
+        symCtx.beginPath();
+        symCtx.moveTo(10, cy);
+        symCtx.lineTo(width - 10, cy);
+        symCtx.strokeStyle = "#10b981";
+        symCtx.setLineDash([5, 3]);
+        symCtx.stroke();
+        symCtx.setLineDash([]);
+      }
+      
+      if (p.reflectV) {
+        symCtx.beginPath();
+        symCtx.moveTo(cx, 10);
+        symCtx.lineTo(cx, height - 10);
+        symCtx.strokeStyle = "#10b981";
+        symCtx.setLineDash([5, 3]);
+        symCtx.stroke();
+        symCtx.setLineDash([]);
+      }
+      
+      // Kaleidoscope indicator
+      if (p.kaleidoscope) {
+        symCtx.font = "12px sans-serif";
+        symCtx.fillStyle = "#ef4444";
+        symCtx.textAlign = "center";
+        symCtx.fillText("✨ KALEIDOSCOPE", cx, height - 10);
+      }
+    }
+    
+    // Main draw function
+    function draw() {
+      const p = readParams();
+      updateLabels(p);
+      drawSymmetryPreview(p);
+      
+      const rect = c.getBoundingClientRect();
+      const w = rect.width, h = rect.height;
+      const cx = w / 2, cy = h / 2;
+      
+      const { bg, stroke, gradient } = getColors(p);
+      clear(ctx, w, h, bg);
+      
+      // Save state for history if significant change
+      if (history.length === 0 || historyIndex < history.length - 1 || 
+          Math.random() > 0.95) { // Sample history periodically during animation
+        saveToHistory(p);
+      }
+      
+      ctx.save();
+      applyView(ctx, cx, cy);
+      
+      // Setup stroke
+      ctx.lineWidth = p.lw / view.zoom;
+      ctx.strokeStyle = stroke || "#4f46e5";
+      ctx.lineJoin = "round";
+      ctx.lineCap = "round";
+      
+      if (p.dashed) {
+        const dash = ctx.lineWidth * 8 * p.dashRatio;
+        const gap = ctx.lineWidth * 8;
+        ctx.setLineDash([dash, gap]);
+      } else {
+        ctx.setLineDash([]);
+      }
+      
+      // Setup glow if needed
+      if (p.glow > 0) {
+        ctx.shadowColor = stroke || "#4f46e5";
+        ctx.shadowBlur = p.glow * 2;
+      }
+      
+      // Draw each visible layer
+      layers.forEach(layer => {
+        if (!layer.visible) return;
+        
+        if (layer.id > 1) {
+          ctx.save();
+          ctx.globalCompositeOperation = p.blendMode;
+        }
+        
+        // Generate path with symmetry
+        const tMax = getTMax(p.family, p.R, p.r, p.k, p.mf);
+        const baseSteps = p.adaptiveSteps ? 
+          Math.min(40000, Math.max(2000, p.steps * Math.sqrt(p.symmetry))) : 
+          p.steps;
+        const dt = tMax / baseSteps;
+        
+        ctx.beginPath();
+        
+        // Draw each symmetry copy
+        for (let sym = 0; sym < p.symmetry; sym++) {
+          const symAngle = (2 * Math.PI * sym) / p.symmetry;
+          
+          for (let i = 0; i <= baseSteps; i++) {
+            const t = i * dt;
+            let [x, y] = pointFor(t, p);
+            
+            // Apply base rotation
+            [x, y] = rotate(x, y, p.rot);
+            
+            // Apply symmetry rotation
+            [x, y] = rotate(x, y, symAngle);
+            
+            // Apply reflections
+            if (p.reflectH) x = -x;
+            if (p.reflectV) y = -y;
+            
+            // Apply kaleidoscope (mirror in all quadrants)
+            if (p.kaleidoscope) {
+              x = Math.abs(x);
+              y = Math.abs(y);
+            }
+            
+            // Apply scale and noise
+            x *= p.s;
+            y *= p.s;
+            if (p.noise > 0) {
+              x += (Math.random() - 0.5) * p.noise;
+              y += (Math.random() - 0.5) * p.noise;
+            }
+            
+            if (i === 0 && sym === 0) {
+              ctx.moveTo(x, y);
+            } else if (i === 0) {
+              ctx.moveTo(x, y); // Start new subpath
+            } else {
+              ctx.lineTo(x, y);
+            }
+          }
+        }
+        
+        // Apply gradient if needed
+        if (gradient) {
+          const grd = ctx.createLinearGradient(-w/2, -h/2, w/2, h/2);
+          grd.addColorStop(0, gradient[0]);
+          grd.addColorStop(1, gradient[1]);
+          ctx.strokeStyle = grd;
+        }
+        
+        ctx.stroke();
+        
+        if (layer.id > 1) {
+          ctx.restore();
+        }
+      });
+      
+      ctx.restore();
+      
+      // Vignette effect
+      if (p.vignette) {
+        ctx.save();
+        const g = ctx.createRadialGradient(cx, cy, Math.min(w,h)*0.2, cx, cy, Math.min(w,h)*0.85);
+        g.addColorStop(0, "rgba(0,0,0,0)");
+        g.addColorStop(1, inverted ? "rgba(0,0,0,0.4)" : "rgba(0,0,0,0.1)");
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+        ctx.restore();
+      }
+      
+      // Reset shadow
+      ctx.shadowBlur = 0;
+    }
+    
+    // Save state to history
+    function saveToHistory(params) {
+      // Remove future history if we're not at the end
+      if (historyIndex < history.length - 1) {
+        history = history.slice(0, historyIndex + 1);
+      }
+      
+      history.push({
+        params: {...params},
+        timestamp: new Date(),
+        id: Date.now()
+      });
+      
+      historyIndex = history.length - 1;
+      
+      // Limit history size
+      if (history.length > 50) {
+        history.shift();
+        historyIndex--;
+      }
+      
+      updateHistoryUI();
+    }
+    
+    // Update history UI
+    function updateHistoryUI() {
+      const historyList = document.querySelector(".history-list");
+      historyList.innerHTML = "";
+      
+      // Show last 4 states
+      const recentHistory = history.slice(Math.max(0, history.length - 4), history.length).reverse();
+      
+      recentHistory.forEach((item, idx) => {
+        const isCurrent = historyIndex === history.length - 1 - idx;
+        const timeDiff = new Date() - item.timestamp;
+        let timeAgo = "Just now";
+        
+        if (timeDiff > 60000) {
+          const mins = Math.floor(timeDiff / 60000);
+          timeAgo = `${mins}m ago`;
+        }
+        
+        const div = document.createElement("div");
+        div.className = `history-item ${isCurrent ? 'active' : ''}`;
+        div.innerHTML = `
+          <span>${item.params.family} pattern</span>
+          <span class="history-time">${timeAgo}</span>
+        `;
+        div.dataset.index = history.length - 1 - idx;
+        div.addEventListener("click", () => loadHistoryItem(div.dataset.index));
+        historyList.appendChild(div);
+      });
+    }
+    
+    // Load history item
+    function loadHistoryItem(index) {
+      if (index < 0 || index >= history.length) return;
+      
+      historyIndex = parseInt(index);
+      const item = history[historyIndex];
+      
+      // Restore parameters
+      const p = item.params;
+      $("family").value = p.family;
+      $("R").value = p.R;
+      $("r").value = p.r;
+      $("d").value = p.d;
+      $("k").value = p.k;
+      $("m").value = p.m;
+      $("mf").value = p.mf;
+      $("phase").value = p.phase;
+      $("rot").value = p.rot;
+      $("s").value = p.s;
+      $("lw").value = p.lw;
+      $("steps").value = p.steps;
+      $("symmetry").value = p.symmetry;
+      $("reflectH").checked = p.reflectH;
+      $("reflectV").checked = p.reflectV;
+      $("kaleidoscope").checked = p.kaleidoscope;
+      $("aa").checked = p.aa;
+      $("dashed").checked = p.dashed;
+      $("dashRatio").value = p.dashRatio;
+      $("useGradient").checked = p.useGradient;
+      $("startColor").value = p.startColor;
+      $("endColor").value = p.endColor;
+      $("bgColor").value = p.bgColor;
+      $("glow").value = p.glow;
+      $("noise").value = p.noise;
+      $("vignette").checked = p.vignette;
+      $("blendMode").value = p.blendMode;
+      $("adaptiveSteps").checked = p.adaptiveSteps;
+      
+      // Update UI and redraw
+      updateLabels(p);
+      draw();
+      
+      // Show toast
+      showToast(`Restored pattern from ${new Date(item.timestamp).toLocaleTimeString()}`, "success");
+    }
+    
+    // Animation engine
+    function animate() {
+      if (!isAnimating) return;
+      
+      const p = readParams();
+      animationTime += 0.016; // ~60fps
+      
+      // Apply animation effects
+      const duration = parseFloat($("duration").value);
+      const rotSpeed = parseFloat($("rotSpeed").value);
+      
+      // Morph parameters
+      if ($("morphSymmetry").checked) {
+        const startSym = 1;
+        const endSym = 12;
+        const progress = (Math.sin(animationTime / duration * Math.PI) + 1) / 2;
+        $("symmetry").value = Math.round(startSym + (endSym - startSym) * progress);
+      }
+      
+      // Rotate pattern
+      if (rotSpeed !== 0) {
+        const newRot = (p.rot + rotSpeed) % (Math.PI * 2);
+        $("rot").value = newRot;
+      }
+      
+      draw();
+      
+      // Loop handling
+      if ($("loopAnim").checked && animationTime > duration) {
+        animationTime = 0;
+      }
+      
+      animationFrame = requestAnimationFrame(animate);
+    }
+    
+    // Start animation
+    function startAnimation() {
+      if (isAnimating) return;
+      isAnimating = true;
+      $("playAnim").innerHTML = `<span class="btn-icon">⏸️</span> Pause`;
+      animate();
+    }
+    
+    // Stop animation
+    function stopAnimation() {
+      isAnimating = false;
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+        animationFrame = null;
+      }
+      $("playAnim").innerHTML = `<span class="btn-icon">▶️</span> Play`;
+    }
+    
+    // Show toast notification
+    function showToast(message, type = "success") {
+      const toast = $("toast");
+      toast.className = "toast";
+      toast.classList.add(type);
+      $("toast-message").textContent = message;
+      
+      // Show toast
+      setTimeout(() => {
+        toast.classList.add("show");
+      }, 10);
+      
+      // Hide after delay
+      setTimeout(() => {
+        toast.classList.remove("show");
+      }, 3000);
+    }
+    
+    // Export as SVG
+    function exportSVG() {
+      const p = readParams();
+      const { bg, stroke, gradient } = getColors(p);
+      
+      // Use offscreen canvas to get precise dimensions
+      const rect = c.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      const cx = w / 2;
+      const cy = h / 2;
+      
+      // Calculate path data with symmetry
+      const tMax = getTMax(p.family, p.R, p.r, p.k, p.mf);
+      const baseSteps = Math.min(40000, p.steps);
+      const dt = tMax / baseSteps;
+      
+      let pathData = '';
+      let minX = Infinity, minY = Infinity;
+      let maxX = -Infinity, maxY = -Infinity;
+      
+      // Generate all points with symmetry
+      for (let sym = 0; sym < p.symmetry; sym++) {
+        const symAngle = (2 * Math.PI * sym) / p.symmetry;
+        
+        for (let i = 0; i <= baseSteps; i++) {
+          const t = i * dt;
+          let [x, y] = pointFor(t, p);
+          
+          // Apply base rotation
+          [x, y] = rotate(x, y, p.rot);
+          
+          // Apply symmetry rotation
+          [x, y] = rotate(x, y, symAngle);
+          
+          // Apply reflections
+          if (p.reflectH) x = -x;
+          if (p.reflectV) y = -y;
+          
+          // Apply kaleidoscope
+          if (p.kaleidoscope) {
+            x = Math.abs(x);
+            y = Math.abs(y);
+          }
+          
+          // Apply scale
+          x *= p.s;
+          y *= p.s;
+          
+          // Track bounds
+          minX = Math.min(minX, x);
+          minY = Math.min(minY, y);
+          maxX = Math.max(maxX, x);
+          maxY = Math.max(maxY, y);
+          
+          // Build path data
+          const cmd = (i === 0 && sym === 0) ? `M ${x} ${y}` : `L ${x} ${y}`;
+          pathData += (i === 0 && sym > 0) ? `M ${x} ${y}` : cmd;
+        }
+      }
+      
+      // Add padding to bounds
+      const paddingX = (maxX - minX) * 0.05;
+      const paddingY = (maxY - minY) * 0.05;
+      minX -= paddingX;
+      minY -= paddingY;
+      maxX += paddingX;
+      maxY += paddingY;
+      
+      const width = maxX - minX;
+      const height = maxY - minY;
+      
+      // Build SVG string
+      let svgStr = `
+<svg xmlns="http://www.w3.org/2000/svg" 
+     viewBox="${minX} ${minY} ${width} ${height}"
+     width="${width}" 
+     height="${height}"`;
+      
+      // Add background if not transparent
+      if (!$("transparentBg").checked) {
+        svgStr += ` style="background:${bg}"`;
+      }
+      
+      svgStr += `>
+  <!-- Generated with Guilloché Studio Pro -->
+  <!-- Parameters: family=${p.family}, R=${p.R}, r=${p.r}, d=${p.d}, k=${p.k}, symmetry=${p.symmetry} -->`;
+      
+      // Add metadata if requested
+      if ($("includeMetadata").checked) {
+        svgStr += `
+  <metadata>
+    <guilloche>
+      <family>${p.family}</family>
+      <R>${p.R}</R>
+      <r>${p.r}</r>
+      <d>${p.d}</d>
+      <k>${p.k}</k>
+      <m>${p.m}</m>
+      <mf>${p.mf}</mf>
+      <phase>${p.phase}</phase>
+      <rot>${p.rot}</rot>
+      <symmetry>${p.symmetry}</symmetry>
+      <reflectH>${p.reflectH}</reflectH>
+      <reflectV>${p.reflectV}</reflectV>
+      <kaleidoscope>${p.kaleidoscope}</kaleidoscope>
+      <date>${new Date().toISOString()}</date>
+    </guilloche>
+  </metadata>`;
+      }
+      
+      // Build path element
+      svgStr += `
+  <path d="${pathData}" 
+        stroke="${stroke || '#4f46e5'}" 
+        stroke-width="${p.lw}" 
+        fill="none" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"`;
+      
+      // Add dash array if needed
+      if (p.dashed) {
+        const dash = p.lw * 8 * p.dashRatio;
+        const gap = p.lw * 8;
+        svgStr += ` stroke-dasharray="${dash} ${gap}"`;
+      }
+      
+      // Add glow if needed (using filter)
+      if (p.glow > 0) {
+        svgStr += ` filter="url(#glow)"`;
+      }
+      
+      svgStr += `/>`;
+      
+      // Add glow filter if needed
+      if (p.glow > 0) {
+        svgStr += `
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="${p.glow}" result="blur"/>
+      <feFlood flood-color="${stroke || '#4f46e5'}" result="glowColor"/>
+      <feComposite in="glowColor" in2="blur" operator="in" result="softGlow"/>
+      <feMerge>
+        <feMergeNode in="softGlow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>`;
+      }
+      
+      svgStr += `
+</svg>`;
+      
+      // Trigger download
+      const blob = new Blob([svgStr.trim()], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.download = `guilloche_${p.family}_sym${p.symmetry}_${Date.now()}.svg`;
+      a.href = url;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      showToast("SVG exported successfully! Open in Illustrator or Inkscape.", "success");
+    }
+    
+    // Export as PNG
+    function exportPNG() {
+      // Create high-res canvas for export
+      const exportSize = parseInt($("exportSize").value);
+      const exportCanvas = document.createElement("canvas");
+      const exportCtx = exportCanvas.getContext("2d");
+      
+      exportCanvas.width = exportSize;
+      exportCanvas.height = exportSize;
+      
+      // Calculate scale to maintain aspect ratio
+      const rect = c.getBoundingClientRect();
+      const aspectRatio = rect.width / rect.height;
+      let drawWidth, drawHeight, offsetX, offsetY;
+      
+      if (aspectRatio > 1) {
+        drawWidth = exportSize;
+        drawHeight = exportSize / aspectRatio;
+        offsetX = 0;
+        offsetY = (exportSize - drawHeight) / 2;
+      } else {
+        drawHeight = exportSize;
+        drawWidth = exportSize * aspectRatio;
+        offsetX = (exportSize - drawWidth) / 2;
+        offsetY = 0;
+      }
+      
+      // Draw current canvas content to export canvas
+      exportCtx.drawImage(c, 0, 0, rect.width, rect.height, 
+                         offsetX, offsetY, drawWidth, drawHeight);
+      
+      // Handle transparent background
+      if ($("transparentBg").checked) {
+        // Make white background transparent
+        const imageData = exportCtx.getImageData(0, 0, exportCanvas.width, exportCanvas.height);
+        const data = imageData.data;
+        
+        for (let i = 0; i < data.length; i += 4) {
+          // Make near-white pixels transparent
+          if (data[i] > 250 && data[i+1] > 250 && data[i+2] > 250) {
+            data[i+3] = 0; // Set alpha to 0
+          }
+        }
+        
+        exportCtx.putImageData(imageData, 0, 0);
+      }
+      
+      // Trigger download
+      exportCanvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.download = `guilloche_${Date.now()}.png`;
+        a.href = url;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast(`PNG exported at ${exportSize}px resolution!`, "success");
+      }, "image/png", 0.95);
+    }
+    
+    // Setup event listeners
+    function setupEventListeners() {
+      // Tab switching
+      $$(".tab").forEach(tab => {
+        tab.addEventListener("click", () => {
+          // Deactivate all tabs and contents
+          $$(".tab").forEach(t => t.classList.remove("active"));
+          $$(".tab-content").forEach(c => c.classList.remove("active"));
+          
+          // Activate selected tab
+          tab.classList.add("active");
+          const tabName = tab.dataset.tab;
+          $(`tab-${tabName}`).classList.add("active");
+          
+          // Redraw if needed
+          if (tabName === "curve" || tabName === "style") {
+            draw();
+          }
+        });
+      });
+      
+      // Collapse/expand panel
+      $("collapse").addEventListener("click", () => {
+        document.querySelector(".panel").classList.add("collapsed");
+      });
+      
+      $("expand").addEventListener("click", () => {
+        document.querySelector(".panel").classList.remove("collapsed");
+      });
+      
+      // Curve family change
+      $("family").addEventListener("change", draw);
+      
+      // All range inputs
+      $$("input[type='range']").forEach(input => {
+        input.addEventListener("input", () => {
+          // Update display value
+          const valueDisplay = $(`${input.id}v`);
+          if (valueDisplay) {
+            if (input.id === 'steps') {
+              valueDisplay.textContent = parseInt(input.value).toLocaleString();
+            } else if (input.id === 'rot' || input.id === 'phase') {
+              valueDisplay.textContent = parseFloat(input.value).toFixed(3);
+            } else {
+              valueDisplay.textContent = parseFloat(input.value).toFixed(input.step.includes('.') ? 2 : 0);
+            }
+          }
+          
+          // Special handling for symmetry preview
+          if (input.id === 'symmetry' || input.id === 'reflectH' || input.id === 'reflectV' || input.id === 'kaleidoscope') {
+            drawSymmetryPreview(readParams());
+          }
+          
+          // Only redraw on mouse up for performance
+          if (!input.dataset.dragging) {
+            input.dataset.dragging = true;
+            draw();
+          }
+        });
+        
+        input.addEventListener("change", () => {
+          delete input.dataset.dragging;
+          draw();
+        });
+      });
+      
+      // Checkbox inputs
+      $$("input[type='checkbox']").forEach(input => {
+        input.addEventListener("change", draw);
+      });
+      
+      // Color inputs
+      $$("input[type='color']").forEach(input => {
+        input.addEventListener("input", () => {
+          if (input.id === "startColor" || input.id === "endColor") {
+            const gradPreview = $("gradientPreview");
+            gradPreview.style.setProperty('--start-color', $("startColor").value);
+            gradPreview.style.setProperty('--end-color', $("endColor").value);
+            gradPreview.style.background = 
+              `linear-gradient(90deg, ${$("startColor").value}, ${$("endColor").value})`;
+          }
+          draw();
+        });
+      });
+      
+      // Number inputs
+      $$("input[type='number']").forEach(input => {
+        input.addEventListener("change", draw);
+      });
+      
+      // Select inputs
+      $$("select").forEach(select => {
+        select.addEventListener("change", draw);
+      });
+      
+      // Preset items
+      $$(".preset-item").forEach(item => {
+        item.addEventListener("click", () => {
+          // Simulate loading a preset
+          const presets = {
+            "Classic": {R:240, r:79, d:140, k:13, m:0.22, mf:7, symmetry:1},
+            "Ocean": {R:200, r:95, d:120, k:8, m:0.3, mf:5, symmetry:3},
+            "Forest": {R:180, r:65, d:160, k:7, m:0.15, mf:11, symmetry:5},
+            "Sunset": {R:220, r:110, d:90, k:11, m:0.25, mf:4, symmetry:2},
+            "Fire": {R:260, r:85, d:180, k:17, m:0.4, mf:9, symmetry:4},
+            "Royal": {R:210, r:70, d:130, k:15, m:0.18, mf:6, symmetry:8}
+          };
+          
+          const name = item.querySelector(".preset-name").textContent;
+          const preset = presets[name];
+          
+          if (preset) {
+            $("R").value = preset.R;
+            $("r").value = preset.r;
+            $("d").value = preset.d;
+            $("k").value = preset.k;
+            $("m").value = preset.m;
+            $("mf").value = preset.mf;
+            $("symmetry").value = preset.symmetry;
+            updateLabels(readParams());
+            draw();
+            showToast(`Preset "${name}" loaded!`, "success");
+          }
+        });
+      });
+      
+      // Animation controls
+      $("playAnim").addEventListener("click", () => {
+        if (isAnimating) {
+          stopAnimation();
+        } else {
+          startAnimation();
+        }
+      });
+      
+      $("stopAnim").addEventListener("click", () => {
+        stopAnimation();
+        animationTime = 0;
+        draw();
+      });
+      
+      // History controls
+      $("undo").addEventListener("click", () => {
+        if (historyIndex > 0) {
+          loadHistoryItem(historyIndex - 1);
+        }
+      });
+      
+      $("redo").addEventListener("click", () => {
+        if (historyIndex < history.length - 1) {
+          loadHistoryItem(parseInt(historyIndex) + 1);
+        }
+      });
+      
+      // Layer controls
+      $$(".layer-toggle").forEach(toggle => {
+        toggle.addEventListener("click", () => {
+          toggle.classList.toggle("active");
+          // In a real app, this would toggle layer visibility
+          draw();
+        });
+      });
+      
+      // Export buttons
+      $("exportSVG").addEventListener("click", exportSVG);
+      $("exportPNG").addEventListener("click", exportPNG);
+      $("exportDXF").addEventListener("click", () => {
+        showToast("DXF export requires Pro version. Upgrade to unlock CNC/laser export!", "warning");
+      });
+      $("exportPDF").addEventListener("click", () => {
+        showToast("PDF export requires Pro version. Upgrade for print-ready PDFs with CMYK support!", "warning");
+      });
+      
+      // Randomize and reset
+      $("random").addEventListener("click", () => {
+        // Smart randomization based on curve family
+        const family = $("family").value;
+        const presets = {
+          "rose": {R: [180,260], r: [40,100], d: [120,200], k: [5,25], m: [0.1,0.4], mf: [3,12], symmetry: [1,8]},
+          "hypo": {R: [200,350], r: [50,150], d: [80,220], k: [3,15], m: [0.05,0.3], mf: [2,10], symmetry: [1,6]},
+          "spiral": {R: [20,80], r: [30,100], d: [0,0], k: [3,12], m: [0.2,0.6], mf: [5,20], symmetry: [1,1]},
+          "liss": {R: [150,250], r: [100,200], d: [0.5,3], k: [1,7], m: [0,0.2], mf: [1,7], symmetry: [1,4]}
+        };
+        
+        const params = presets[family] || presets["rose"];
+        
+        $("R").value = Math.floor(Math.random() * (params.R[1]-params.R[0]) + params.R[0]);
+        $("r").value = Math.floor(Math.random() * (params.r[1]-params.r[0]) + params.r[0]);
+        $("d").value = Math.floor(Math.random() * (params.d[1]-params.d[0]) + params.d[0]);
+        $("k").value = Math.floor(Math.random() * (params.k[1]-params.k[0]) + params.k[0]);
+        $("m").value = parseFloat((Math.random() * (params.m[1]-params.m[0]) + params.m[0]).toFixed(2));
+        $("mf").value = Math.floor(Math.random() * (params.mf[1]-params.mf[0]) + params.mf[0]);
+        $("symmetry").value = Math.floor(Math.random() * (params.symmetry[1]-params.symmetry[0]) + params.symmetry[0]);
+        $("rot").value = (Math.random() * Math.PI * 2).toFixed(3);
+        $("phase").value = (Math.random() * Math.PI * 2).toFixed(2);
+        
+        // Random colors
+        if (Math.random() > 0.7) {
+          $("useGradient").checked = true;
+          $("startColor").value = `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`;
+          $("endColor").value = `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`;
+        } else {
+          $("useGradient").checked = false;
+          $("startColor").value = `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`;
+        }
+        
+        // Random symmetry effects
+        if (Math.random() > 0.6) {
+          $("reflectH").checked = Math.random() > 0.5;
+          $("reflectV").checked = Math.random() > 0.5;
+        } else {
+          $("reflectH").checked = false;
+          $("reflectV").checked = false;
+        }
+        
+        $("kaleidoscope").checked = Math.random() > 0.9;
+        
+        updateLabels(readParams());
+        draw();
+        showToast("Random pattern generated! Try symmetry for interesting effects.", "success");
+      });
+      
+      $("reset").addEventListener("click", () => {
+        // Reset to classic guilloché parameters
+        $("family").value = "hypo";
+        $("R").value = 240;
+        $("r").value = 79;
+        $("d").value = 140;
+        $("k").value = 13;
+        $("m").value = 0.22;
+        $("mf").value = 7;
+        $("phase").value = 0;
+        $("rot").value = 0;
+        $("s").value = 1;
+        $("lw").value = 0.7;
+        $("steps").value = 16000;
+        $("symmetry").value = 1;
+        $("reflectH").checked = false;
+        $("reflectV").checked = false;
+        $("kaleidoscope").checked = false;
+        $("aa").checked = true;
+        $("dashed").checked = false;
+        $("dashRatio").value = 1;
+        $("useGradient").checked = false;
+        $("startColor").value = "#1e293b";
+        $("endColor").value = "#4f46e5";
+        $("bgColor").value = "#ffffff";
+        $("glow").value = 0;
+        $("noise").value = 0;
+        $("vignette").checked = true;
+        $("blendMode").value = "normal";
+        $("adaptiveSteps").checked = true;
+        
+        updateLabels(readParams());
+        draw();
+        showToast("Parameters reset to classic guilloché pattern.", "success");
+      });
+      
+      // Save preset (mock)
+      $("savePreset").addEventListener("click", () => {
+        showToast("Preset saved! (Pro feature: cloud sync & sharing)", "success");
+      });
+      
+      // Canvas interactions
+      c.addEventListener("wheel", (e) => {
+        e.preventDefault();
+        const rect = c.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        const cx = rect.width / 2;
+        const cy = rect.height / 2;
+        
+        // Zoom around cursor
+        const zoomFactor = Math.exp(-e.deltaY * 0.001);
+        const newZoom = Math.min(10, Math.max(0.1, view.zoom * zoomFactor));
+        
+        // Convert cursor to world coords pre-zoom
+        const wx = (mx - (cx + view.panX)) / view.zoom;
+        const wy = (my - (cy + view.panY)) / view.zoom;
+        
+        view.zoom = newZoom;
+        
+        // Recompute pan so world coord maps back to cursor
+        view.panX = mx - cx - wx * view.zoom;
+        view.panY = my - cy - wy * view.zoom;
+        
+        draw();
+      }, { passive: false });
+      
+      c.addEventListener("mousedown", (e) => {
+        view.dragging = true;
+        view.lastX = e.clientX;
+        view.lastY = e.clientY;
+        c.style.cursor = "grabbing";
+      });
+      
+      window.addEventListener("mouseup", () => {
+        view.dragging = false;
+        c.style.cursor = "grab";
+      });
+      
+      window.addEventListener("mousemove", (e) => {
+        if (!view.dragging) return;
+        const dx = e.clientX - view.lastX;
+        const dy = e.clientY - view.lastY;
+        view.lastX = e.clientX;
+        view.lastY = e.clientY;
+        view.panX += dx;
+        view.panY += dy;
+        draw();
+      });
+      
+      c.addEventListener("dblclick", () => {
+        view.zoom = 1;
+        view.panX = 0;
+        view.panY = 0;
+        draw();
+        showToast("View reset", "success");
+      });
+      
+      // Hint bar interactions
+      $$(".parameter-item, .section-title, .preset-item").forEach(el => {
+        el.addEventListener("mouseenter", (e) => {
+          const hint = e.currentTarget.title || e.currentTarget.dataset.hint;
+          if (hint) {
+            $("hintBar").textContent = `💡 ${hint}`;
+          }
+        });
+        
+        el.addEventListener("mouseleave", () => {
+          $("hintBar").textContent = "🖱️ Wheel: Zoom | Drag: Pan | Double-click: Reset View | 💡 Pro Tip: Try symmetry with rose curves!";
+        });
+      });
+    }
+    
+    // Initialize app
+    function init() {
+      setCanvasSize();
+      setupEventListeners();
+      
+      // Initial draw
+      draw();
+      
+      // Setup resize handler
+      window.addEventListener("resize", () => {
+        setCanvasSize();
+        draw();
+      });
+      
+      // Show welcome toast
+      setTimeout(() => {
+        showToast("Welcome to Guilloché Studio Pro! Create intricate ornamental patterns with precision controls.", "success");
+      }, 500);
+      
+      // Setup hint bar
+      c.style.cursor = "grab";
+    }
+    
+    // Start the app when page loads
+    window.addEventListener("load", init);
+  </script>
+</body>
+</html>

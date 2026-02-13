@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# Navigate to the web app directory
+cd "$(dirname "$0")/.." || exit 1
+
+echo "Running pre-commit checks for @guilloche/web..."
+
+# Run lint-staged (handles ESLint + Prettier on staged files)
+echo "Running lint-staged..."
+npx lint-staged
+
+# Run TypeScript type checking
+echo "Running TypeScript type check..."
+pnpm run typecheck
+
+# Run tests related to changed files
+echo "Running tests for changed files..."
+pnpm exec vitest run --changed HEAD~1 --passWithNoTests
+
+echo "Pre-commit checks passed!"

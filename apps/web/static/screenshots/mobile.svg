@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 844">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a"/>
+      <stop offset="100%" style="stop-color:#1e293b"/>
+    </linearGradient>
+    <linearGradient id="pattern" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6"/>
+      <stop offset="100%" style="stop-color:#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <rect width="390" height="844" fill="url(#bg)"/>
+  <!-- Header -->
+  <rect x="0" y="0" width="390" height="56" fill="#1e293b"/>
+  <text x="16" y="36" fill="#f8fafc" font-family="system-ui" font-size="18" font-weight="600">Guilloche Studio</text>
+  <!-- Canvas Area -->
+  <rect x="0" y="56" width="390" height="500" fill="#0f172a"/>
+  <!-- Pattern Preview -->
+  <g fill="none" stroke="url(#pattern)" stroke-width="1.5" transform="translate(195,306)">
+    <circle r="140" opacity="0.3"/>
+    <circle r="110" opacity="0.4"/>
+    <circle r="80" opacity="0.5"/>
+    <circle r="50" opacity="0.6"/>
+    <path d="M 0 -140 Q 140 0 0 140 Q -140 0 0 -140" opacity="0.6"/>
+    <path d="M -140 0 Q 0 -140 140 0 Q 0 140 -140 0" opacity="0.6"/>
+  </g>
+  <!-- Bottom Panel -->
+  <rect x="0" y="556" width="390" height="288" fill="#1e293b"/>
+  <!-- Bottom Nav -->
+  <rect x="0" y="794" width="390" height="50" fill="#0f172a"/>
+</svg>

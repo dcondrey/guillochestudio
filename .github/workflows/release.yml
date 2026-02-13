@@ -1,0 +1,326 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.2.3)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Is this a pre-release?'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: read
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '9'
+
+jobs:
+  # Validate and prepare release
+  prepare:
+    name: Prepare Release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+            PRERELEASE="${{ github.event.inputs.prerelease }}"
+          else
+            # Extract version from tag (v1.2.3 -> 1.2.3)
+            VERSION="${GITHUB_REF#refs/tags/v}"
+            # Check if it's a prerelease (contains alpha, beta, rc)
+            if [[ "$VERSION" == *"-"* ]]; then
+              PRERELEASE="true"
+            else
+              PRERELEASE="false"
+            fi
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+          echo "prerelease=$PRERELEASE" >> $GITHUB_OUTPUT
+
+          echo "## Release Info" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version:** $VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tag:** v$VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "- **Pre-release:** $PRERELEASE" >> $GITHUB_STEP_SUMMARY
+
+  # Generate changelog from commits
+  changelog:
+    name: Generate Changelog
+    runs-on: ubuntu-latest
+    needs: prepare
+    outputs:
+      changelog: ${{ steps.changelog.outputs.changelog }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get previous tag
+        id: prev_tag
+        run: |
+          # Get the previous tag
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            # If no previous tag, use first commit
+            PREV_TAG=$(git rev-list --max-parents=0 HEAD)
+          fi
+          echo "tag=$PREV_TAG" >> $GITHUB_OUTPUT
+          echo "Previous tag: $PREV_TAG"
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          PREV_TAG="${{ steps.prev_tag.outputs.tag }}"
+          CURRENT_TAG="${{ needs.prepare.outputs.tag }}"
+
+          # Create changelog file
+          echo "# Changelog for $CURRENT_TAG" > CHANGELOG_RELEASE.md
+          echo "" >> CHANGELOG_RELEASE.md
+          echo "## What's Changed" >> CHANGELOG_RELEASE.md
+          echo "" >> CHANGELOG_RELEASE.md
+
+          # Group commits by type using conventional commits
+          echo "### Features" >> CHANGELOG_RELEASE.md
+          git log $PREV_TAG..HEAD --pretty=format:"- %s (%h)" --grep="^feat" | head -50 >> CHANGELOG_RELEASE.md || echo "- No new features" >> CHANGELOG_RELEASE.md
+          echo "" >> CHANGELOG_RELEASE.md
+
+          echo "### Bug Fixes" >> CHANGELOG_RELEASE.md
+          git log $PREV_TAG..HEAD --pretty=format:"- %s (%h)" --grep="^fix" | head -50 >> CHANGELOG_RELEASE.md || echo "- No bug fixes" >> CHANGELOG_RELEASE.md
+          echo "" >> CHANGELOG_RELEASE.md
+
+          echo "### Performance Improvements" >> CHANGELOG_RELEASE.md
+          git log $PREV_TAG..HEAD --pretty=format:"- %s (%h)" --grep="^perf" | head -50 >> CHANGELOG_RELEASE.md || echo "- No performance improvements" >> CHANGELOG_RELEASE.md
+          echo "" >> CHANGELOG_RELEASE.md
+
+          echo "### Documentation" >> CHANGELOG_RELEASE.md
+          git log $PREV_TAG..HEAD --pretty=format:"- %s (%h)" --grep="^docs" | head -50 >> CHANGELOG_RELEASE.md || echo "- No documentation changes" >> CHANGELOG_RELEASE.md
+          echo "" >> CHANGELOG_RELEASE.md
+
+          echo "### Other Changes" >> CHANGELOG_RELEASE.md
+          git log $PREV_TAG..HEAD --pretty=format:"- %s (%h)" --grep="^chore\|^refactor\|^style\|^test\|^ci" | head -50 >> CHANGELOG_RELEASE.md || echo "- No other changes" >> CHANGELOG_RELEASE.md
+          echo "" >> CHANGELOG_RELEASE.md
+
+          # Add contributors
+          echo "## Contributors" >> CHANGELOG_RELEASE.md
+          git log $PREV_TAG..HEAD --pretty=format:"- @%an" | sort -u >> CHANGELOG_RELEASE.md
+          echo "" >> CHANGELOG_RELEASE.md
+
+          # Add full commit log link
+          echo "## Full Changelog" >> CHANGELOG_RELEASE.md
+          echo "[Compare changes](https://github.com/${{ github.repository }}/compare/$PREV_TAG...$CURRENT_TAG)" >> CHANGELOG_RELEASE.md
+
+          # Output for GitHub release
+          CHANGELOG=$(cat CHANGELOG_RELEASE.md)
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Upload changelog artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: CHANGELOG_RELEASE.md
+          retention-days: 30
+
+  # Build release assets
+  build:
+    name: Build Release
+    runs-on: ubuntu-latest
+    needs: prepare
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages/guilloche-wasm
+
+      - name: Install wasm-pack
+        run: cargo install wasm-pack --locked
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Update version in package.json
+        run: |
+          VERSION="${{ needs.prepare.outputs.version }}"
+          # Update root package.json
+          jq ".version = \"$VERSION\"" package.json > package.json.tmp && mv package.json.tmp package.json
+          # Update workspace packages
+          for pkg in apps/*/package.json packages/*/package.json; do
+            if [ -f "$pkg" ]; then
+              jq ".version = \"$VERSION\"" "$pkg" > "$pkg.tmp" && mv "$pkg.tmp" "$pkg"
+            fi
+          done
+
+      - name: Build WASM
+        working-directory: packages/guilloche-wasm
+        run: wasm-pack build --target web --release
+
+      - name: Build application
+        run: pnpm build:web
+        env:
+          PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
+          PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+
+      - name: Create release archive
+        run: |
+          VERSION="${{ needs.prepare.outputs.version }}"
+          mkdir -p release-assets
+
+          # Create source archive
+          git archive --format=tar.gz --prefix=guilloche-studio-$VERSION/ HEAD > release-assets/guilloche-studio-$VERSION-source.tar.gz
+
+          # Create build archive
+          tar -czvf release-assets/guilloche-studio-$VERSION-build.tar.gz \
+            apps/web/.svelte-kit/cloudflare \
+            packages/guilloche-wasm/pkg
+
+      - name: Upload release assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-assets
+          path: release-assets/
+          retention-days: 30
+
+  # Create GitHub release
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [prepare, changelog, build]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download changelog
+        uses: actions/download-artifact@v4
+        with:
+          name: changelog
+          path: ./
+
+      - name: Download release assets
+        uses: actions/download-artifact@v4
+        with:
+          name: release-assets
+          path: release-assets/
+
+      - name: Create or update tag
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          TAG="${{ needs.prepare.outputs.tag }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Delete existing tag if it exists
+          git tag -d "$TAG" 2>/dev/null || true
+          git push origin ":refs/tags/$TAG" 2>/dev/null || true
+
+          # Create new tag
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "$TAG"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.prepare.outputs.tag }}
+          name: Guilloche Studio ${{ needs.prepare.outputs.tag }}
+          body_path: CHANGELOG_RELEASE.md
+          draft: false
+          prerelease: ${{ needs.prepare.outputs.prerelease == 'true' }}
+          files: |
+            release-assets/*
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Post release summary
+        run: |
+          echo "## Release Created Successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version:** ${{ needs.prepare.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tag:** ${{ needs.prepare.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Pre-release:** ${{ needs.prepare.outputs.prerelease }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "[View Release](https://github.com/${{ github.repository }}/releases/tag/${{ needs.prepare.outputs.tag }})" >> $GITHUB_STEP_SUMMARY
+
+  # Notify on release
+  notify:
+    name: Send Notifications
+    runs-on: ubuntu-latest
+    needs: [prepare, release]
+    if: success()
+    steps:
+      - name: Send Slack notification
+        if: vars.SLACK_WEBHOOK_URL != ''
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "New release published: Guilloche Studio ${{ needs.prepare.outputs.tag }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": ":rocket: *New Release Published*\n\n*Version:* ${{ needs.prepare.outputs.tag }}\n*Repository:* ${{ github.repository }}"
+                  }
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View Release"
+                      },
+                      "url": "https://github.com/${{ github.repository }}/releases/tag/${{ needs.prepare.outputs.tag }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ vars.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

@@ -1,0 +1,2044 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Guilloche Studio Pro API",
+    "description": "API for creating, managing, and sharing mathematical guilloche patterns. This API powers the Guilloche Studio Pro web application, providing endpoints for pattern management, marketplace operations, AI-powered suggestions, and subscription handling.\n\n## Authentication\n\nMost endpoints require authentication via Supabase Auth. Include the authentication token in requests using cookies managed by the Supabase SSR library.\n\n## Rate Limiting\n\nAPI endpoints are rate-limited based on subscription tier:\n- **Free**: 60 requests/minute\n- **Pro**: 300 requests/minute  \n- **Enterprise**: 1000 requests/minute\n\n## Response Format\n\nAll API responses follow a consistent format:\n\n```json\n{\n  \"success\": boolean,\n  \"data\": { ... },\n  \"error\": {\n    \"code\": \"ERROR_CODE\",\n    \"message\": \"Human readable message\",\n    \"details\": [{ \"path\": \"field\", \"message\": \"Validation error\" }]\n  }\n}\n```",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Guilloche Studio Pro Support",
+      "url": "https://guilloche.studio/support",
+      "email": "support@guilloche.studio"
+    },
+    "license": {
+      "name": "Proprietary",
+      "url": "https://guilloche.studio/terms"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://guilloche.studio",
+      "description": "Production server"
+    },
+    {
+      "url": "http://localhost:5173",
+      "description": "Local development server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Health",
+      "description": "Health check and monitoring endpoints"
+    },
+    {
+      "name": "Profile",
+      "description": "User profile management"
+    },
+    {
+      "name": "Patterns",
+      "description": "Pattern CRUD operations"
+    },
+    {
+      "name": "Marketplace",
+      "description": "Pattern marketplace and purchasing"
+    },
+    {
+      "name": "AI",
+      "description": "AI-powered pattern suggestions"
+    },
+    {
+      "name": "Billing",
+      "description": "Stripe subscription and checkout management"
+    }
+  ],
+  "paths": {
+    "/api/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Full health check",
+        "description": "Returns comprehensive health status including all dependent services (Supabase, Cloudflare KV, R2, AI). Use this endpoint for monitoring and alerting.",
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "System is healthy or degraded",
+            "headers": {
+              "X-Health-Status": {
+                "schema": {
+                  "type": "string",
+                  "enum": ["healthy", "degraded", "unhealthy"]
+                },
+                "description": "Quick health status indicator"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "status": "healthy",
+                    "timestamp": "2024-01-15T10:30:00.000Z",
+                    "version": "1.0.0",
+                    "environment": "production",
+                    "services": [
+                      { "name": "supabase", "status": "up", "latency": 45 },
+                      { "name": "cloudflare-kv", "status": "up", "latency": 12 },
+                      { "name": "cloudflare-r2", "status": "up", "latency": 8 },
+                      { "name": "cloudflare-ai", "status": "up" }
+                    ],
+                    "uptime": 86400
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "System is unhealthy (critical service down)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "head": {
+        "tags": ["Health"],
+        "summary": "Simple uptime check",
+        "description": "Lightweight health check that returns only headers. Use for load balancer health probes.",
+        "operationId": "headHealth",
+        "responses": {
+          "200": {
+            "description": "Service is running",
+            "headers": {
+              "X-Health-Status": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Always 'ok' for HEAD requests"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profile": {
+      "get": {
+        "tags": ["Profile"],
+        "summary": "Get current user's profile",
+        "description": "Retrieves the authenticated user's profile information including username, display name, bio, and subscription tier.",
+        "operationId": "getProfile",
+        "security": [{ "supabaseAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Profile retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "profile": {
+                      "id": "123e4567-e89b-12d3-a456-426614174000",
+                      "username": "artist123",
+                      "display_name": "Pattern Artist",
+                      "bio": "Creating beautiful mathematical art",
+                      "website": "https://example.com",
+                      "subscription_tier": "pro",
+                      "created_at": "2024-01-01T00:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Profile"],
+        "summary": "Update current user's profile",
+        "description": "Updates the authenticated user's profile. All fields are optional; only provided fields will be updated.",
+        "operationId": "updateProfile",
+        "security": [{ "supabaseAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileUpdateRequest"
+              },
+              "example": {
+                "username": "new_username",
+                "displayName": "New Display Name",
+                "bio": "Updated bio text",
+                "website": "https://newsite.com"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "409": {
+            "description": "Username already taken",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": {
+                    "code": "USERNAME_TAKEN",
+                    "message": "Username is already taken"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/patterns": {
+      "get": {
+        "tags": ["Patterns"],
+        "summary": "List user's patterns",
+        "description": "Returns all patterns owned by the authenticated user, sorted by last updated date (most recent first).",
+        "operationId": "listPatterns",
+        "security": [{ "supabaseAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Patterns retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatternsListResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "patterns": [
+                      {
+                        "id": "123e4567-e89b-12d3-a456-426614174000",
+                        "name": "Golden Spiral",
+                        "description": "A beautiful golden ratio spiral",
+                        "parameters": {
+                          "family": "spirograph",
+                          "R": 200,
+                          "r": 80,
+                          "d": 120
+                        },
+                        "is_public": true,
+                        "is_listed": false,
+                        "tags": ["spiral", "golden"],
+                        "created_at": "2024-01-15T10:00:00.000Z",
+                        "updated_at": "2024-01-15T12:00:00.000Z"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Patterns"],
+        "summary": "Create a new pattern",
+        "description": "Creates a new pattern with the specified parameters. Pattern limits apply based on subscription tier:\n- Free: 3 patterns\n- Pro: 100 patterns\n- Enterprise: Unlimited",
+        "operationId": "createPattern",
+        "security": [{ "supabaseAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePatternRequest"
+              },
+              "example": {
+                "name": "My New Pattern",
+                "description": "A beautiful geometric pattern",
+                "parameters": {
+                  "family": "hypotrochoid",
+                  "R": 200,
+                  "r": 80,
+                  "d": 120,
+                  "k": 7,
+                  "steps": 10000,
+                  "lw": 1,
+                  "symmetry": 6,
+                  "startColor": "#3B82F6",
+                  "endColor": "#8B5CF6",
+                  "useGradient": true
+                },
+                "isPublic": false,
+                "isListed": false,
+                "tags": ["geometric", "blue"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Pattern created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatternResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "description": "Pattern limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": {
+                    "code": "LIMIT_EXCEEDED",
+                    "message": "Pattern limit reached (3 patterns). Upgrade your plan to save more patterns."
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Duplicate pattern",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": {
+                    "code": "DUPLICATE_PATTERN",
+                    "message": "A pattern with identical parameters already exists"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/patterns/{id}": {
+      "get": {
+        "tags": ["Patterns"],
+        "summary": "Get a specific pattern",
+        "description": "Retrieves a pattern by ID. Public patterns can be accessed by anyone; private patterns require ownership.",
+        "operationId": "getPattern",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PatternId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pattern retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatternResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid pattern ID format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": {
+                    "code": "INVALID_ID",
+                    "message": "Invalid pattern ID format"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Patterns"],
+        "summary": "Update a pattern",
+        "description": "Updates an existing pattern. Only the pattern owner can update it. All fields are optional.",
+        "operationId": "updatePattern",
+        "security": [{ "supabaseAuth": [] }],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PatternId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePatternRequest"
+              },
+              "example": {
+                "name": "Updated Pattern Name",
+                "isPublic": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pattern updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatternResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Patterns"],
+        "summary": "Delete a pattern",
+        "description": "Permanently deletes a pattern. Only the pattern owner can delete it. This action cannot be undone.",
+        "operationId": "deletePattern",
+        "security": [{ "supabaseAuth": [] }],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PatternId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pattern deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "deleted": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid pattern ID format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/patterns/{id}/download": {
+      "get": {
+        "tags": ["Patterns"],
+        "summary": "Download pattern data",
+        "description": "Downloads the pattern data as a JSON file. Requires ownership or prior purchase of the pattern.",
+        "operationId": "downloadPattern",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PatternId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pattern data file",
+            "headers": {
+              "Content-Disposition": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Attachment filename",
+                "example": "attachment; filename=\"pattern_name.json\""
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatternDownload"
+                },
+                "example": {
+                  "name": "Golden Spiral",
+                  "parameters": {
+                    "family": "spirograph",
+                    "R": 200,
+                    "r": 80,
+                    "d": 120
+                  },
+                  "exported_at": "2024-01-15T10:30:00.000Z",
+                  "source": "Guilloche Studio Pro",
+                  "version": "1.0"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid pattern ID format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "description": "Pattern not purchased",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": {
+                    "code": "FORBIDDEN",
+                    "message": "You do not have permission to download this pattern. Please purchase it first."
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/marketplace/patterns": {
+      "get": {
+        "tags": ["Marketplace"],
+        "summary": "Browse marketplace patterns",
+        "description": "Returns publicly listed patterns available for purchase. Supports search, filtering, sorting, and pagination.",
+        "operationId": "listMarketplacePatterns",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Search query for pattern name or description",
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort order for results",
+            "schema": {
+              "type": "string",
+              "enum": ["popular", "recent", "price_low", "price_high"],
+              "default": "popular"
+            }
+          },
+          {
+            "name": "license",
+            "in": "query",
+            "description": "Filter by license type",
+            "schema": {
+              "type": "string",
+              "enum": ["all", "free", "personal", "commercial", "remix"],
+              "default": "all"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of results per page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 24
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Pagination offset",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Marketplace patterns retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketplacePatternsResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "patterns": [
+                      {
+                        "id": "123e4567-e89b-12d3-a456-426614174000",
+                        "name": "Premium Guilloche",
+                        "description": "Professional-grade guilloche pattern",
+                        "thumbnail_url": "https://example.com/thumb.png",
+                        "price_cents": 999,
+                        "license_type": "commercial",
+                        "view_count": 1250,
+                        "download_count": 89,
+                        "created_at": "2024-01-15T10:00:00.000Z",
+                        "creator": {
+                          "username": "artist123",
+                          "display_name": "Pattern Artist"
+                        }
+                      }
+                    ]
+                  },
+                  "meta": {
+                    "limit": 24,
+                    "offset": 0
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/marketplace/purchase": {
+      "post": {
+        "tags": ["Marketplace"],
+        "summary": "Purchase a pattern",
+        "description": "Initiates a pattern purchase by creating a Stripe checkout session. For free patterns, the purchase is completed immediately.",
+        "operationId": "purchasePattern",
+        "security": [{ "supabaseAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseRequest"
+              },
+              "example": {
+                "patternId": "123e4567-e89b-12d3-a456-426614174000",
+                "licenseType": "commercial"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Purchase initiated (returns checkout URL) or completed (for free patterns)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/PurchaseCheckoutResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/FreePurchaseResponse"
+                    }
+                  ]
+                },
+                "examples": {
+                  "paid": {
+                    "summary": "Paid pattern - checkout required",
+                    "value": {
+                      "success": true,
+                      "data": {
+                        "checkout_url": "https://checkout.stripe.com/c/pay/...",
+                        "session_id": "cs_live_..."
+                      }
+                    }
+                  },
+                  "free": {
+                    "summary": "Free pattern - immediate purchase",
+                    "value": {
+                      "success": true,
+                      "data": {
+                        "purchased": true,
+                        "free": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request or cannot purchase own pattern",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "description": "Pattern already purchased",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": {
+                    "code": "ALREADY_PURCHASED",
+                    "message": "You have already purchased this pattern"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/ai/suggest": {
+      "post": {
+        "tags": ["AI"],
+        "summary": "Generate pattern suggestions",
+        "description": "Uses AI to generate pattern parameters based on keywords and style preferences. Falls back to preset-based generation if AI is unavailable.",
+        "operationId": "getAISuggestion",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AIRequest"
+              },
+              "example": {
+                "keywords": ["elegant", "gold", "art-deco"],
+                "style": "classic",
+                "complexity": "complex"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pattern suggestion generated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AISuggestionResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "suggestion": {
+                      "params": {
+                        "family": "rose",
+                        "n": 8,
+                        "d": 71,
+                        "k": 0.5,
+                        "symmetry": 8,
+                        "strokeWidth": 2,
+                        "layerCount": 5,
+                        "startColor": "#FFD700",
+                        "endColor": "#B8860B"
+                      },
+                      "confidence": 0.85,
+                      "reasoning": "Generated based on \"art-deco\" preset, adjusted for complex complexity and classic style."
+                    },
+                    "source": "ai"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/stripe/checkout": {
+      "post": {
+        "tags": ["Billing"],
+        "summary": "Create subscription checkout",
+        "description": "Creates a Stripe checkout session for subscribing to Pro or Enterprise plans.",
+        "operationId": "createCheckout",
+        "security": [{ "supabaseAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckoutRequest"
+              },
+              "example": {
+                "tier": "pro",
+                "interval": "monthly"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Checkout session created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "url": "https://checkout.stripe.com/c/pay/...",
+                    "sessionId": "cs_live_..."
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/stripe/create-checkout-session": {
+      "post": {
+        "tags": ["Billing"],
+        "summary": "Create checkout session with price ID",
+        "description": "Creates a Stripe checkout session using a specific Stripe price ID. This endpoint provides more control over the checkout process.",
+        "operationId": "createCheckoutSession",
+        "security": [{ "supabaseAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCheckoutSessionRequest"
+              },
+              "example": {
+                "priceId": "price_1234567890",
+                "tier": "pro"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Checkout session created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutSessionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/stripe/create-portal-session": {
+      "post": {
+        "tags": ["Billing"],
+        "summary": "Create billing portal session",
+        "description": "Creates a Stripe billing portal session for managing subscriptions, payment methods, and invoices.",
+        "operationId": "createPortalSession",
+        "security": [{ "supabaseAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Portal session created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalSessionResponse"
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "url": "https://billing.stripe.com/session/..."
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "description": "No active subscription",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "error": {
+                    "code": "NO_SUBSCRIPTION",
+                    "message": "No active subscription found. Please subscribe first."
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/stripe/webhook": {
+      "post": {
+        "tags": ["Billing"],
+        "summary": "Stripe webhook handler",
+        "description": "Handles Stripe webhook events for subscription lifecycle management. This endpoint is called by Stripe and verifies webhook signatures.",
+        "operationId": "handleStripeWebhook",
+        "parameters": [
+          {
+            "name": "stripe-signature",
+            "in": "header",
+            "required": true,
+            "description": "Stripe webhook signature for verification",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Stripe Event object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Webhook processed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "received": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid signature or missing header",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "supabaseAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "sb-access-token",
+        "description": "Supabase authentication token stored in HTTP-only cookie. Managed automatically by Supabase Auth SSR library."
+      }
+    },
+    "parameters": {
+      "PatternId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "Pattern UUID",
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    },
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["success", "error"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "error": {
+            "type": "object",
+            "required": ["code", "message"],
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "Machine-readable error code",
+                "example": "VALIDATION_ERROR"
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable error message",
+                "example": "Invalid input data"
+              },
+              "details": {
+                "type": "array",
+                "description": "Field-level validation errors",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string",
+                      "description": "Field path",
+                      "example": "parameters.R"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "Validation error message",
+                      "example": "Number must be greater than or equal to 10"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": ["healthy", "degraded", "unhealthy"]
+              },
+              "timestamp": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "version": {
+                "type": "string"
+              },
+              "environment": {
+                "type": "string"
+              },
+              "services": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ServiceStatus"
+                }
+              },
+              "uptime": {
+                "type": "integer",
+                "description": "Uptime in seconds"
+              }
+            }
+          }
+        }
+      },
+      "ServiceStatus": {
+        "type": "object",
+        "required": ["name", "status"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Service name",
+            "example": "supabase"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["up", "down", "degraded"]
+          },
+          "latency": {
+            "type": "integer",
+            "description": "Response time in milliseconds"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message if status is not 'up'"
+          }
+        }
+      },
+      "Profile": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "username": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 30,
+            "pattern": "^[a-zA-Z0-9_-]+$"
+          },
+          "display_name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "bio": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "website": {
+            "type": "string",
+            "format": "uri"
+          },
+          "subscription_tier": {
+            "type": "string",
+            "enum": ["free", "pro", "enterprise"]
+          },
+          "stripe_customer_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ProfileResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "profile": {
+                "$ref": "#/components/schemas/Profile"
+              }
+            }
+          }
+        }
+      },
+      "ProfileUpdateRequest": {
+        "type": "object",
+        "description": "Profile update request. All fields are optional. Maps to ProfileUpdateSchema Zod validator.",
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 30,
+            "pattern": "^[a-zA-Z0-9_-]+$",
+            "description": "Unique username (letters, numbers, underscores, hyphens only)"
+          },
+          "displayName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Display name shown on profile"
+          },
+          "bio": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "User biography"
+          },
+          "website": {
+            "type": "string",
+            "format": "uri",
+            "description": "Personal website URL"
+          }
+        }
+      },
+      "CurveFamily": {
+        "type": "string",
+        "enum": ["hypotrochoid", "epitrochoid", "rose", "lissajous", "spirograph", "maurer"],
+        "description": "Pattern curve family type. Maps to CurveFamilySchema Zod enum."
+      },
+      "PatternParameters": {
+        "type": "object",
+        "description": "Pattern rendering parameters. Maps to PatternParamsSchema Zod validator.",
+        "required": ["family"],
+        "properties": {
+          "family": {
+            "$ref": "#/components/schemas/CurveFamily"
+          },
+          "R": {
+            "type": "number",
+            "minimum": 10,
+            "maximum": 500,
+            "default": 200,
+            "description": "Outer radius"
+          },
+          "r": {
+            "type": "number",
+            "minimum": 5,
+            "maximum": 400,
+            "default": 80,
+            "description": "Inner radius"
+          },
+          "d": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 400,
+            "default": 120,
+            "description": "Distance from center of inner circle"
+          },
+          "k": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 7,
+            "description": "Curve parameter"
+          },
+          "a": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 20,
+            "description": "Lissajous A parameter"
+          },
+          "b": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 20,
+            "description": "Lissajous B parameter"
+          },
+          "delta": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 6.283185307,
+            "description": "Lissajous phase delta"
+          },
+          "steps": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 100000,
+            "default": 10000,
+            "description": "Computation steps"
+          },
+          "lw": {
+            "type": "number",
+            "minimum": 0.1,
+            "maximum": 10,
+            "default": 1,
+            "description": "Line width"
+          },
+          "symmetry": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 24,
+            "default": 1,
+            "description": "Rotational symmetry"
+          },
+          "reflectH": {
+            "type": "boolean",
+            "default": false,
+            "description": "Horizontal reflection"
+          },
+          "reflectV": {
+            "type": "boolean",
+            "default": false,
+            "description": "Vertical reflection"
+          },
+          "kaleidoscope": {
+            "type": "boolean",
+            "default": false,
+            "description": "Kaleidoscope effect"
+          },
+          "rotation": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 360,
+            "default": 0,
+            "description": "Rotation angle in degrees"
+          },
+          "bgColor": {
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$",
+            "default": "#0f172a",
+            "description": "Background color (hex)"
+          },
+          "startColor": {
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$",
+            "default": "#3B82F6",
+            "description": "Gradient start color (hex)"
+          },
+          "endColor": {
+            "type": "string",
+            "pattern": "^#[0-9A-Fa-f]{6}$",
+            "default": "#8B5CF6",
+            "description": "Gradient end color (hex)"
+          },
+          "useGradient": {
+            "type": "boolean",
+            "default": true,
+            "description": "Use gradient colors"
+          },
+          "glow": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 50,
+            "default": 0,
+            "description": "Glow effect intensity"
+          },
+          "vignette": {
+            "type": "boolean",
+            "default": false,
+            "description": "Vignette effect"
+          },
+          "dashed": {
+            "type": "boolean",
+            "default": false,
+            "description": "Dashed line style"
+          },
+          "dashRatio": {
+            "type": "number",
+            "minimum": 0.1,
+            "maximum": 0.9,
+            "default": 0.5,
+            "description": "Dash pattern ratio"
+          }
+        }
+      },
+      "Pattern": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/PatternParameters"
+          },
+          "parameter_hash": {
+            "type": "string",
+            "description": "Hash for duplicate detection"
+          },
+          "is_public": {
+            "type": "boolean"
+          },
+          "is_listed": {
+            "type": "boolean",
+            "description": "Listed on marketplace"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 50
+            },
+            "maxItems": 10
+          },
+          "price_cents": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "license_type": {
+            "type": "string",
+            "enum": ["personal", "commercial", "remix"]
+          },
+          "view_count": {
+            "type": "integer"
+          },
+          "download_count": {
+            "type": "integer"
+          },
+          "thumbnail_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "remix_of": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID of parent pattern if this is a remix"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PatternResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "pattern": {
+                "$ref": "#/components/schemas/Pattern"
+              }
+            }
+          }
+        }
+      },
+      "PatternsListResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "patterns": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Pattern"
+                }
+              }
+            }
+          }
+        }
+      },
+      "CreatePatternRequest": {
+        "type": "object",
+        "description": "Create pattern request. Maps to CreatePatternSchema Zod validator.",
+        "required": ["name", "parameters"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/PatternParameters"
+          },
+          "isPublic": {
+            "type": "boolean",
+            "default": false
+          },
+          "isListed": {
+            "type": "boolean",
+            "default": false
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 50
+            },
+            "maxItems": 10
+          }
+        }
+      },
+      "UpdatePatternRequest": {
+        "type": "object",
+        "description": "Update pattern request. All fields optional. Maps to UpdatePatternSchema.partial() Zod validator.",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/PatternParameters"
+          },
+          "isPublic": {
+            "type": "boolean"
+          },
+          "isListed": {
+            "type": "boolean"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 50
+            },
+            "maxItems": 10
+          }
+        }
+      },
+      "PatternDownload": {
+        "type": "object",
+        "description": "Pattern export format",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/PatternParameters"
+          },
+          "exported_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source": {
+            "type": "string",
+            "example": "Guilloche Studio Pro"
+          },
+          "version": {
+            "type": "string",
+            "example": "1.0"
+          }
+        }
+      },
+      "MarketplacePattern": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "thumbnail_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "price_cents": {
+            "type": "integer"
+          },
+          "license_type": {
+            "type": "string",
+            "enum": ["personal", "commercial", "remix"]
+          },
+          "view_count": {
+            "type": "integer"
+          },
+          "download_count": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "creator": {
+            "type": "object",
+            "properties": {
+              "username": {
+                "type": "string"
+              },
+              "display_name": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "MarketplacePatternsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "patterns": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/MarketplacePattern"
+                }
+              }
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer"
+              },
+              "offset": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "PurchaseRequest": {
+        "type": "object",
+        "description": "Pattern purchase request. Maps to PurchaseRequestSchema Zod validator.",
+        "required": ["patternId", "licenseType"],
+        "properties": {
+          "patternId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "licenseType": {
+            "type": "string",
+            "enum": ["personal", "commercial", "remix"]
+          }
+        }
+      },
+      "PurchaseCheckoutResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "checkout_url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "session_id": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "FreePurchaseResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "purchased": {
+                "type": "boolean"
+              },
+              "free": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      },
+      "AIRequest": {
+        "type": "object",
+        "description": "AI suggestion request. Maps to AIRequestSchema Zod validator.",
+        "required": ["keywords"],
+        "properties": {
+          "keywords": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 10,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 50
+            },
+            "description": "Keywords describing desired pattern style"
+          },
+          "style": {
+            "type": "string",
+            "enum": ["geometric", "organic", "classic", "modern"],
+            "description": "Style preference"
+          },
+          "complexity": {
+            "type": "string",
+            "enum": ["simple", "moderate", "complex"],
+            "description": "Desired pattern complexity"
+          }
+        }
+      },
+      "PatternSuggestion": {
+        "type": "object",
+        "properties": {
+          "params": {
+            "type": "object",
+            "description": "Suggested pattern parameters",
+            "additionalProperties": true
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Confidence score for the suggestion"
+          },
+          "reasoning": {
+            "type": "string",
+            "description": "Explanation for the suggestion"
+          }
+        }
+      },
+      "AISuggestionResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "suggestion": {
+                "$ref": "#/components/schemas/PatternSuggestion"
+              },
+              "source": {
+                "type": "string",
+                "enum": ["ai", "presets", "cache"],
+                "description": "Source of the suggestion"
+              }
+            }
+          }
+        }
+      },
+      "CheckoutRequest": {
+        "type": "object",
+        "required": ["tier", "interval"],
+        "properties": {
+          "tier": {
+            "type": "string",
+            "enum": ["pro", "enterprise"]
+          },
+          "interval": {
+            "type": "string",
+            "enum": ["monthly", "yearly"]
+          }
+        }
+      },
+      "CheckoutResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "sessionId": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "CreateCheckoutSessionRequest": {
+        "type": "object",
+        "required": ["priceId", "tier"],
+        "properties": {
+          "priceId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stripe Price ID"
+          },
+          "tier": {
+            "type": "string",
+            "enum": ["pro", "enterprise"]
+          }
+        }
+      },
+      "CheckoutSessionResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "sessionId": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              }
+            }
+          }
+        }
+      },
+      "PortalSessionResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "format": "uri"
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "Authentication required",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "success": false,
+              "error": {
+                "code": "UNAUTHORIZED",
+                "message": "Authentication required"
+              }
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Permission denied",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "success": false,
+              "error": {
+                "code": "FORBIDDEN",
+                "message": "You do not have permission to access this resource"
+              }
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "success": false,
+              "error": {
+                "code": "NOT_FOUND",
+                "message": "Resource not found"
+              }
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "description": "Validation error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "success": false,
+              "error": {
+                "code": "VALIDATION_ERROR",
+                "message": "Invalid input data",
+                "details": [
+                  {
+                    "path": "name",
+                    "message": "String must contain at least 1 character(s)"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "success": false,
+              "error": {
+                "code": "INTERNAL_ERROR",
+                "message": "An unexpected error occurred"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

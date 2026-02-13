@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%sveltekit.assets%/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Create intricate ornamental patterns with Guilloche Studio Pro. Design stunning mathematical art for security printing, decorative design, and digital art."
+    />
+    <meta name="theme-color" content="#4f46e5" />
+
+    <!-- DNS Prefetch for external services -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+    <link rel="dns-prefetch" href="https://js.stripe.com" />
+
+    <!-- Preconnect for critical third-party origins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Optimized font loading with display=swap for FOUT instead of FOIT -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+      media="print"
+      onload="this.media = 'all'"
+    />
+    <!-- Fallback for browsers without JS -->
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
+
+    <!-- Preload critical resources -->
+    <link rel="preload" href="%sveltekit.assets%/favicon.png" as="image" />
+
+    %sveltekit.head%
+
+    <!-- Performance timing markers -->
+    <script>
+      // Mark navigation start for performance measurement
+      if (window.performance && window.performance.mark) {
+        window.performance.mark('app-init-start');
+      }
+    </script>
+  </head>
+  <body
+    data-sveltekit-preload-data="hover"
+    class="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100"
+  >
+    <div style="display: contents">%sveltekit.body%</div>
+
+    <!-- Idle-time preloading of heavy chunks -->
+    <script>
+      // Preload heavy components during idle time
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(
+          function () {
+            // Preload vendor chunks that are commonly needed
+            var chunks = ['/assets/js/vendor-svelte', '/assets/js/vendor-supabase'];
+            // This will be handled by the app's preload system
+          },
+          { timeout: 5000 }
+        );
+      }
+    </script>
+  </body>
+</html>

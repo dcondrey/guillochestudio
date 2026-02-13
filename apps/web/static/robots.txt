@@ -1,0 +1,20 @@
+# Guilloché Studio - robots.txt
+# https://guillochestudio.com
+
+User-agent: *
+Allow: /
+
+# Disallow private/auth pages
+Disallow: /api/
+Disallow: /auth/
+Disallow: /settings/
+Disallow: /account/
+
+# Allow specific API endpoints for search engines
+Allow: /api/health
+
+# Sitemap location
+Sitemap: https://guillochestudio.com/sitemap.xml
+
+# Crawl delay for respectful crawling
+Crawl-delay: 1
