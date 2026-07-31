@@ -1,4 +1,3 @@
-import { browser } from '$app/environment';
 import { createSupabaseClient } from '$lib/services/supabase';
 import { initializeI18n } from '$lib/i18n';
 import type { LayoutLoad } from './$types';

@@ -47,7 +47,9 @@ function errorResponse(code: string, message: string, status: number): never {
 // POST /api/stripe/webhook - Handle Stripe webhook events
 // =============================================================================
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
+  const logger = locals.logger;
+
   // Webhooks must use raw body for signature verification
   const body = await request.text();
   const signature = request.headers.get('stripe-signature');
@@ -61,7 +63,9 @@ export const POST: RequestHandler = async ({ request }) => {
   try {
     event = stripe.webhooks.constructEvent(body, signature, STRIPE_WEBHOOK_SECRET);
   } catch (err) {
-    console.error('Webhook signature verification failed:', err);
+    logger.warn('Webhook signature verification failed', {
+      reason: err instanceof Error ? err.message : String(err),
+    });
     errorResponse('INVALID_SIGNATURE', 'Webhook signature verification failed', 400);
   }
 
@@ -77,7 +81,7 @@ export const POST: RequestHandler = async ({ request }) => {
         const customerId = session.customer as string;
 
         if (!userId) {
-          console.warn('Checkout session completed without user_id metadata');
+          logger.warn('Checkout session completed without user_id metadata');
           break;
         }
 
@@ -92,33 +96,33 @@ export const POST: RequestHandler = async ({ request }) => {
             .eq('id', userId);
 
           if (updateError) {
-            console.error('Failed to update profile tier:', updateError);
+            throw new Error(
+              `Failed to update profile tier for user ${userId}: ${updateError.message}`
+            );
           }
 
           // Record subscription details
           if (session.subscription) {
-            try {
-              const subscription = await stripe.subscriptions.retrieve(
-                session.subscription as string
+            const subscription = await stripe.subscriptions.retrieve(
+              session.subscription as string
+            );
+
+            const { error: upsertError } = await supabase.from('subscriptions').upsert({
+              user_id: userId,
+              stripe_subscription_id: subscription.id,
+              stripe_price_id: subscription.items.data[0].price.id,
+              status: subscription.status,
+              current_period_start: new Date(
+                subscription.current_period_start * 1000
+              ).toISOString(),
+              current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+              cancel_at_period_end: subscription.cancel_at_period_end,
+            });
+
+            if (upsertError) {
+              throw new Error(
+                `Failed to upsert subscription for user ${userId}: ${upsertError.message}`
               );
-
-              const { error: upsertError } = await supabase.from('subscriptions').upsert({
-                user_id: userId,
-                stripe_subscription_id: subscription.id,
-                stripe_price_id: subscription.items.data[0].price.id,
-                status: subscription.status,
-                current_period_start: new Date(
-                  subscription.current_period_start * 1000
-                ).toISOString(),
-                current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-                cancel_at_period_end: subscription.cancel_at_period_end,
-              });
-
-              if (upsertError) {
-                console.error('Failed to upsert subscription:', upsertError);
-              }
-            } catch (stripeErr) {
-              console.error('Failed to retrieve subscription from Stripe:', stripeErr);
             }
           }
         }
@@ -140,7 +144,7 @@ export const POST: RequestHandler = async ({ request }) => {
           .single()) as { data: { id: string } | null; error: unknown };
 
         if (profileError || !profile) {
-          console.warn(`No profile found for Stripe customer ${customerId}`);
+          logger.warn(`No profile found for Stripe customer ${customerId}`);
           break;
         }
 
@@ -157,7 +161,9 @@ export const POST: RequestHandler = async ({ request }) => {
           .eq('stripe_subscription_id', subscription.id);
 
         if (updateError) {
-          console.error('Failed to update subscription:', updateError);
+          throw new Error(
+            `Failed to update subscription for customer ${customerId}: ${updateError.message}`
+          );
         }
 
         // Downgrade tier if subscription is no longer active
@@ -168,7 +174,9 @@ export const POST: RequestHandler = async ({ request }) => {
             .eq('id', profile.id);
 
           if (downgradeError) {
-            console.error('Failed to downgrade profile tier:', downgradeError);
+            throw new Error(
+              `Failed to downgrade profile tier for ${profile.id}: ${downgradeError.message}`
+            );
           }
         }
         break;
@@ -189,7 +197,7 @@ export const POST: RequestHandler = async ({ request }) => {
           .single()) as { data: { id: string } | null; error: unknown };
 
         if (profileError || !profile) {
-          console.warn(`No profile found for Stripe customer ${customerId}`);
+          logger.warn(`No profile found for Stripe customer ${customerId}`);
           break;
         }
 
@@ -200,7 +208,9 @@ export const POST: RequestHandler = async ({ request }) => {
           .eq('id', profile.id);
 
         if (downgradeError) {
-          console.error('Failed to downgrade profile tier:', downgradeError);
+          throw new Error(
+            `Failed to downgrade profile tier for ${profile.id}: ${downgradeError.message}`
+          );
         }
 
         // Mark subscription as canceled
@@ -210,7 +220,9 @@ export const POST: RequestHandler = async ({ request }) => {
           .eq('stripe_subscription_id', subscription.id);
 
         if (cancelError) {
-          console.error('Failed to update subscription status:', cancelError);
+          throw new Error(
+            `Failed to cancel subscription record ${subscription.id}: ${cancelError.message}`
+          );
         }
         break;
       }
@@ -221,10 +233,7 @@ export const POST: RequestHandler = async ({ request }) => {
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
         const customerId = invoice.customer as string;
-        const attemptCount = invoice.attempt_count;
-
-        console.warn(`Payment failed for customer ${customerId} (attempt ${attemptCount})`);
-        // TODO: Send email notification to user about failed payment
+        logger.warn(`Payment failed for customer ${customerId} (attempt ${invoice.attempt_count})`);
         break;
       }
 
@@ -232,14 +241,13 @@ export const POST: RequestHandler = async ({ request }) => {
       // Unhandled Events
       // =======================================================================
       default:
-        // Log but don't error on unhandled event types
-        console.log(`Unhandled Stripe event type: ${event.type}`);
+        logger.info(`Unhandled Stripe event type: ${event.type}`);
     }
 
     // Always return 200 to acknowledge receipt
     return json({ success: true, received: true }, { status: 200 });
   } catch (err) {
-    console.error('Webhook handler error:', err);
+    logger.error('Webhook handler error', err instanceof Error ? err : new Error(String(err)));
     // Return 500 so Stripe will retry
     errorResponse('WEBHOOK_ERROR', 'Webhook handler failed', 500);
   }

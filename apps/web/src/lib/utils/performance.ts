@@ -3,7 +3,6 @@
  * Server timing, database query tracking, and API response monitoring
  */
 
-import { dev } from '$app/environment';
 import type { Logger, ServerTimingEntry } from './logger';
 import { buildServerTimingHeader } from './logger';
 
@@ -387,7 +386,7 @@ export interface QueryWrapper<TClient> {
  */
 export function createTrackedSupabaseClient<T extends { from: (table: string) => unknown }>(
   client: T,
-  monitor: PerformanceMonitor
+  _monitor: PerformanceMonitor
 ): T {
   // Note: This is a simplified wrapper. In production, you would want to
   // use a more sophisticated approach like Proxy to intercept all calls.

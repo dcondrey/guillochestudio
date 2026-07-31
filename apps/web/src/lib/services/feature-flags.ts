@@ -101,6 +101,35 @@ export interface FeatureFlagEvaluationResult {
   source: 'rule' | 'override' | 'default';
 }
 
+/** Admin flag update request */
+export interface AdminFlagUpdate {
+  name: FeatureFlagName;
+  action: 'enable' | 'disable' | 'clear_override';
+  scope: 'global' | 'environment' | 'user';
+  targetEnvironment?: Environment;
+  targetUserId?: string;
+  expiresInMs?: number;
+  reason?: string;
+  enabled?: boolean;
+  rules?: FeatureFlagRule[];
+  metadata?: FeatureFlagDefinition['metadata'];
+}
+
+/** Admin flag status response */
+export interface AdminFlagStatus {
+  name: FeatureFlagName;
+  definition: FeatureFlagDefinition;
+  globalOverride?: {
+    name: FeatureFlagName;
+    enabled: boolean;
+    reason?: string;
+  };
+  stats?: {
+    totalEvaluations: number;
+    enabledPercentage: number;
+  };
+}
+
 // ============================================================================
 // Feature Flag Definitions
 // ============================================================================
@@ -109,28 +138,22 @@ export const FEATURE_FLAGS: Record<FeatureFlagName, FeatureFlagDefinition> = {
   wasm_engine: {
     name: 'wasm_engine',
     description: 'Use WebAssembly engine for high-performance pattern rendering',
-    defaultEnabled: false,
-    rules: [
-      { type: 'subscription', tiers: ['pro', 'enterprise'] },
-      { type: 'environment', environments: ['development'] },
-    ],
+    defaultEnabled: true,
+    rules: [{ type: 'always' }],
     metadata: {
       owner: 'performance-team',
-      tags: ['performance', 'pro-feature'],
+      tags: ['performance', 'core'],
     },
   },
 
   ai_suggestions: {
     name: 'ai_suggestions',
     description: 'AI-powered pattern suggestions and generation',
-    defaultEnabled: false,
-    rules: [
-      { type: 'subscription', tiers: ['pro', 'enterprise'] },
-      { type: 'environment', environments: ['development'] },
-    ],
+    defaultEnabled: true,
+    rules: [{ type: 'always' }],
     metadata: {
       owner: 'ai-team',
-      tags: ['ai', 'pro-feature'],
+      tags: ['ai', 'core'],
     },
   },
 
@@ -164,9 +187,7 @@ export const FEATURE_FLAGS: Record<FeatureFlagName, FeatureFlagDefinition> = {
     name: 'maintenance_mode',
     description: 'Enable maintenance mode for the application',
     defaultEnabled: false,
-    rules: [
-      { type: 'never' }, // Controlled via admin override only
-    ],
+    rules: [{ type: 'never' }],
     metadata: {
       owner: 'platform-team',
       tags: ['ops', 'critical'],
@@ -248,23 +269,16 @@ export const FEATURE_FLAGS: Record<FeatureFlagName, FeatureFlagDefinition> = {
 // Utility Functions
 // ============================================================================
 
-/**
- * Generate a deterministic hash from a string for percentage rollouts.
- * This ensures the same user always gets the same result.
- */
 function hashString(str: string): number {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
     hash = (hash << 5) - hash + char;
-    hash = hash & hash; // Convert to 32-bit integer
+    hash = hash & hash;
   }
   return Math.abs(hash);
 }
 
-/**
- * Check if a user falls within a percentage rollout.
- */
 function isInPercentage(userId: string, flagName: string, percentage: number): boolean {
   const combined = `${userId}:${flagName}`;
   const hash = hashString(combined);
@@ -272,17 +286,11 @@ function isInPercentage(userId: string, flagName: string, percentage: number): b
   return bucket < percentage;
 }
 
-/**
- * Get current environment from platform or default.
- */
 export function getCurrentEnvironment(): Environment {
   if (browser) {
-    // Check for environment in window (set by server)
     const windowEnv = (window as unknown as { __ENV__?: Environment }).__ENV__;
     if (windowEnv) return windowEnv;
   }
-
-  // Default to development if not set
   return (
     import.meta.env.MODE === 'production'
       ? 'production'
@@ -292,29 +300,17 @@ export function getCurrentEnvironment(): Environment {
   ) as Environment;
 }
 
-// ============================================================================
-// Override Storage (for admin/testing)
-// ============================================================================
-
 const OVERRIDE_STORAGE_KEY = 'guilloche_feature_flag_overrides';
 
-/**
- * Get all flag overrides from storage.
- */
 export function getOverrides(): Record<FeatureFlagName, FeatureFlagOverride> {
   if (!browser) return {} as Record<FeatureFlagName, FeatureFlagOverride>;
-
   try {
     const stored = localStorage.getItem(OVERRIDE_STORAGE_KEY);
     if (!stored) return {} as Record<FeatureFlagName, FeatureFlagOverride>;
-
     const overrides = JSON.parse(stored) as Record<FeatureFlagName, FeatureFlagOverride>;
-
-    // Clean up expired overrides
     const now = Date.now();
     const cleaned: Record<string, FeatureFlagOverride> = {};
     let hasExpired = false;
-
     for (const [key, override] of Object.entries(overrides)) {
       if (override.expiresAt && override.expiresAt < now) {
         hasExpired = true;
@@ -322,27 +318,19 @@ export function getOverrides(): Record<FeatureFlagName, FeatureFlagOverride> {
       }
       cleaned[key] = override;
     }
-
-    if (hasExpired) {
-      localStorage.setItem(OVERRIDE_STORAGE_KEY, JSON.stringify(cleaned));
-    }
-
+    if (hasExpired) localStorage.setItem(OVERRIDE_STORAGE_KEY, JSON.stringify(cleaned));
     return cleaned as Record<FeatureFlagName, FeatureFlagOverride>;
   } catch {
     return {} as Record<FeatureFlagName, FeatureFlagOverride>;
   }
 }
 
-/**
- * Set an override for a flag.
- */
 export function setOverride(
   name: FeatureFlagName,
   enabled: boolean,
   options?: { expiresInMs?: number; reason?: string }
 ): void {
   if (!browser) return;
-
   const overrides = getOverrides();
   overrides[name] = {
     name,
@@ -350,36 +338,21 @@ export function setOverride(
     expiresAt: options?.expiresInMs ? Date.now() + options.expiresInMs : undefined,
     reason: options?.reason,
   };
-
   localStorage.setItem(OVERRIDE_STORAGE_KEY, JSON.stringify(overrides));
 }
 
-/**
- * Remove an override for a flag.
- */
 export function clearOverride(name: FeatureFlagName): void {
   if (!browser) return;
-
   const overrides = getOverrides();
   delete overrides[name];
   localStorage.setItem(OVERRIDE_STORAGE_KEY, JSON.stringify(overrides));
 }
 
-/**
- * Clear all overrides.
- */
 export function clearAllOverrides(): void {
   if (!browser) return;
   localStorage.removeItem(OVERRIDE_STORAGE_KEY);
 }
 
-// ============================================================================
-// Core Evaluation Logic
-// ============================================================================
-
-/**
- * Evaluate a single rule against a context.
- */
 function evaluateRule(
   rule: FeatureFlagRule,
   context: FeatureFlagContext,
@@ -388,185 +361,81 @@ function evaluateRule(
   switch (rule.type) {
     case 'always':
       return true;
-
     case 'never':
       return false;
-
     case 'subscription':
       if (!rule.tiers || !context.subscriptionTier) return null;
       return rule.tiers.includes(context.subscriptionTier);
-
     case 'user_id':
       if (!rule.userIds || !context.userId) return null;
       return rule.userIds.includes(context.userId);
-
     case 'percentage':
       if (rule.percentage === undefined || !context.userId) return null;
       return isInPercentage(context.userId, flagName, rule.percentage);
-
     case 'environment':
       if (!rule.environments) return null;
       return rule.environments.includes(context.environment);
-
     default:
       return null;
   }
 }
 
-/**
- * Evaluate a feature flag for a given context.
- */
 export function evaluateFlag(
   name: FeatureFlagName,
   context: FeatureFlagContext
 ): FeatureFlagEvaluationResult {
   const definition = FEATURE_FLAGS[name];
-
-  if (!definition) {
-    console.warn(`Unknown feature flag: ${name}`);
-    return { enabled: false, source: 'default' };
-  }
-
-  // Check for overrides first
+  if (!definition) return { enabled: false, source: 'default' };
   const overrides = getOverrides();
   const override = overrides[name];
-
-  if (override) {
-    return {
-      enabled: override.enabled,
-      isOverride: true,
-      source: 'override',
-      matchedRule: `Override: ${override.reason || 'manual'}`,
-    };
-  }
-
-  // Evaluate rules in order
+  if (override) return { enabled: override.enabled, isOverride: true, source: 'override' };
   for (let i = 0; i < definition.rules.length; i++) {
     const rule = definition.rules[i];
     const result = evaluateRule(rule, context, name);
-
-    if (result !== null) {
-      return {
-        enabled: result,
-        source: 'rule',
-        matchedRule: `Rule ${i + 1}: ${rule.type}`,
-      };
-    }
+    if (result !== null) return { enabled: result, source: 'rule' };
   }
-
-  // Fall back to default
-  return {
-    enabled: definition.defaultEnabled,
-    source: 'default',
-  };
+  return { enabled: definition.defaultEnabled, source: 'default' };
 }
 
-/**
- * Simple evaluation that returns just a boolean.
- */
 export function isFeatureEnabled(name: FeatureFlagName, context: FeatureFlagContext): boolean {
   return evaluateFlag(name, context).enabled;
 }
 
-/**
- * Evaluate all flags for a context.
- */
 export function evaluateAllFlags(
   context: FeatureFlagContext
 ): Record<FeatureFlagName, FeatureFlagEvaluationResult> {
   const results: Partial<Record<FeatureFlagName, FeatureFlagEvaluationResult>> = {};
-
   for (const name of Object.keys(FEATURE_FLAGS) as FeatureFlagName[]) {
     results[name] = evaluateFlag(name, context);
   }
-
   return results as Record<FeatureFlagName, FeatureFlagEvaluationResult>;
 }
 
-/**
- * Get all enabled flags for a context.
- */
 export function getEnabledFlags(context: FeatureFlagContext): FeatureFlagName[] {
   return (Object.keys(FEATURE_FLAGS) as FeatureFlagName[]).filter((name) =>
     isFeatureEnabled(name, context)
   );
 }
 
-// ============================================================================
-// Feature Flag Client
-// ============================================================================
-
-/**
- * Feature flag client for convenient usage with a fixed context.
- */
 export class FeatureFlagClient {
   private context: FeatureFlagContext;
   private cache: Map<FeatureFlagName, FeatureFlagEvaluationResult> = new Map();
-
   constructor(context: Partial<FeatureFlagContext> = {}) {
-    this.context = {
-      environment: getCurrentEnvironment(),
-      ...context,
-    };
+    this.context = { environment: getCurrentEnvironment(), ...context };
   }
-
-  /**
-   * Update the context (e.g., when user logs in).
-   */
   updateContext(updates: Partial<FeatureFlagContext>): void {
     this.context = { ...this.context, ...updates };
     this.clearCache();
   }
-
-  /**
-   * Clear the evaluation cache.
-   */
   clearCache(): void {
     this.cache.clear();
   }
-
-  /**
-   * Check if a flag is enabled.
-   */
   isEnabled(name: FeatureFlagName): boolean {
-    if (!this.cache.has(name)) {
-      this.cache.set(name, evaluateFlag(name, this.context));
-    }
+    if (!this.cache.has(name)) this.cache.set(name, evaluateFlag(name, this.context));
     return this.cache.get(name)!.enabled;
-  }
-
-  /**
-   * Get detailed evaluation result.
-   */
-  evaluate(name: FeatureFlagName): FeatureFlagEvaluationResult {
-    if (!this.cache.has(name)) {
-      this.cache.set(name, evaluateFlag(name, this.context));
-    }
-    return this.cache.get(name)!;
-  }
-
-  /**
-   * Get all enabled flags.
-   */
-  getEnabledFlags(): FeatureFlagName[] {
-    return getEnabledFlags(this.context);
-  }
-
-  /**
-   * Get the current context.
-   */
-  getContext(): FeatureFlagContext {
-    return { ...this.context };
   }
 }
 
-// ============================================================================
-// Server-Side Helpers
-// ============================================================================
-
-/**
- * Create a context from server locals/session data.
- */
 export function createContextFromSession(
   session: { user?: { id: string } } | null,
   profile: { subscription_tier?: SubscriptionTier } | null,
@@ -580,39 +449,10 @@ export function createContextFromSession(
   };
 }
 
-/**
- * Serialize flag states for hydration on the client.
- */
 export function serializeFlags(context: FeatureFlagContext): Record<FeatureFlagName, boolean> {
   const flags: Partial<Record<FeatureFlagName, boolean>> = {};
-
   for (const name of Object.keys(FEATURE_FLAGS) as FeatureFlagName[]) {
     flags[name] = isFeatureEnabled(name, context);
   }
-
   return flags as Record<FeatureFlagName, boolean>;
-}
-
-// ============================================================================
-// Admin API Types
-// ============================================================================
-
-export interface AdminFlagUpdate {
-  name: FeatureFlagName;
-  action: 'enable' | 'disable' | 'clear_override';
-  scope: 'global' | 'environment' | 'user';
-  targetEnvironment?: Environment;
-  targetUserId?: string;
-  expiresInMs?: number;
-  reason?: string;
-}
-
-export interface AdminFlagStatus {
-  name: FeatureFlagName;
-  definition: FeatureFlagDefinition;
-  globalOverride?: FeatureFlagOverride;
-  stats?: {
-    totalEvaluations?: number;
-    enabledPercentage?: number;
-  };
 }

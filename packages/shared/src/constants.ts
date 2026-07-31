@@ -10,7 +10,12 @@ import type {
 /**
  * Pattern Modes - how the base curve is arranged
  */
-export const PATTERN_MODES: { value: PatternMode; label: string; description: string; icon: string }[] = [
+export const PATTERN_MODES: {
+  value: PatternMode;
+  label: string;
+  description: string;
+  icon: string;
+}[] = [
   {
     value: 'curve',
     label: 'Single Curve',

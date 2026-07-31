@@ -8,16 +8,8 @@
 import type { RequestEvent } from '@sveltejs/kit';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { SubscriptionTier } from '@guilloche/shared';
-import {
-  SubscriptionEnforcement,
-  type EnforcementResult,
-  FEATURE_REQUIREMENTS,
-} from './subscription-enforcement';
-import {
-  DeviceFingerprintService,
-  type FingerprintComponents,
-  type AbuseCheckResult,
-} from './device-fingerprint';
+import { SubscriptionEnforcement } from './subscription-enforcement';
+import { DeviceFingerprintService } from './device-fingerprint';
 import {
   RequestSigningService,
   extractSignatureFromRequest,
@@ -84,12 +76,25 @@ interface UserRateLimitEntry {
 
 // In-memory rate limit store (per-user)
 const userRateLimits = new Map<string, UserRateLimitEntry>();
+const MAX_RATE_LIMIT_ENTRIES = 10_000;
+
+function pruneRateLimits(): void {
+  if (userRateLimits.size <= MAX_RATE_LIMIT_ENTRIES) return;
+  const now = Date.now();
+  for (const [key, entry] of userRateLimits) {
+    if (entry.windowEnd < now) {
+      userRateLimits.delete(key);
+      if (userRateLimits.size <= MAX_RATE_LIMIT_ENTRIES * 0.8) return;
+    }
+  }
+}
 
 function checkUserRateLimit(
   userId: string,
   tier: SubscriptionTier,
   customLimit?: number
 ): { allowed: boolean; remaining: number; resetAt: number; retryAfter?: number } {
+  pruneRateLimits();
   const now = Date.now();
   const windowMs = 3600_000; // 1 hour
   const baseLimit = customLimit || API_RATE_LIMITS[tier].requests;
@@ -374,44 +379,48 @@ export class SecurityMiddleware {
       // =================================================================
 
       if (options.checkAbuse) {
-        // Get fingerprint from header (sent by client)
         const fingerprintHash = request.headers.get('X-Device-Fingerprint');
 
-        if (fingerprintHash) {
-          const abuseCheck = await this.fingerprint.checkForAbuse(
-            fingerprintHash,
+        if (!fingerprintHash) {
+          return {
+            allowed: false,
+            statusCode: 400,
+            error: { code: 'MISSING_FINGERPRINT', message: 'Device fingerprint required' },
+          };
+        }
+
+        const abuseCheck = await this.fingerprint.checkForAbuse(
+          fingerprintHash,
+          user.id,
+          ipAddress
+        );
+
+        if (abuseCheck.isAbusive) {
+          await this.enforcement.logSecurityEvent(
             user.id,
+            'abuse_detected',
+            abuseCheck.riskLevel,
+            abuseCheck.reasons.join('; '),
+            {
+              linkedAccounts: abuseCheck.linkedAccounts,
+              recommendation: abuseCheck.recommendation,
+            },
             ipAddress
           );
 
-          if (abuseCheck.isAbusive) {
-            // Log abuse detection
-            await this.enforcement.logSecurityEvent(
-              user.id,
-              'abuse_detected',
-              abuseCheck.riskLevel,
-              abuseCheck.reasons.join('; '),
-              {
-                linkedAccounts: abuseCheck.linkedAccounts,
-                recommendation: abuseCheck.recommendation,
+          if (abuseCheck.recommendation === 'block') {
+            return {
+              allowed: false,
+              statusCode: 403,
+              error: {
+                code: 'ABUSE_DETECTED',
+                message: 'Suspicious activity detected. Please contact support.',
               },
-              ipAddress
-            );
+            };
+          }
 
-            if (abuseCheck.recommendation === 'block') {
-              return {
-                allowed: false,
-                statusCode: 403,
-                error: {
-                  code: 'ABUSE_DETECTED',
-                  message: 'Suspicious activity detected. Please contact support.',
-                },
-              };
-            }
-
-            if (abuseCheck.recommendation === 'review') {
-              warnings.push('Account flagged for review due to suspicious activity');
-            }
+          if (abuseCheck.recommendation === 'review') {
+            warnings.push('Account flagged for review due to suspicious activity');
           }
         }
       }
@@ -545,7 +554,7 @@ export function createSecurityErrorResponse(result: SecurityCheckResult): Respon
 /**
  * Wrapper to apply security check to an API handler
  */
-export function withSecurity<T>(
+export function withSecurity(
   options: MiddlewareOptions,
   handler: (event: RequestEvent, context: SecurityContext) => Promise<Response>
 ): (event: RequestEvent) => Promise<Response> {

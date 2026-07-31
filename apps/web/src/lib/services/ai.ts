@@ -55,9 +55,7 @@ export async function suggestParameters(keywords: string[]): Promise<ParameterSu
     }
 
     return await response.json();
-  } catch (error) {
-    console.error('AI suggestion error:', error);
-
+  } catch {
     // Fallback to local keyword matching
     return fallbackSuggest(keywords);
   }
@@ -85,8 +83,7 @@ export async function recognizePattern(imageFile: File): Promise<PatternRecognit
     }
 
     return await response.json();
-  } catch (error) {
-    console.error('Pattern recognition error:', error);
+  } catch {
     return null;
   }
 }
@@ -114,9 +111,7 @@ export async function textToPattern(prompt: string): Promise<TextToPatternResult
     }
 
     return await response.json();
-  } catch (error) {
-    console.error('Text-to-pattern error:', error);
-
+  } catch {
     // Fallback to keyword extraction
     return fallbackTextToPattern(prompt);
   }
@@ -141,14 +136,18 @@ export async function getEmbeddings(text: string): Promise<number[]> {
 
     const result = await response.json();
     return result.embeddings || [];
-  } catch (error) {
-    console.error('Embedding error:', error);
+  } catch {
     return [];
   }
 }
 
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
+
 // Helper: Convert File to base64
 async function fileToBase64(file: File): Promise<string> {
+  if (file.size > MAX_IMAGE_SIZE) {
+    throw new Error(`File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB (max 10MB)`);
+  }
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {

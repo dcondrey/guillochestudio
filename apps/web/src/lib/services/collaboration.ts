@@ -6,7 +6,7 @@
 import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 import type { Database, Json } from '$lib/types/database';
 import type { PatternParams } from '@guilloche/shared';
-import { writable, derived, get } from 'svelte/store';
+import { writable, get } from 'svelte/store';
 
 // Type helpers for Supabase query results
 interface CommentRow {
@@ -153,7 +153,6 @@ export class CollaborationManager {
         .single()) as { data: SessionRow | null; error: Error | null };
 
       if (error || !session) {
-        console.error('Failed to create collaboration session:', error);
         throw new Error('Failed to create collaboration session');
       }
 
@@ -192,12 +191,8 @@ export class CollaborationManager {
 
         collaborators.set(newCollaborators);
       })
-      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-        console.log('User joined:', key, newPresences);
-      })
-      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-        console.log('User left:', key, leftPresences);
-      });
+      .on('presence', { event: 'join' }, () => {})
+      .on('presence', { event: 'leave' }, () => {});
 
     // Handle broadcast messages
     this.channel

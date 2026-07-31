@@ -142,7 +142,6 @@ test.describe('Marketplace Browsing', () => {
 
       // Look for view/download icons (SVG with eye or download paths)
       const viewIcon = page.locator('svg path[d*="12 3"]').first(); // Eye icon path
-      const downloadIcon = page.locator('svg path[d*="16v1"]').first(); // Download icon path
 
       const hasViewIcon = await viewIcon.isVisible().catch(() => false);
       const hasEmptyState = await page
@@ -301,13 +300,11 @@ test.describe('Marketplace Browsing', () => {
 
       // Should show loading skeletons
       const skeleton = page.locator('.animate-pulse');
-      const hasSkeletons = await skeleton
+      // The skeleton shows only briefly, so its visibility is probed but not asserted.
+      await skeleton
         .first()
         .isVisible({ timeout: 100 })
         .catch(() => false);
-
-      // Loading state should appear briefly
-      // Note: This might be too fast to catch in some cases
     });
   });
 

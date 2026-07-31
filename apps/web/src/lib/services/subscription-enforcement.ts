@@ -6,7 +6,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { SUBSCRIPTION_PLANS, PATTERN_LIMITS, API_RATE_LIMITS } from '@guilloche/shared';
+import { PATTERN_LIMITS, API_RATE_LIMITS } from '@guilloche/shared';
 import type { SubscriptionTier } from '@guilloche/shared';
 
 // =============================================================================

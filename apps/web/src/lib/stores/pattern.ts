@@ -1,5 +1,5 @@
-import { writable, derived, get, type Readable } from 'svelte/store';
-import type { PatternParams, PatternLayer, BlendMode } from '@guilloche/shared';
+import { writable, derived, get } from 'svelte/store';
+import type { PatternParams, PatternLayer, ManualPath } from '@guilloche/shared';
 import { getDefaultParams, deepClone, generateId } from '@guilloche/shared';
 import { GuillocheEngine, type GeneratedPath } from '@guilloche/core';
 
@@ -15,192 +15,254 @@ interface HistoryState {
   description: string;
 }
 
-// Core pattern state
+// Global parameters (background, etc)
 export const params = writable<PatternParams>(getDefaultParams());
+
+// Multi-layer state
 export const layers = writable<PatternLayer[]>([
   {
     id: generateId(),
     name: 'Base Pattern',
+    type: 'vector',
     visible: true,
-    color: '#4f46e5',
+    color: '#000000',
     blendMode: 'normal',
-    params: {},
+    params: getDefaultParams(),
     opacity: 1,
   },
 ]);
-export const activeLayerId = writable<string | null>(null);
+
+export const activeLayerId = writable<string>(get(layers)[0].id);
 export const patternLoading = writable(false);
 export const patternError = writable<string | null>(null);
 
-// History state
+// History
 export const history = writable<HistoryState[]>([]);
 export const historyIndex = writable(-1);
 
-// Engine instance
-let engine: GuillocheEngine | null = null;
+// Engine shared instance
+const engine = new GuillocheEngine();
 
-// Get or create engine
-function getEngine(): GuillocheEngine {
-  if (!engine) {
-    engine = new GuillocheEngine(get(params));
-  }
-  return engine;
+// Image Cache for Reference Layers
+const imageCache = new Map<string, HTMLImageElement>();
+
+async function loadImage(url: string): Promise<HTMLImageElement> {
+  if (imageCache.has(url)) return imageCache.get(url)!;
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      imageCache.set(url, img);
+      resolve(img);
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
 }
 
-// Derived: current path
-export const currentPath = derived<[typeof params, typeof patternLoading], GeneratedPath | null>(
-  [params, patternLoading],
-  ([$params, $loading], set) => {
-    if ($loading) {
-      set(null);
-      return;
-    }
+/**
+ * Derived: All paths and images for all visible layers
+ */
+export const renderedComposition = derived(
+  [params, layers],
+  ([$params, $layers], set) => {
+    const compute = async () => {
+      const results: any[] = [];
+      for (const layer of $layers) {
+        if (!layer.visible) continue;
 
-    try {
-      const eng = getEngine();
-      eng.setParams($params);
-      const path = eng.computePath();
-      set(path);
-      patternError.set(null);
-    } catch (err) {
-      patternError.set(err instanceof Error ? err.message : 'Failed to generate pattern');
-      set(null);
-    }
+        if (layer.type === 'vector') {
+          const finalParams = { ...$params, ...layer.params };
+          engine.setParams(finalParams);
+          const path = engine.computePath();
+          results.push({
+            id: layer.id,
+            type: 'vector',
+            path,
+            layerId: layer.id,
+            blendMode: layer.blendMode,
+            opacity: layer.opacity,
+            color: layer.color,
+          });
+        } else if (layer.type === 'path' && layer.manualPath) {
+          // Manual path rendering (convert ManualPath format to GeneratedPath for renderer)
+          const genPath: GeneratedPath = {
+            segments: layer.manualPath.segments.map((seg) => ({
+              points: seg.points.map((p) => ({ x: p.x, y: p.y })),
+            })),
+            bounds: { minX: -1000, minY: -1000, maxX: 1000, maxY: 1000 },
+            params: $params,
+          };
+          results.push({
+            id: layer.id,
+            type: 'vector',
+            path: genPath,
+            layerId: layer.id,
+            blendMode: layer.blendMode,
+            opacity: layer.opacity,
+            color: layer.color,
+          });
+        } else if (layer.type === 'image' && layer.imageUrl) {
+          try {
+            const img = await loadImage(layer.imageUrl);
+            results.push({
+              id: layer.id,
+              type: 'image',
+              image: img,
+              layerId: layer.id,
+              blendMode: layer.blendMode,
+              opacity: layer.opacity,
+              brightness: layer.brightness || 1,
+              contrast: layer.contrast || 1,
+            });
+          } catch {
+            // image load failure is non-fatal; layer renders without image
+          }
+        }
+      }
+      set(results);
+    };
+
+    compute();
   },
-  null as GeneratedPath | null
+  [] as any[]
 );
 
-// Derived: active layer
-export const activeLayer: Readable<PatternLayer | null> = derived(
-  [layers, activeLayerId],
-  ([$layers, $activeLayerId]) => {
-    if (!$activeLayerId) return $layers[0] || null;
-    return $layers.find((l) => l.id === $activeLayerId) || null;
-  }
-);
-
-// Derived: can undo/redo
-export const canUndo: Readable<boolean> = derived(historyIndex, ($index) => $index > 0);
-
-export const canRedo: Readable<boolean> = derived(
-  [history, historyIndex],
-  ([$history, $index]) => $index < $history.length - 1
-);
+/**
+ * Derived: Active layer's params for the Inspector
+ */
+export const activeLayer = derived([layers, activeLayerId], ([$layers, $activeLayerId]) => {
+  return $layers.find((l) => l.id === $activeLayerId) || null;
+});
 
 // Actions
 
-/**
- * Update a single parameter
- */
-export function updateParam<K extends keyof PatternParams>(key: K, value: PatternParams[K]): void {
-  params.update((p) => ({ ...p, [key]: value }));
-}
-
-/**
- * Update multiple parameters at once
- */
 export function updateParams(updates: Partial<PatternParams>): void {
   params.update((p) => ({ ...p, ...updates }));
 }
 
-/**
- * Reset to default parameters
- */
-export function resetParams(): void {
-  const defaults = getDefaultParams();
-  params.set(defaults);
-  saveToHistory('Reset to defaults');
-}
-
-/**
- * Set all parameters at once (e.g., from preset or loaded pattern)
- */
 export function setParams(newParams: PatternParams): void {
   params.set(deepClone(newParams));
 }
 
-/**
- * Add a new layer
- */
-export function addLayer(name?: string): void {
+export function updateActiveLayerParam<K extends keyof PatternParams>(
+  key: K,
+  value: PatternParams[K]
+): void {
+  const aid = get(activeLayerId);
+  layers.update((ls) =>
+    ls.map((l) => {
+      if (l.id === aid) {
+        return { ...l, params: { ...l.params, [key]: value } as PatternParams };
+      }
+      return l;
+    })
+  );
+}
+
+export function updateLayerStyle(id: string, updates: Partial<PatternLayer>): void {
+  layers.update((ls) => ls.map((l) => (l.id === id ? { ...l, ...updates } : l)));
+}
+
+export function addLayer(name?: string, type: 'vector' | 'image' | 'path' = 'vector'): void {
   const newLayer: PatternLayer = {
     id: generateId(),
     name: name || `Layer ${get(layers).length + 1}`,
+    type,
     visible: true,
-    color:
-      '#' +
-      Math.floor(Math.random() * 16777215)
-        .toString(16)
-        .padStart(6, '0'),
+    color: '#3b82f6',
     blendMode: 'normal',
-    params: {},
+    params: getDefaultParams(),
     opacity: 1,
+    brightness: 1,
+    contrast: 1,
   };
-  layers.update((l) => [...l, newLayer]);
+  layers.update((ls) => [...ls, newLayer]);
   activeLayerId.set(newLayer.id);
+  saveToHistory('Added layer');
 }
 
-/**
- * Remove a layer
- */
-export function removeLayer(id: string): void {
-  layers.update((l) => {
-    const filtered = l.filter((layer) => layer.id !== id);
-    // Ensure at least one layer exists
-    if (filtered.length === 0) {
-      return l;
-    }
-    return filtered;
-  });
+export function bakeActiveLayer(): void {
+  const aid = get(activeLayerId);
+  const al = get(activeLayer);
+  if (!al || al.type !== 'vector') return;
 
-  // Update active layer if needed
+  // Compute current path to "bake" it
+  const finalParams = { ...get(params), ...al.params };
+  engine.setParams(finalParams);
+  const path = engine.computePath();
+  const manualPath = engine.bakeToManualPath(path);
+
+  layers.update((ls) =>
+    ls.map((l) => {
+      if (l.id === aid) {
+        return {
+          ...l,
+          type: 'path',
+          manualPath,
+          name: `${l.name} (Baked)`,
+        };
+      }
+      return l;
+    })
+  );
+  saveToHistory('Baked layer to path');
+}
+
+export function updateManualPath(path: ManualPath): void {
+  const aid = get(activeLayerId);
+  layers.update((ls) =>
+    ls.map((l) => {
+      if (l.id === aid) return { ...l, manualPath: path };
+      return l;
+    })
+  );
+}
+
+export function addImageLayer(url: string, name = 'Reference Image'): void {
+  addLayer(name, 'image');
+  const aid = get(activeLayerId);
+  updateLayerStyle(aid, { imageUrl: url });
+}
+
+export function removeLayer(id: string): void {
+  layers.update((ls) => {
+    if (ls.length <= 1) return ls;
+    return ls.filter((l) => l.id !== id);
+  });
+  const currentLayers = get(layers);
   if (get(activeLayerId) === id) {
-    const currentLayers = get(layers);
-    activeLayerId.set(currentLayers[0]?.id || null);
+    activeLayerId.set(currentLayers[0].id);
+  }
+  saveToHistory('Removed layer');
+}
+
+export function importComposition(data: any): void {
+  if (data.layers) {
+    layers.set(data.layers);
+    if (data.params) params.set(data.params);
+    if (data.layers[0]) activeLayerId.set(data.layers[0].id);
+    saveToHistory('Imported design');
   }
 }
 
-/**
- * Duplicate a layer
- */
-export function duplicateLayer(id: string): void {
-  const currentLayers = get(layers);
-  const layer = currentLayers.find((l) => l.id === id);
-  if (!layer) return;
-
-  const newLayer: PatternLayer = {
-    ...deepClone(layer),
-    id: generateId(),
-    name: `${layer.name} (copy)`,
-  };
-
-  const index = currentLayers.findIndex((l) => l.id === id);
-  layers.update((l) => [...l.slice(0, index + 1), newLayer, ...l.slice(index + 1)]);
-  activeLayerId.set(newLayer.id);
+export function resetParams(): void {
+  params.set(getDefaultParams());
+  layers.set([
+    {
+      id: generateId(),
+      name: 'Base Pattern',
+      type: 'vector',
+      visible: true,
+      color: '#000000',
+      blendMode: 'normal',
+      params: getDefaultParams(),
+      opacity: 1,
+    },
+  ]);
+  activeLayerId.set(get(layers)[0].id);
 }
 
-/**
- * Update layer properties
- */
-export function updateLayer(id: string, updates: Partial<PatternLayer>): void {
-  layers.update((l) => l.map((layer) => (layer.id === id ? { ...layer, ...updates } : layer)));
-}
-
-/**
- * Reorder layers
- */
-export function reorderLayers(fromIndex: number, toIndex: number): void {
-  layers.update((l) => {
-    const result = [...l];
-    const [removed] = result.splice(fromIndex, 1);
-    result.splice(toIndex, 0, removed);
-    return result;
-  });
-}
-
-/**
- * Save current state to history
- */
 export function saveToHistory(description: string): void {
   const state: HistoryState = {
     id: generateId(),
@@ -212,70 +274,30 @@ export function saveToHistory(description: string): void {
 
   history.update((h) => {
     const currentIndex = get(historyIndex);
-    // Remove any future states if we're not at the end
     const newHistory = h.slice(0, currentIndex + 1);
     newHistory.push(state);
-    // Limit history size
-    if (newHistory.length > MAX_HISTORY) {
-      newHistory.shift();
-    }
+    if (newHistory.length > MAX_HISTORY) newHistory.shift();
     return newHistory;
   });
 
   historyIndex.update((i) => Math.min(i + 1, MAX_HISTORY - 1));
 }
 
-/**
- * Undo to previous state
- */
 export function undo(): void {
-  const currentIndex = get(historyIndex);
-  if (currentIndex <= 0) return;
-
-  historyIndex.set(currentIndex - 1);
-  const state = get(history)[currentIndex - 1];
-  if (state) {
-    params.set(deepClone(state.params));
-    layers.set(deepClone(state.layers));
-  }
+  const idx = get(historyIndex);
+  if (idx <= 0) return;
+  const state = get(history)[idx - 1];
+  params.set(state.params);
+  layers.set(state.layers);
+  historyIndex.set(idx - 1);
 }
 
-/**
- * Redo to next state
- */
 export function redo(): void {
-  const currentIndex = get(historyIndex);
-  const historyLength = get(history).length;
-  if (currentIndex >= historyLength - 1) return;
-
-  historyIndex.set(currentIndex + 1);
-  const state = get(history)[currentIndex + 1];
-  if (state) {
-    params.set(deepClone(state.params));
-    layers.set(deepClone(state.layers));
-  }
-}
-
-/**
- * Jump to specific history state
- */
-export function jumpToHistory(index: number): void {
+  const idx = get(historyIndex);
   const h = get(history);
-  if (index < 0 || index >= h.length) return;
-
-  historyIndex.set(index);
-  const state = h[index];
-  if (state) {
-    params.set(deepClone(state.params));
-    layers.set(deepClone(state.layers));
-  }
-}
-
-/**
- * Clear engine cache (call when parameters change significantly)
- */
-export function clearCache(): void {
-  if (engine) {
-    engine.clearCache();
-  }
+  if (idx >= h.length - 1) return;
+  const state = h[idx + 1];
+  params.set(state.params);
+  layers.set(state.layers);
+  historyIndex.set(idx + 1);
 }

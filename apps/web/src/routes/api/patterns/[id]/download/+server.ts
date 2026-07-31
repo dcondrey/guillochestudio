@@ -123,6 +123,7 @@ export const GET: RequestHandler = async (event) => {
         .select('id')
         .eq('user_id', userId)
         .eq('pattern_id', patternId)
+        .eq('status', 'completed')
         .single();
 
       hasPurchased = !!purchase;
@@ -141,8 +142,11 @@ export const GET: RequestHandler = async (event) => {
     void Promise.all([
       locals.supabase.rpc('increment_pattern_download', { pattern_uuid: patternId }),
       security.recordUsage(userId, 'exports_count', 1),
-    ]).catch((err: Error) => {
-      console.error('Failed to track download:', err);
+    ]).catch((err: unknown) => {
+      locals.logger.error(
+        'Failed to track download',
+        err instanceof Error ? err : new Error(String(err))
+      );
     });
 
     // Sanitize filename
@@ -173,7 +177,10 @@ export const GET: RequestHandler = async (event) => {
     if (err && typeof err === 'object' && 'status' in err) {
       throw err;
     }
-    console.error('Pattern download error:', err);
+    locals.logger.error(
+      'Pattern download error',
+      err instanceof Error ? err : new Error(String(err))
+    );
     errorResponse('INTERNAL_ERROR', 'An unexpected error occurred', 500);
   }
 };

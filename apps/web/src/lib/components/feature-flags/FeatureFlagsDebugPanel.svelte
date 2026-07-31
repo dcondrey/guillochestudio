@@ -7,6 +7,7 @@
    */
 
   import { browser } from '$app/environment';
+  import { isAuthenticated } from '$lib/stores/auth';
   import {
     flags,
     evaluatedFlags,
@@ -80,7 +81,7 @@
 
 <svelte:window on:keydown={handleKeydown} />
 
-{#if isDev && browser}
+{#if isDev && browser && $isAuthenticated}
   <!-- Toggle Button -->
   <button
     on:click={() => (isOpen = !isOpen)}

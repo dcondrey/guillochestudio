@@ -4,7 +4,7 @@
  * Supports Web Serial API, WebUSB, and network connections
  */
 
-import { writable, derived, type Readable, type Writable } from 'svelte/store';
+import { writable, type Readable, type Writable } from 'svelte/store';
 import { browser } from '$app/environment';
 
 // ============================================================================
@@ -869,7 +869,7 @@ export class HardwareConnectionManager {
     let buffer = '';
 
     try {
-      while (true) {
+      for (;;) {
         const { value, done } = await reader.read();
         if (done) break;
 
@@ -959,7 +959,7 @@ export class HardwareConnectionManager {
   /**
    * Estimate job time based on commands
    */
-  private estimateJobTime(commands: string[], maxSpeed: number): number {
+  private estimateJobTime(commands: string[], _maxSpeed: number): number {
     // Simple estimation based on command count and average speed
     const avgTimePerCommand = 50; // ms
     return commands.length * avgTimePerCommand;

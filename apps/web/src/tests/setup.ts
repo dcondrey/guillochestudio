@@ -23,8 +23,8 @@ vi.mock('$app/navigation', () => ({
   afterNavigate: vi.fn(),
 }));
 
-vi.mock('$app/stores', () => {
-  const { readable, writable } = require('svelte/store');
+vi.mock('$app/stores', async () => {
+  const { readable } = await import('svelte/store');
 
   return {
     page: readable({

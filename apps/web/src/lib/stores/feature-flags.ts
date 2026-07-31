@@ -13,7 +13,6 @@ import {
   type FeatureFlagEvaluationResult,
   type Environment,
   FEATURE_FLAGS,
-  evaluateFlag,
   evaluateAllFlags,
   getOverrides,
   setOverride,
@@ -21,7 +20,7 @@ import {
   clearAllOverrides,
   getCurrentEnvironment,
 } from '$lib/services/feature-flags';
-import { user, profile, subscriptionTier, isAuthenticated } from './auth';
+import { user, subscriptionTier, isAuthenticated } from './auth';
 import type { SubscriptionTier } from '@guilloche/shared';
 
 // ============================================================================
@@ -254,13 +253,7 @@ export function getAllFlagDefinitions() {
 export function hydrateFlags(serverFlags: Partial<Record<FeatureFlagName, boolean>>): void {
   // Server flags are used to initialize context hints
   // The actual evaluation still happens client-side for reactivity
-  if (browser) {
-    console.debug(
-      '[Feature Flags] Hydrated from server:',
-      Object.keys(serverFlags).length,
-      'flags'
-    );
-  }
+  void serverFlags;
 }
 
 // ============================================================================
@@ -270,25 +263,7 @@ export function hydrateFlags(serverFlags: Partial<Record<FeatureFlagName, boolea
 /**
  * Log current flag state for debugging.
  */
-export function debugFlags(): void {
-  if (!browser) return;
-
-  const context = get(featureFlagContext);
-  const $flags = get(flags);
-  const $evaluated = get(evaluatedFlags);
-
-  console.group('[Feature Flags] Debug Info');
-  console.log('Context:', context);
-  console.log(
-    'Enabled flags:',
-    Object.entries($flags)
-      .filter(([, v]) => v)
-      .map(([k]) => k)
-  );
-  console.log('All evaluations:', $evaluated);
-  console.log('Overrides:', getOverrides());
-  console.groupEnd();
-}
+export function debugFlags(): void {}
 
 // Export for testing
 if (browser && import.meta.env.DEV) {

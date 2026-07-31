@@ -5,7 +5,6 @@
 
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { dev } from '$app/environment';
 import {
   getMetricsCollector,
   getOperationTracker,

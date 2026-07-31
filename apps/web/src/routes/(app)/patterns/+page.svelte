@@ -1,13 +1,10 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { goto } from '$app/navigation';
-  import { session, profile } from '$lib/stores/auth';
+  import { profile } from '$lib/stores/auth';
   import type { PageData } from './$types';
 
   export let data: PageData;
 
   let patterns = data.patterns || [];
-  let loading = false;
   let error = '';
   let deleteConfirm: string | null = null;
 

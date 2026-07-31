@@ -36,8 +36,6 @@ test.describe('Pattern Saving and Loading', () => {
 
       // The URL might contain pattern parameters for sharing
       // This is a common pattern for shareable states
-      const url = page.url();
-
       // If URL-based sharing is implemented, URL would have query params
       // Test that studio page loads and shows pattern
       await expect(page.locator('canvas')).toBeVisible();
@@ -162,11 +160,6 @@ test.describe('Pattern Saving and Loading', () => {
 
       if (await patternCard.isVisible().catch(() => false)) {
         // Should show date
-        const dateText = await patternCard
-          .getByText(/\d{1,2}, \d{4}|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec/i)
-          .isVisible()
-          .catch(() => false);
-
         // Pattern cards should have either a thumbnail or placeholder
         const hasImage = await patternCard
           .locator('img')
@@ -224,9 +217,7 @@ test.describe('Pattern Saving and Loading', () => {
     test('should reset pattern to defaults', async ({ page }) => {
       await page.goto('/studio');
 
-      // Take initial screenshot
       await page.waitForTimeout(500);
-      const initialScreenshot = await page.locator('canvas').screenshot();
 
       // Make changes
       await page.getByRole('button', { name: /random/i }).click();
@@ -236,10 +227,7 @@ test.describe('Pattern Saving and Loading', () => {
       await page.getByRole('button', { name: /reset/i }).click();
       await page.waitForTimeout(500);
 
-      // Should be back to initial state (approximately)
-      const resetScreenshot = await page.locator('canvas').screenshot();
-
-      // Note: This might not be exactly equal due to timing, but should be similar
+      // Reset timing makes an exact pixel match unreliable, so only presence is asserted.
       await expect(page.locator('canvas')).toBeVisible();
     });
   });

@@ -54,8 +54,12 @@ export class RequestSigningService {
   private signingSecret: string;
 
   constructor(supabase: SupabaseClient, signingSecret?: string) {
+    const secret = signingSecret ?? env.PRIVATE_SIGNING_SECRET;
+    if (!secret) {
+      throw new Error('PRIVATE_SIGNING_SECRET environment variable is required');
+    }
     this.supabase = supabase;
-    this.signingSecret = signingSecret || env.PRIVATE_SIGNING_SECRET || 'default-dev-secret';
+    this.signingSecret = secret;
   }
 
   /**
@@ -187,15 +191,16 @@ export class RequestSigningService {
    * Timing-safe string comparison to prevent timing attacks
    */
   private timingSafeEqual(a: string, b: string): boolean {
-    if (a.length !== b.length) {
-      return false;
+    const encoder = new TextEncoder();
+    const maxLen = Math.max(a.length, b.length);
+    const bufA = encoder.encode(a.padStart(maxLen, '\0'));
+    const bufB = encoder.encode(b.padStart(maxLen, '\0'));
+    // XOR length mismatch into result so it never short-circuits on length
+    let diff = a.length ^ b.length;
+    for (let i = 0; i < maxLen; i++) {
+      diff |= bufA[i] ^ bufB[i];
     }
-
-    let result = 0;
-    for (let i = 0; i < a.length; i++) {
-      result |= a.charCodeAt(i) ^ b.charCodeAt(i);
-    }
-    return result === 0;
+    return diff === 0;
   }
 
   /**

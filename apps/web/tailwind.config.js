@@ -21,6 +21,7 @@ export default {
       },
       fontFamily: {
         sans: [
+          'sohne-buch',
           'Inter',
           'system-ui',
           '-apple-system',
@@ -29,6 +30,11 @@ export default {
           'Roboto',
           'sans-serif',
         ],
+        serif: ['kalice', 'Georgia', 'serif'],
+        'sohne-halbfett': ['sohne-halbfett', 'sans-serif'],
+        'sohne-buch': ['sohne-buch', 'sans-serif'],
+        fraunces: ['fraunces', 'serif'],
+        kalice: ['kalice', 'serif'],
       },
       animation: {
         'spin-slow': 'spin 3s linear infinite',

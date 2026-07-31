@@ -105,7 +105,7 @@ export function shareToSocial(
       shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
       break;
     case 'pinterest':
-      shareUrl = `https://pinterest.com/pin/create/button/?url=${encodedUrl}&description=${encodedTitle}${options.imageUrl ? `&media=${encodeURIComponent(options.imageUrl)}` : ''}`;
+      shareUrl = `https://pinterest.com/pin/create/button/?url=${encodedUrl}&description=${encodedDesc || encodedTitle}${options.imageUrl ? `&media=${encodeURIComponent(options.imageUrl)}` : ''}`;
       break;
     case 'reddit':
       shareUrl = `https://www.reddit.com/submit?url=${encodedUrl}&title=${encodedTitle}`;

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { session, user, profile } from '$lib/stores/auth';
+  import { user, profile } from '$lib/stores/auth';
   import { invalidateAll } from '$app/navigation';
   import { page } from '$app/stores';
   import { _ } from 'svelte-i18n';

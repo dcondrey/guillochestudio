@@ -3,7 +3,6 @@
  * Collects and aggregates metrics for monitoring and alerting
  */
 
-import { dev } from '$app/environment';
 import type { RequestMetrics } from './performance';
 import { RESPONSE_TIME_BUCKETS, getTimeBucket } from './performance';
 

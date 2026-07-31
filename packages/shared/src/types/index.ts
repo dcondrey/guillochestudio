@@ -12,72 +12,69 @@ export type CurveFamily =
   | 'fermat'
   | 'liss3d';
 
-/**
- * Pattern Mode - determines how the base curve is arranged
- * - 'curve': Single curve with symmetry (default, current behavior)
- * - 'rosette': Closed circular patterns with envelope
- * - 'border': Linear repeating patterns for edges/frames
- * - 'grid': 2D repeating background patterns
- */
 export type PatternMode = 'curve' | 'rosette' | 'border' | 'grid';
 
-/**
- * Rosette envelope shape for rosette mode
- */
 export type RosetteEnvelope = 'circle' | 'ellipse' | 'polygon' | 'star';
 
-/**
- * Border corner handling for border mode
- */
 export type BorderCornerStyle = 'miter' | 'round' | 'continue' | 'none';
 
-/**
- * Grid tile type for grid mode
- */
 export type GridTileType = 'square' | 'hex' | 'triangle' | 'diamond';
 
 /**
- * Rosette-specific configuration
+ * Advanced Modulation types for relief and security effects
  */
+export interface ModulationParams {
+  depth: number; // Relief depth (displacement)
+  frequency: number; // Modulation frequency
+  phase: number; // Phase shift
+  type: 'sine' | 'saw' | 'noise';
+  target: 'radius' | 'width' | 'phase';
+}
+
+/**
+ * Security ink / element configuration
+ */
+export interface SecurityConfig {
+  uvActive: boolean;
+  uvColor?: string;
+  holographicActive: boolean;
+  rainbowActive: boolean;
+  rainbowAngle?: number;
+}
+
 export interface RosetteConfig {
   envelope: RosetteEnvelope;
-  innerRadius: number; // 0-1, percentage of outer radius
-  outerRadius: number; // Actual radius in canvas units
-  fillDensity: number; // 1-20, number of concentric rings
-  envelopeSides: number; // For polygon/star: 3-12 sides
-  starPointiness: number; // For star: 0-1, how pointy
-  radialWave: number; // 0-1, waviness of radial lines
-  spiralTwist: number; // Degrees of spiral twist per ring
+  innerRadius: number;
+  outerRadius: number;
+  fillDensity: number;
+  envelopeSides: number;
+  starPointiness: number;
+  radialWave: number;
+  spiralTwist: number;
 }
 
-/**
- * Border-specific configuration
- */
 export interface BorderConfig {
-  length: number; // Total border length
-  width: number; // Border width/height
+  length: number;
+  width: number;
   cornerStyle: BorderCornerStyle;
-  waveAmplitude: number; // 0-50, baseline wave height
-  waveFrequency: number; // 1-20, waves per unit length
-  repeatCount: number; // Number of pattern repeats
-  mirrorAlternate: boolean; // Mirror every other repeat
-  taper: number; // 0-1, taper at ends
+  waveAmplitude: number;
+  waveFrequency: number;
+  repeatCount: number;
+  mirrorAlternate: boolean;
+  taper: number;
 }
 
-/**
- * Grid-specific configuration
- */
 export interface GridConfig {
   tileType: GridTileType;
-  tileWidth: number; // Width of each tile
-  tileHeight: number; // Height of each tile
-  rows: number; // Number of rows
-  cols: number; // Number of columns
-  spacing: number; // Gap between tiles
-  stagger: number; // 0-1, horizontal stagger for brick-like patterns
-  rotateAlternate: boolean; // Rotate every other tile
-  scaleVariation: number; // 0-0.5, random scale variation
-  angle: number; // Overall grid rotation
+  tileWidth: number;
+  tileHeight: number;
+  rows: number;
+  cols: number;
+  spacing: number;
+  stagger: number;
+  rotateAlternate: boolean;
+  scaleVariation: number;
+  angle: number;
 }
 
 export type BlendMode =
@@ -86,7 +83,17 @@ export type BlendMode =
   | 'screen'
   | 'overlay'
   | 'darken'
-  | 'lighten';
+  | 'lighten'
+  | 'color-dodge'
+  | 'color-burn'
+  | 'hard-light'
+  | 'soft-light'
+  | 'difference'
+  | 'exclusion'
+  | 'hue'
+  | 'saturation'
+  | 'color'
+  | 'luminosity';
 
 export type LicenseType = 'personal' | 'commercial' | 'remix';
 
@@ -94,26 +101,61 @@ export type SubscriptionTier = 'free' | 'pro' | 'enterprise';
 
 export type ExportFormat = 'svg' | 'png' | 'pdf' | 'dxf' | 'gcode' | 'hpgl';
 
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  tier: SubscriptionTier;
+  priceMonthly: number;
+  priceYearly: number;
+  features: string[];
+  limits: {
+    saves: number;
+    exports: ExportFormat[];
+    aiRequests: number;
+  };
+}
+
 export interface PatternParams {
-  // Pattern mode (determines arrangement)
+  // Pattern mode
   mode: PatternMode;
 
   // Curve parameters
   family: CurveFamily;
-  R: number; // Outer radius
-  r: number; // Inner radius
-  d: number; // Pen offset
-  k: number; // Frequency
-  m: number; // Modulation depth
-  mf: number; // Modulation frequency
-  phase: number; // Phase shift
-  rot: number; // Rotation
-  s: number; // Scale
+  R: number;
+  r: number;
+  d: number;
+  k: number;
+  m: number;
+  mf: number;
+  phase: number;
+  rot: number;
+  s: number;
 
   // Rendering
   steps: number;
-  lw: number; // Line width
+  lw: number;
   adaptiveSteps: boolean;
+
+  // Advanced features
+  modulation?: ModulationParams;
+  security?: SecurityConfig;
+  stepRepeat?: {
+    count: number;
+    offsetX: number;
+    offsetY: number;
+    rotateStep: number;
+  };
+
+  // Security text integration
+  text?: {
+    content: string;
+    fontSize: number;
+    followPath: boolean;
+    repeat: boolean;
+    active?: boolean;
+    color?: string;
+    density?: number;
+  };
 
   // Symmetry
   symmetry: number;
@@ -122,7 +164,7 @@ export interface PatternParams {
   kaleidoscope: boolean;
 
   // Style
-  aa: boolean; // Anti-aliasing / engraving alpha
+  aa: boolean;
   dashed: boolean;
   dashRatio: number;
   useGradient: boolean;
@@ -134,20 +176,48 @@ export interface PatternParams {
   vignette: boolean;
   blendMode: BlendMode;
 
-  // Mode-specific configurations
+  // Mode-specific
   rosette?: RosetteConfig;
   border?: BorderConfig;
   grid?: GridConfig;
+
+  crop?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    active: boolean;
+  };
+}
+
+export interface ManualPoint {
+  x: number;
+  y: number;
+  cp1?: { x: number; y: number }; // Control point 1
+  cp2?: { x: number; y: number }; // Control point 2
+  type: 'corner' | 'bezier' | 'smooth';
+}
+
+export interface ManualPath {
+  segments: {
+    points: ManualPoint[];
+    closed: boolean;
+  }[];
 }
 
 export interface PatternLayer {
   id: string;
   name: string;
+  type: 'vector' | 'image' | 'path'; // Added 'path' for manual edits
   visible: boolean;
   color: string;
   blendMode: BlendMode;
   params: Partial<PatternParams>;
   opacity: number;
+  imageUrl?: string;
+  brightness?: number;
+  contrast?: number;
+  manualPath?: ManualPath; // For 'path' type layers
 }
 
 export interface Pattern {
@@ -170,7 +240,7 @@ export interface Pattern {
   updatedAt: Date;
 }
 
-// User Types
+// User Profile
 export interface UserProfile {
   id: string;
   username?: string;
@@ -182,25 +252,6 @@ export interface UserProfile {
   createdAt: Date;
 }
 
-export interface Purchase {
-  id: string;
-  userId: string;
-  patternId: string;
-  licenseType: LicenseType;
-  priceCents: number;
-  stripePaymentId?: string;
-  royaltyPaidCents: number;
-  createdAt: Date;
-}
-
-// Pattern DNA Types
-export interface PatternDNA {
-  shortCode: string;
-  patternId?: string;
-  params: PatternParams;
-  createdAt: Date;
-}
-
 // Export Types
 export interface ExportOptions {
   format: ExportFormat;
@@ -209,60 +260,4 @@ export interface ExportOptions {
   includeMetadata: boolean;
   colorProfile?: 'srgb' | 'cmyk';
   dpi?: number;
-}
-
-// Animation Types
-export interface AnimationKeyframe {
-  time: number;
-  params: Partial<PatternParams>;
-  easing?: 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out';
-}
-
-export interface AnimationConfig {
-  duration: number;
-  loop: boolean;
-  keyframes: AnimationKeyframe[];
-}
-
-// API Response Types
-export interface APIResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: {
-    code: string;
-    message: string;
-  };
-}
-
-// Subscription Types
-export interface SubscriptionPlan {
-  id: string;
-  name: string;
-  tier: SubscriptionTier;
-  priceMonthly: number;
-  priceYearly: number;
-  features: string[];
-  limits: {
-    saves: number;
-    exports: ExportFormat[];
-    aiRequests: number;
-  };
-}
-
-// Marketplace Types
-export interface MarketplaceFilter {
-  search?: string;
-  tags?: string[];
-  licenseType?: LicenseType;
-  priceMin?: number;
-  priceMax?: number;
-  sortBy?: 'popular' | 'recent' | 'price';
-  sortOrder?: 'asc' | 'desc';
-}
-
-export interface MarketplaceListing {
-  pattern: Pattern;
-  creator: Pick<UserProfile, 'id' | 'username' | 'displayName' | 'avatarUrl'>;
-  remixCount: number;
-  purchaseCount: number;
 }

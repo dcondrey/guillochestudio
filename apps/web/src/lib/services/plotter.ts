@@ -3,8 +3,6 @@
  * Path reordering, travel optimization, and hardware integration
  */
 
-import type { PatternParams } from '@guilloche/shared';
-
 export interface Point {
   x: number;
   y: number;
@@ -260,8 +258,14 @@ function calculateTravelDistance(paths: PathSegment[], startPoint: Point): numbe
   return totalDistance;
 }
 
-// Nearest neighbor algorithm for path ordering
-function nearestNeighborSort(paths: PathSegment[], startPoint: Point): PathSegment[] {
+// Nearest neighbor algorithm for path ordering.
+// With allowReversal, an open path may be plotted end-to-start when that lands
+// the pen closer, which cuts travel but flips the drawing direction.
+function nearestNeighborSort(
+  paths: PathSegment[],
+  startPoint: Point,
+  allowReversal = true
+): PathSegment[] {
   if (paths.length <= 1) return [...paths];
 
   const result: PathSegment[] = [];
@@ -286,7 +290,7 @@ function nearestNeighborSort(paths: PathSegment[], startPoint: Point): PathSegme
       }
 
       // Check distance to end of path (if not closed, can reverse)
-      if (!path.closed) {
+      if (allowReversal && !path.closed) {
         const distToEnd = distance(currentPoint, path.points[path.points.length - 1]);
         if (distToEnd < nearestDistance) {
           nearestDistance = distToEnd;
@@ -296,12 +300,10 @@ function nearestNeighborSort(paths: PathSegment[], startPoint: Point): PathSegme
       }
     }
 
-    const nearestPath = remaining.splice(nearestIndex, 1)[0];
+    const found = remaining.splice(nearestIndex, 1)[0];
 
-    // Reverse path if needed
-    if (reverseNearest) {
-      nearestPath.points = [...nearestPath.points].reverse();
-    }
+    // Copy rather than assign, so reordering never mutates the caller's segments.
+    const nearestPath = reverseNearest ? { ...found, points: [...found.points].reverse() } : found;
 
     result.push(nearestPath);
     currentPoint = nearestPath.points[nearestPath.points.length - 1];
@@ -322,11 +324,10 @@ function twoOptImprove(paths: PathSegment[], startPoint: Point): PathSegment[] {
   while (improved && iterations < maxIterations) {
     improved = false;
     iterations++;
+    const currentDistance = calculateTravelDistance(result, startPoint);
 
     for (let i = 0; i < result.length - 1; i++) {
       for (let j = i + 1; j < result.length; j++) {
-        const currentDistance = calculateTravelDistance(result, startPoint);
-
         // Reverse the segment between i and j
         const newOrder = [
           ...result.slice(0, i),
@@ -391,7 +392,7 @@ export function optimizePaths(
 
     let currentPoint = startPoint;
     for (const [, groupPaths] of groups) {
-      let sorted = nearestNeighborSort(groupPaths, currentPoint);
+      let sorted = nearestNeighborSort(groupPaths, currentPoint, useReversal);
       if (use2Opt) {
         sorted = twoOptImprove(sorted, currentPoint);
       }
@@ -403,7 +404,7 @@ export function optimizePaths(
     }
   } else {
     // Optimize all paths together
-    optimizedPaths = nearestNeighborSort(paths, startPoint);
+    optimizedPaths = nearestNeighborSort(paths, startPoint, useReversal);
     if (use2Opt) {
       optimizedPaths = twoOptImprove(optimizedPaths, startPoint);
     }
@@ -448,14 +449,18 @@ export function optimizePaths(
 export function patternToPathSegments(svgContent: string, scale: number = 1): PathSegment[] {
   const paths: PathSegment[] = [];
 
-  // Parse SVG path data
-  const pathRegex = /<path[^>]*d="([^"]+)"[^>]*(?:stroke="([^"]+)")?[^>]*\/>/g;
+  // Parse SVG path data — single capture group avoids ReDoS via overlapping [^>]* alternatives
+  const pathRegex = /<path([^>]*?)\/>/g;
   let match;
   let pathIndex = 0;
 
   while ((match = pathRegex.exec(svgContent)) !== null) {
-    const pathData = match[1];
-    const color = match[2] || '#000000';
+    const attrs = match[1];
+    const dMatch = /\bd="([^"]*)"/.exec(attrs);
+    if (!dMatch) continue;
+    const pathData = dMatch[1];
+    const strokeMatch = /\bstroke="([^"]*)"/.exec(attrs);
+    const color = strokeMatch?.[1] ?? '#000000';
 
     // Parse path commands to extract points
     const points = parsePathData(pathData, scale);

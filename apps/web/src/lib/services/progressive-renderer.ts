@@ -537,27 +537,30 @@ export class ProgressiveRenderer {
           x = (R + r) * Math.cos(t) - d * Math.cos(((R + r) / r) * t);
           y = (R + r) * Math.sin(t) - d * Math.sin(((R + r) / r) * t);
           break;
-        case 'rose':
+        case 'rose': {
           const roseK = k || 4;
           const radius = R * Math.cos(roseK * t);
           x = radius * Math.cos(t);
           y = radius * Math.sin(t);
           break;
+        }
         case 'liss':
-        case 'liss3d':
+        case 'liss3d': {
           // Lissajous - use k and mf as a and b parameters
           const a = k || 3;
           const b = frequency || 4;
           x = R * Math.sin(a * t + (phase || 0));
           y = R * Math.sin(b * t);
           break;
+        }
         case 'spiral':
-        case 'fermat':
+        case 'fermat': {
           // Fermat spiral
           const spiralRadius = R * Math.sqrt(t);
           x = spiralRadius * Math.cos(t);
           y = spiralRadius * Math.sin(t);
           break;
+        }
         case 'hypo':
         case 'hypotrochoid':
         case 'hypocycloid':

@@ -579,10 +579,17 @@ export async function detectIncognitoMode(): Promise<boolean> {
 
   // Check for filesystem API (not available in incognito in some browsers)
   try {
-    const fs = (window as unknown as { webkitRequestFileSystem?: unknown }).webkitRequestFileSystem;
+    type WebkitRequestFileSystem = (
+      type: number,
+      size: number,
+      onSuccess: () => void,
+      onError: () => void
+    ) => void;
+    const fs = (window as unknown as { webkitRequestFileSystem?: WebkitRequestFileSystem })
+      .webkitRequestFileSystem;
     if (fs) {
       return new Promise((resolve) => {
-        (fs as Function)(
+        fs(
           0, // TEMPORARY
           1,
           () => resolve(false),

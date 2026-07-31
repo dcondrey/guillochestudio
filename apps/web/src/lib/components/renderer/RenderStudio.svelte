@@ -1,10 +1,8 @@
 <script lang="ts">
-  import { onMount, onDestroy, createEventDispatcher } from 'svelte';
+  import { createEventDispatcher } from 'svelte';
   import ProgressiveCanvas from './ProgressiveCanvas.svelte';
   import RenderController from './RenderController.svelte';
   import {
-    ProgressiveRenderer,
-    createProgressiveRenderer,
     type RenderConfig,
     type RenderState,
     type RenderResult,

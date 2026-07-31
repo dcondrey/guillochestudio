@@ -148,7 +148,8 @@ export class PatternDNA {
 
         // Apply precision
         if (config.precision > 0) {
-          value = Math.round(value * Math.pow(10, config.precision)) / Math.pow(10, config.precision);
+          value =
+            Math.round(value * Math.pow(10, config.precision)) / Math.pow(10, config.precision);
         } else {
           value = Math.round(value);
         }
@@ -156,7 +157,11 @@ export class PatternDNA {
         // Set parameter
         if (config.key === 'family') {
           params.family = FAMILY_REVERSE[Math.round(value)] || 'hypo';
-        } else if (config.key === 'reflectH' || config.key === 'reflectV' || config.key === 'kaleidoscope') {
+        } else if (
+          config.key === 'reflectH' ||
+          config.key === 'reflectV' ||
+          config.key === 'kaleidoscope'
+        ) {
           (params as unknown as Record<string, boolean>)[config.key] = value >= 0.5;
         } else {
           (params as unknown as Record<string, number>)[config.key] = value;
@@ -220,7 +225,8 @@ export class PatternDNA {
     }
 
     // Ensure we have enough bytes
-    while (bytes.length < 11) { // Minimum bytes needed for our bit count
+    while (bytes.length < 11) {
+      // Minimum bytes needed for our bit count
       bytes.unshift(0);
     }
 

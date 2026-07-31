@@ -45,9 +45,6 @@ test.describe('Export Functionality', () => {
     // Click on export tab
     await page.getByRole('button', { name: /export/i }).click();
 
-    // Check for upgrade prompt (visible for free users)
-    const upgradePrompt = page.getByText(/upgrade to pro/i);
-
     // Either visible (free user) or not (pro user)
     // Just verify export tab works
     await expect(page.getByRole('button', { name: /svg/i })).toBeVisible();
@@ -235,8 +232,6 @@ test.describe('Export Functionality', () => {
       await page.getByRole('button', { name: /export/i }).click();
 
       const pdfButton = page.getByRole('button', { name: /pdf/i });
-      const isDisabled = await pdfButton.isDisabled();
-
       // Should be disabled for non-pro users (or if pro, should work)
       // We verify the button exists and has appropriate state
       await expect(pdfButton).toBeVisible();
@@ -246,8 +241,6 @@ test.describe('Export Functionality', () => {
       await page.getByRole('button', { name: /export/i }).click();
 
       const dxfButton = page.getByRole('button', { name: /dxf/i });
-      const isDisabled = await dxfButton.isDisabled();
-
       // Should be disabled for non-pro users
       await expect(dxfButton).toBeVisible();
     });

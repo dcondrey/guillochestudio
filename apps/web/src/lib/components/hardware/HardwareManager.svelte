@@ -50,7 +50,7 @@
       dispatch('deviceDisconnected', event.deviceId);
     });
 
-    manager.on('job_complete', (event) => {
+    manager.on('job_complete', (_event) => {
       // Job is in event.data
     });
   });

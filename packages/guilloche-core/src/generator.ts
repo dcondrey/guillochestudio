@@ -1,4 +1,10 @@
-import type { PatternParams, PatternMode, RosetteConfig, BorderConfig, GridConfig } from '@guilloche/shared';
+import type {
+  PatternParams,
+  PatternMode,
+  RosetteConfig,
+  BorderConfig,
+  GridConfig,
+} from '@guilloche/shared';
 import {
   getDefaultParams,
   deepClone,
@@ -18,24 +24,99 @@ export interface RandomizationOptions {
 }
 
 // Presets for smart randomization based on curve family
-const FAMILY_RANGES: Record<string, {
-  R: [number, number];
-  r: [number, number];
-  d: [number, number];
-  k: [number, number];
-  m: [number, number];
-  mf: [number, number];
-  symmetry: [number, number];
-}> = {
-  rose: { R: [180, 260], r: [40, 100], d: [120, 200], k: [5, 25], m: [0.1, 0.4], mf: [3, 12], symmetry: [1, 8] },
-  hypo: { R: [200, 350], r: [50, 150], d: [80, 220], k: [3, 15], m: [0.05, 0.3], mf: [2, 10], symmetry: [1, 6] },
-  epi: { R: [180, 300], r: [40, 120], d: [60, 180], k: [4, 12], m: [0.1, 0.35], mf: [3, 9], symmetry: [1, 5] },
-  spiral: { R: [20, 80], r: [30, 100], d: [0, 0], k: [3, 12], m: [0.2, 0.6], mf: [5, 20], symmetry: [1, 1] },
-  liss: { R: [150, 250], r: [100, 200], d: [50, 150], k: [1, 7], m: [0, 0.2], mf: [1, 7], symmetry: [1, 4] },
-  fermat: { R: [150, 250], r: [50, 100], d: [0, 0], k: [2, 8], m: [0.1, 0.3], mf: [3, 10], symmetry: [1, 3] },
-  liss3d: { R: [120, 200], r: [80, 160], d: [60, 140], k: [2, 6], m: [0.1, 0.25], mf: [2, 6], symmetry: [1, 4] },
-  hypocycloid: { R: [200, 300], r: [50, 100], d: [50, 100], k: [3, 12], m: [0.1, 0.3], mf: [3, 8], symmetry: [1, 6] },
-  epicycloid: { R: [180, 280], r: [40, 90], d: [40, 90], k: [4, 10], m: [0.1, 0.3], mf: [3, 8], symmetry: [1, 5] },
+const FAMILY_RANGES: Record<
+  string,
+  {
+    R: [number, number];
+    r: [number, number];
+    d: [number, number];
+    k: [number, number];
+    m: [number, number];
+    mf: [number, number];
+    symmetry: [number, number];
+  }
+> = {
+  rose: {
+    R: [180, 260],
+    r: [40, 100],
+    d: [120, 200],
+    k: [5, 25],
+    m: [0.1, 0.4],
+    mf: [3, 12],
+    symmetry: [1, 8],
+  },
+  hypo: {
+    R: [200, 350],
+    r: [50, 150],
+    d: [80, 220],
+    k: [3, 15],
+    m: [0.05, 0.3],
+    mf: [2, 10],
+    symmetry: [1, 6],
+  },
+  epi: {
+    R: [180, 300],
+    r: [40, 120],
+    d: [60, 180],
+    k: [4, 12],
+    m: [0.1, 0.35],
+    mf: [3, 9],
+    symmetry: [1, 5],
+  },
+  spiral: {
+    R: [20, 80],
+    r: [30, 100],
+    d: [0, 0],
+    k: [3, 12],
+    m: [0.2, 0.6],
+    mf: [5, 20],
+    symmetry: [1, 1],
+  },
+  liss: {
+    R: [150, 250],
+    r: [100, 200],
+    d: [50, 150],
+    k: [1, 7],
+    m: [0, 0.2],
+    mf: [1, 7],
+    symmetry: [1, 4],
+  },
+  fermat: {
+    R: [150, 250],
+    r: [50, 100],
+    d: [0, 0],
+    k: [2, 8],
+    m: [0.1, 0.3],
+    mf: [3, 10],
+    symmetry: [1, 3],
+  },
+  liss3d: {
+    R: [120, 200],
+    r: [80, 160],
+    d: [60, 140],
+    k: [2, 6],
+    m: [0.1, 0.25],
+    mf: [2, 6],
+    symmetry: [1, 4],
+  },
+  hypocycloid: {
+    R: [200, 300],
+    r: [50, 100],
+    d: [50, 100],
+    k: [3, 12],
+    m: [0.1, 0.3],
+    mf: [3, 8],
+    symmetry: [1, 6],
+  },
+  epicycloid: {
+    R: [180, 280],
+    r: [40, 90],
+    d: [40, 90],
+    k: [4, 10],
+    m: [0.1, 0.3],
+    mf: [3, 8],
+    symmetry: [1, 5],
+  },
 };
 
 // Mode-specific configuration ranges
@@ -125,7 +206,12 @@ function randomPick<T>(arr: T[]): T {
  * Generate random hex color
  */
 function randomColor(): string {
-  return '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+  return (
+    '#' +
+    Math.floor(Math.random() * 16777215)
+      .toString(16)
+      .padStart(6, '0')
+  );
 }
 
 /**
@@ -287,7 +373,10 @@ export function generateVariations(
 
     // Occasionally vary symmetry
     if (Math.random() > 0.7) {
-      variation.symmetry = Math.max(1, Math.min(24, baseParams.symmetry + Math.floor(Math.random() * 3) - 1));
+      variation.symmetry = Math.max(
+        1,
+        Math.min(24, baseParams.symmetry + Math.floor(Math.random() * 3) - 1)
+      );
     }
 
     variations.push(variation);
@@ -308,7 +397,18 @@ export function interpolateParams(
 
   // Interpolate numeric values
   const numericParams: (keyof PatternParams)[] = [
-    'R', 'r', 'd', 'k', 'm', 'mf', 'phase', 'rot', 's', 'lw', 'glow', 'noise'
+    'R',
+    'r',
+    'd',
+    'k',
+    'm',
+    'mf',
+    'phase',
+    'rot',
+    's',
+    'lw',
+    'glow',
+    'noise',
   ];
 
   for (const param of numericParams) {
@@ -354,7 +454,11 @@ export function interpolateParams(
 /**
  * Interpolate rosette configuration
  */
-function interpolateRosetteConfig(from: RosetteConfig, to: RosetteConfig, t: number): RosetteConfig {
+function interpolateRosetteConfig(
+  from: RosetteConfig,
+  to: RosetteConfig,
+  t: number
+): RosetteConfig {
   return {
     envelope: t >= 0.5 ? to.envelope : from.envelope,
     innerRadius: from.innerRadius + (to.innerRadius - from.innerRadius) * t,
@@ -410,7 +514,13 @@ export function calculateSimilarity(a: PatternParams, b: PatternParams): number 
 
   // Compare numeric parameters with weighted importance
   const weights: Record<string, number> = {
-    R: 1, r: 1, d: 1, k: 2, m: 0.5, mf: 1, symmetry: 2
+    R: 1,
+    r: 1,
+    d: 1,
+    k: 2,
+    m: 0.5,
+    mf: 1,
+    symmetry: 2,
   };
 
   for (const [param, weight] of Object.entries(weights)) {

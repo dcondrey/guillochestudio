@@ -3,7 +3,6 @@
  * Handles pattern purchasing, licensing, and royalty calculations
  */
 
-import { browser } from '$app/environment';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database, Json } from '$lib/types/database';
 

@@ -7,6 +7,7 @@
 
 import { browser } from '$app/environment';
 import { onCLS, onFID, onFCP, onLCP, onTTFB, onINP, type Metric } from 'web-vitals';
+import { logger } from '$lib/utils/logger';
 
 export interface VitalsMetrics {
   CLS?: number; // Cumulative Layout Shift
@@ -55,22 +56,13 @@ export function initWebVitals(options?: {
   const handleMetric: MetricHandler = (metric) => {
     const rating = getRating(metric.name, metric.value);
 
+    if (options?.reportToConsole) {
+      logger.info(`web-vital:${metric.name}`, { value: metric.value, rating });
+    }
+
     // Custom handler
     if (options?.onMetric) {
       options.onMetric(metric);
-    }
-
-    // Console reporting (dev mode or explicit)
-    if (options?.reportToConsole || import.meta.env.DEV) {
-      const color =
-        rating === 'good' ? '#0cce6b' : rating === 'needs-improvement' ? '#ffa400' : '#ff4e42';
-
-      console.log(
-        `%c[Web Vitals] ${metric.name}: ${metric.value.toFixed(
-          metric.name === 'CLS' ? 4 : 0
-        )} (${rating})`,
-        `color: ${color}; font-weight: bold`
-      );
     }
 
     // Analytics reporting
@@ -249,13 +241,7 @@ export function trackRender(componentName: string): void {
   const startTime = renderMarks.get(componentName);
 
   if (startTime) {
-    const duration = now - startTime;
     renderMarks.delete(componentName);
-
-    if (import.meta.env.DEV && duration > 16) {
-      // Longer than one frame
-      console.log(`[Render] ${componentName}: ${duration.toFixed(2)}ms`);
-    }
   } else {
     renderMarks.set(componentName, now);
   }

@@ -40,7 +40,10 @@
         }
 
         const renderer = new CanvasRenderer(ctx, canvas.width, canvas.height);
-        renderer.render(path);
+        renderer.clear('#ffffff');
+        renderer.renderPath(path, {
+          strokeColor: data.pattern?.params?.startColor || '#000000',
+        });
 
         loading = false;
       } catch (err) {

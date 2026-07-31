@@ -386,9 +386,6 @@ export function generatePrintSVG(
   const printArea = calculatePrintArea(settings);
   const { width, height, artboardWidth, artboardHeight, offsetX, offsetY } = printArea;
 
-  // Convert mm to points (1mm = 2.834645669291339 pt)
-  const mmToPt = 2.834645669291339;
-
   // Extract viewBox and content from pattern SVG
   const viewBoxMatch = patternSvg.match(/viewBox="([^"]+)"/);
   const patternViewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 400 400';
@@ -574,7 +571,7 @@ export function hexToRgb(hex: string): { r: number; g: number; b: number } | nul
  */
 export function simulateCMYKPreview(svgContent: string): string {
   // Simple simulation - reduce saturation and adjust colors
-  return svgContent.replace(/#([a-fA-F0-9]{6})/g, (match, hex) => {
+  return svgContent.replace(/#([a-fA-F0-9]{6})/g, (match, _hex) => {
     const rgb = hexToRgb(match);
     if (!rgb) return match;
 

@@ -3,7 +3,7 @@
  * Tracks and analyzes render performance metrics
  */
 
-import { writable, derived, type Readable } from 'svelte/store';
+import { writable, type Readable } from 'svelte/store';
 
 // ============================================================================
 // Types

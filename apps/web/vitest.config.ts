@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [svelte({ hot: !process.env.VITEST })],
   test: {
     include: ['src/**/*.{test,spec}.{js,ts}'],
+    exclude: ['src/tests/e2e/**', 'node_modules/**'],
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/tests/setup.ts'],
@@ -13,6 +14,12 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       exclude: ['node_modules/', 'src/tests/', '**/*.d.ts', '**/*.config.*', '**/types/**'],
+      thresholds: {
+        lines: 70,
+        functions: 70,
+        branches: 60,
+        statements: 70,
+      },
     },
     alias: {
       $lib: resolve('./src/lib'),
@@ -26,6 +33,8 @@ export default defineConfig({
       $stores: resolve('./src/lib/stores'),
       $services: resolve('./src/lib/services'),
       $utils: resolve('./src/lib/utils'),
+      '$env/static/private': resolve('./src/tests/mocks/env-private.ts'),
+      '$env/static/public': resolve('./src/tests/mocks/env-public.ts'),
     },
   },
 });

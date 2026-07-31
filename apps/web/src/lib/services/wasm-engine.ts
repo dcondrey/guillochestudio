@@ -99,14 +99,15 @@ export async function initWasmEngine(): Promise<boolean> {
   initPromise = (async () => {
     try {
       // Dynamic import of the WASM module
-      // This path will be set during build - module may not exist in dev
-      // @ts-expect-error - WASM module may not exist at compile time
-      const module = await import('$lib/wasm/guilloche_wasm');
+      // Use a variable to prevent Vite from trying to resolve at build time
+      const wasmPath = '$lib/wasm/guilloche_wasm';
+      const module = await import(/* @vite-ignore */ wasmPath);
       await module.default();
       wasmModule = module as unknown as GuillocheWasmModule;
       return true;
     } catch (error) {
-      console.warn('WASM engine not available, falling back to JS:', error);
+      // WASM module not available - this is expected in development
+      // The JS engine from @guilloche/core will be used instead
       return false;
     } finally {
       isInitializing = false;

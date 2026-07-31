@@ -6,19 +6,18 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
     <!-- Primary Meta Tags -->
-    <title>Guilloche Studio - Create Intricate Mathematical Patterns</title>
-    <meta name="title" content="Guilloche Studio - Create Intricate Mathematical Patterns" />
+    <title>Guilloche Studio | Precision Mathematical Pattern Engine</title>
+    <meta name="title" content="Guilloche Studio | Precision Mathematical Pattern Engine" />
     <meta
       name="description"
-      content="Create intricate ornamental patterns with Guilloche Studio. Design stunning mathematical art for security printing, decorative design, certificates, and digital art. Export to SVG, PNG, PDF, and G-code."
+      content="The industry standard for security printing, currency design, and mathematical art. High-precision parametric engine powered by WebAssembly."
     />
     <meta
       name="keywords"
-      content="guilloche, pattern generator, mathematical art, security printing, spirograph, hypotrochoid, epitrochoid, SVG patterns, decorative design, certificate design"
+      content="guilloche, security printing, mathematical art, parametric design, spirograph engine, vector patterns, bank-grade security, CNC patterns"
     />
     <meta name="author" content="Guilloche Studio" />
     <meta name="robots" content="index, follow" />
-    <meta name="googlebot" content="index, follow" />
 
     <!-- Favicon and App Icons -->
     <link rel="icon" type="image/svg+xml" href="%sveltekit.assets%/logo.svg" />
@@ -28,51 +27,32 @@
     <link rel="manifest" href="%sveltekit.assets%/manifest.json" />
 
     <!-- Theme and Mobile -->
-    <meta name="theme-color" content="#4f46e5" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)" />
-    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="color-scheme" content="light" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Guilloche Studio" />
     <meta name="application-name" content="Guilloche Studio" />
-    <meta name="msapplication-TileColor" content="#4f46e5" />
-    <meta name="msapplication-config" content="%sveltekit.assets%/browserconfig.xml" />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Guilloche Studio" />
-    <meta property="og:title" content="Guilloche Studio - Create Intricate Mathematical Patterns" />
+    <meta property="og:title" content="Guilloche Studio | Precision Mathematical Pattern Engine" />
     <meta
       property="og:description"
-      content="Create intricate ornamental patterns with Guilloche Studio. Design stunning mathematical art for security printing, decorative design, and digital art."
+      content="The gold standard for security printing and mathematical art. Uncompromised precision, directly in your browser."
     />
-    <meta property="og:image" content="%sveltekit.assets%/og-image.png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Guilloche Studio - Mathematical Pattern Generator" />
+    <meta property="og:image" content="%sveltekit.assets%/guillochestudio.png" />
     <meta property="og:locale" content="en_US" />
 
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta
-      name="twitter:title"
-      content="Guilloche Studio - Create Intricate Mathematical Patterns"
-    />
-    <meta
-      name="twitter:description"
-      content="Create intricate ornamental patterns with Guilloche Studio. Design stunning mathematical art for security printing, decorative design, and digital art."
-    />
-    <meta name="twitter:image" content="%sveltekit.assets%/og-image.png" />
-    <meta name="twitter:image:alt" content="Guilloche Studio - Mathematical Pattern Generator" />
-
     <!-- Structured Data - WebApplication Schema -->
-    <script type="application/ld+json">
+    <script type="application/ld+json" nonce="%sveltekit.nonce%">
       {
         "@context": "https://schema.org",
         "@type": "WebApplication",
         "name": "Guilloche Studio",
-        "description": "Create intricate ornamental patterns with Guilloche Studio. Design stunning mathematical art for security printing, decorative design, certificates, and digital art.",
+        "description": "Create intricate ornamental patterns for security printing and decorative design.",
         "url": "https://guillochestudio.com",
         "applicationCategory": "DesignApplication",
         "operatingSystem": "Web Browser",
@@ -83,108 +63,48 @@
         },
         "featureList": [
           "Mathematical pattern generation",
-          "SVG export",
-          "PNG export",
-          "PDF export",
-          "G-code export for CNC",
-          "Real-time collaboration",
-          "AI-powered suggestions"
-        ],
-        "screenshot": "https://guillochestudio.com/screenshots/studio.png",
-        "softwareVersion": "1.0.0",
-        "author": {
-          "@type": "Organization",
-          "name": "Guilloche Studio"
-        }
-      }
-    </script>
-
-    <!-- Structured Data - Organization Schema -->
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "Organization",
-        "name": "Guilloche Studio",
-        "url": "https://guillochestudio.com",
-        "logo": "https://guillochestudio.com/logo.svg",
-        "sameAs": []
+          "SVG/DXF/G-CODE export",
+          "WASM-powered rendering engine",
+          "AI-powered design assistance"
+        ]
       }
     </script>
 
     <!-- DNS Prefetch for external services -->
-    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
     <link rel="dns-prefetch" href="https://js.stripe.com" />
-
-    <!-- Preconnect for critical third-party origins -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-
-    <!-- Optimized font loading with display=swap for FOUT instead of FOIT -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet"
-      media="print"
-      onload="this.media = 'all'"
-    />
-    <!-- Fallback for browsers without JS -->
-    <noscript>
-      <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet"
-      />
-    </noscript>
 
     <!-- Preload critical resources -->
     <link rel="preload" href="%sveltekit.assets%/logo.svg" as="image" type="image/svg+xml" />
+    <link
+      rel="preload"
+      href="/fonts/Sohne-Halbfett.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
 
-    <!-- Canonical URL (will be set per-page via SvelteKit head) -->
     %sveltekit.head%
-
-    <!-- Performance timing markers -->
-    <script nonce="%sveltekit.nonce%">
-      if (window.performance && window.performance.mark) {
-        window.performance.mark('app-init-start');
-      }
-    </script>
   </head>
-  <body
-    data-sveltekit-preload-data="hover"
-    class="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 antialiased"
-  >
-    <!-- Skip to main content link for accessibility -->
+  <body data-sveltekit-preload-data="hover" class="bg-white antialiased">
     <a
       href="#main-content"
-      class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+      class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-black focus:text-white focus:rounded-full"
     >
       Skip to main content
     </a>
 
-    <div style="display: contents">%sveltekit.body%</div>
+    <div style="display: contents" id="main-content">%sveltekit.body%</div>
 
-    <!-- No-JS fallback message -->
     <noscript>
-      <div class="fixed inset-0 bg-gray-900 text-white flex items-center justify-center p-8 z-50">
+      <div class="fixed inset-0 bg-white text-black flex items-center justify-center p-8 z-50">
         <div class="text-center max-w-md">
           <h1 class="text-2xl font-bold mb-4">JavaScript Required</h1>
-          <p class="text-gray-300">
-            Guilloche Studio requires JavaScript to run. Please enable JavaScript in your browser
-            settings to use this application.
+          <p class="text-gray-500">
+            Guilloche Studio requires JavaScript for the mathematical engine. Please enable it to
+            continue.
           </p>
         </div>
       </div>
     </noscript>
-
-    <!-- Idle-time preloading of heavy chunks -->
-    <script nonce="%sveltekit.nonce%">
-      if ('requestIdleCallback' in window) {
-        requestIdleCallback(
-          function () {
-            var chunks = ['/assets/js/vendor-svelte', '/assets/js/vendor-supabase'];
-          },
-          { timeout: 5000 }
-        );
-      }
-    </script>
   </body>
 </html>

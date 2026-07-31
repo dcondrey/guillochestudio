@@ -514,7 +514,7 @@ export function generateDXF(
   if (options.layerByColor) {
     const colors = new Set(paths.map((p) => p.color || '#000000'));
     let colorIndex = 1;
-    for (const color of colors) {
+    for (const _color of colors) {
       lines.push('0');
       lines.push('LAYER');
       lines.push('2');

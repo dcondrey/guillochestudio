@@ -417,9 +417,30 @@ export class Logger {
     };
   }
 
+  private static readonly SENSITIVE_KEYS = new Set([
+    'authorization',
+    'cookie',
+    'password',
+    'token',
+    'secret',
+    'access_token',
+    'refresh_token',
+    'api_key',
+    'x-api-key',
+    'key',
+  ]);
+
   private stripContext(): Record<string, unknown> {
-    const { requestId, userId, sessionId, ...rest } = this.context;
-    return rest;
+    const { requestId: _requestId, userId: _userId, sessionId: _sessionId, ...rest } = this.context;
+    return this.redactSensitive(rest);
+  }
+
+  private redactSensitive(obj: Record<string, unknown>): Record<string, unknown> {
+    const result: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(obj)) {
+      result[k] = Logger.SENSITIVE_KEYS.has(k.toLowerCase()) ? '[REDACTED]' : v;
+    }
+    return result;
   }
 }
 

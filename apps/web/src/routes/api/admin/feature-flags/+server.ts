@@ -62,12 +62,11 @@ async function isAdmin(locals: App.Locals): Promise<boolean> {
   // Check profile for admin role
   const { data: profile } = await locals.supabase
     .from('profiles')
-    .select('role, subscription_tier')
+    .select('role')
     .eq('id', user.id)
     .single();
 
-  // Admin access: role is 'admin' or subscription is enterprise
-  return profile?.role === 'admin' || profile?.subscription_tier === 'enterprise';
+  return profile?.role === 'admin';
 }
 
 // ============================================================================

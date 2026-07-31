@@ -12,7 +12,7 @@ import {
 
 export const load: PageServerLoad = async ({ params, locals }) => {
   const patternId = params.id;
-  const { session, user } = await locals.safeGetSession();
+  const { user } = await locals.safeGetSession();
 
   // Get pattern details
   const pattern = await getPatternListing(locals.supabase, patternId);

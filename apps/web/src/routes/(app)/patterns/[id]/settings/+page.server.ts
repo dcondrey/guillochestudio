@@ -1,6 +1,5 @@
 import type { PageServerLoad, Actions } from './$types';
 import { error, redirect, fail } from '@sveltejs/kit';
-import { listPatternOnMarketplace, unlistPattern } from '$lib/services/marketplace';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
   const { session, user } = await locals.safeGetSession();

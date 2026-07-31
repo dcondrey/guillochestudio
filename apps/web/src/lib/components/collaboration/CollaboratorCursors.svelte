@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { collaborators, type Collaborator } from '$lib/services/collaboration';
+  import { collaborators } from '$lib/services/collaboration';
 
   export let currentUserId: string;
 

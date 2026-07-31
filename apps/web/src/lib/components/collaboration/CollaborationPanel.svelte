@@ -6,8 +6,6 @@
     versions,
     currentVersion,
     isConnected,
-    type Comment,
-    type PatternVersion,
   } from '$lib/services/collaboration';
 
   const dispatch = createEventDispatcher<{
