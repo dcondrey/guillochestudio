@@ -55,6 +55,13 @@ jobs:
           PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
           PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key' }}
           PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_placeholder' }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-service-role-key' }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY || 'sk_test_placeholder' }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET || 'whsec_placeholder' }}
+          STRIPE_PRICE_PRO_MONTHLY: ${{ secrets.STRIPE_PRICE_PRO_MONTHLY || 'price_placeholder' }}
+          STRIPE_PRICE_PRO_YEARLY: ${{ secrets.STRIPE_PRICE_PRO_YEARLY || 'price_placeholder' }}
+          STRIPE_PRICE_ENTERPRISE_MONTHLY: ${{ secrets.STRIPE_PRICE_ENTERPRISE_MONTHLY || 'price_placeholder' }}
+          STRIPE_PRICE_ENTERPRISE_YEARLY: ${{ secrets.STRIPE_PRICE_ENTERPRISE_YEARLY || 'price_placeholder' }}
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4

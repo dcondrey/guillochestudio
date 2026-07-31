@@ -59,6 +59,13 @@ jobs:
           PUBLIC_SUPABASE_URL: placeholder
           PUBLIC_SUPABASE_ANON_KEY: placeholder
           PUBLIC_STRIPE_PUBLISHABLE_KEY: placeholder
+          SUPABASE_SERVICE_ROLE_KEY: placeholder-service-role-key
+          STRIPE_SECRET_KEY: sk_test_placeholder
+          STRIPE_WEBHOOK_SECRET: whsec_placeholder
+          STRIPE_PRICE_PRO_MONTHLY: price_placeholder
+          STRIPE_PRICE_PRO_YEARLY: price_placeholder
+          STRIPE_PRICE_ENTERPRISE_MONTHLY: price_placeholder
+          STRIPE_PRICE_ENTERPRISE_YEARLY: price_placeholder
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
