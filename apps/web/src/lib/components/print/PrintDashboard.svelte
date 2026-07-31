@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createEventDispatcher, onMount } from 'svelte';
+  import { createEventDispatcher } from 'svelte';
   import {
     PAPER_SIZES,
     COLOR_PROFILES,
@@ -12,8 +12,6 @@
     downloadSVG,
     downloadPrintJob,
     simulateCMYKPreview,
-    rgbToCmyk,
-    hexToRgb,
     type PrintSettings,
     type TileSettings,
     type PaperSize,
@@ -21,20 +19,7 @@
     type PrintJob,
   } from '$lib/services/print';
 
-  // Sanitize SVG to prevent XSS attacks
-  function sanitizeSvg(svg: string): string {
-    if (!svg) return '';
-    // Remove potentially dangerous elements and attributes
-    return svg
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-      .replace(/\bon\w+\s*=/gi, 'data-blocked-')
-      .replace(/javascript:/gi, '')
-      .replace(/data:/gi, 'data-blocked:')
-      .replace(/<iframe/gi, '<blocked-iframe')
-      .replace(/<object/gi, '<blocked-object')
-      .replace(/<embed/gi, '<blocked-embed')
-      .replace(/<foreignObject/gi, '<blocked-foreignObject');
-  }
+  import { sanitizeSvg } from '$lib/utils/sanitize-svg';
 
   export let svgContent: string;
   export let patternWidth: number = 400;
@@ -138,11 +123,6 @@
     settings = settings;
   }
 
-  function toggleOrientation(): void {
-    settings.orientation = settings.orientation === 'portrait' ? 'landscape' : 'portrait';
-    settings = settings;
-  }
-
   function formatMM(mm: number): string {
     return `${mm.toFixed(1)}mm`;
   }
@@ -227,8 +207,10 @@
       <div class="flex-1 overflow-y-auto p-4 space-y-4">
         {#if activeTab === 'paper'}
           <!-- Paper Size -->
-          <div class="space-y-3">
-            <label class="block text-sm font-medium text-gray-300">Paper Size</label>
+          <div role="group" aria-labelledby="print-paper-size-label" class="space-y-3">
+            <span id="print-paper-size-label" class="block text-sm font-medium text-gray-300"
+              >Paper Size</span
+            >
 
             <!-- Size categories -->
             <div class="space-y-2">
@@ -303,16 +285,20 @@
               {#if settings.paperSize.id === 'custom'}
                 <div class="flex gap-2">
                   <div class="flex-1">
-                    <label class="text-xs text-gray-500">Width (mm)</label>
+                    <label for="print-custom-width" class="text-xs text-gray-500">Width (mm)</label>
                     <input
+                      id="print-custom-width"
                       type="number"
                       bind:value={customWidth}
                       class="w-full bg-gray-800 border border-gray-600 rounded px-2 py-1 text-sm text-white"
                     />
                   </div>
                   <div class="flex-1">
-                    <label class="text-xs text-gray-500">Height (mm)</label>
+                    <label for="print-custom-height" class="text-xs text-gray-500"
+                      >Height (mm)</label
+                    >
                     <input
+                      id="print-custom-height"
                       type="number"
                       bind:value={customHeight}
                       class="w-full bg-gray-800 border border-gray-600 rounded px-2 py-1 text-sm text-white"
@@ -324,8 +310,10 @@
           </div>
 
           <!-- Orientation -->
-          <div class="space-y-2">
-            <label class="block text-sm font-medium text-gray-300">Orientation</label>
+          <div role="group" aria-labelledby="print-orientation-label" class="space-y-2">
+            <span id="print-orientation-label" class="block text-sm font-medium text-gray-300"
+              >Orientation</span
+            >
             <div class="flex gap-2">
               <button
                 class="flex-1 py-2 rounded flex items-center justify-center gap-2 transition-colors"
@@ -359,12 +347,15 @@
           </div>
 
           <!-- Margins -->
-          <div class="space-y-3">
-            <label class="block text-sm font-medium text-gray-300">Margins & Bleed</label>
+          <div role="group" aria-labelledby="print-margins-label" class="space-y-3">
+            <span id="print-margins-label" class="block text-sm font-medium text-gray-300"
+              >Margins & Bleed</span
+            >
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="text-xs text-gray-500">Margin (mm)</label>
+                <label for="print-margin" class="text-xs text-gray-500">Margin (mm)</label>
                 <input
+                  id="print-margin"
                   type="number"
                   bind:value={settings.margin}
                   min="0"
@@ -374,8 +365,9 @@
                 />
               </div>
               <div>
-                <label class="text-xs text-gray-500">Bleed (mm)</label>
+                <label for="print-bleed" class="text-xs text-gray-500">Bleed (mm)</label>
                 <input
+                  id="print-bleed"
                   type="number"
                   bind:value={settings.bleed}
                   min="0"
@@ -388,8 +380,10 @@
           </div>
 
           <!-- Scale & Fit -->
-          <div class="space-y-3">
-            <label class="block text-sm font-medium text-gray-300">Scale & Position</label>
+          <div role="group" aria-labelledby="print-scale-label" class="space-y-3">
+            <span id="print-scale-label" class="block text-sm font-medium text-gray-300"
+              >Scale & Position</span
+            >
             <div class="space-y-2">
               <label class="flex items-center gap-2 text-sm text-gray-400">
                 <input
@@ -410,8 +404,9 @@
             </div>
             {#if !settings.fitToPage}
               <div>
-                <label class="text-xs text-gray-500">Scale (%)</label>
+                <label for="print-scale" class="text-xs text-gray-500">Scale (%)</label>
                 <input
+                  id="print-scale"
                   type="range"
                   bind:value={settings.scale}
                   min="0.1"
@@ -427,8 +422,10 @@
           </div>
         {:else if activeTab === 'color'}
           <!-- Color Profile -->
-          <div class="space-y-3">
-            <label class="block text-sm font-medium text-gray-300">Color Profile</label>
+          <div role="group" aria-labelledby="print-color-profile-label" class="space-y-3">
+            <span id="print-color-profile-label" class="block text-sm font-medium text-gray-300"
+              >Color Profile</span
+            >
             <div class="space-y-2">
               <p class="text-xs text-gray-500 uppercase tracking-wider">RGB</p>
               {#each COLOR_PROFILES.filter((p) => p.type === 'rgb') as profile}
@@ -478,8 +475,11 @@
 
           <!-- DPI -->
           <div class="space-y-2">
-            <label class="block text-sm font-medium text-gray-300">Resolution (DPI)</label>
+            <label for="print-dpi" class="block text-sm font-medium text-gray-300"
+              >Resolution (DPI)</label
+            >
             <select
+              id="print-dpi"
               bind:value={settings.dpi}
               class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white"
             >
@@ -492,8 +492,10 @@
           </div>
         {:else if activeTab === 'marks'}
           <!-- Print Marks -->
-          <div class="space-y-4">
-            <label class="block text-sm font-medium text-gray-300">Print Marks</label>
+          <div role="group" aria-labelledby="print-marks-label" class="space-y-4">
+            <span id="print-marks-label" class="block text-sm font-medium text-gray-300"
+              >Print Marks</span
+            >
 
             <label class="flex items-center gap-3 p-3 bg-gray-800 rounded">
               <input
@@ -562,8 +564,9 @@
               <div class="space-y-3">
                 <div class="grid grid-cols-2 gap-3">
                   <div>
-                    <label class="text-xs text-gray-500">Rows</label>
+                    <label for="tile-rows" class="text-xs text-gray-500">Rows</label>
                     <input
+                      id="tile-rows"
                       type="number"
                       bind:value={tileSettings.rows}
                       min="1"
@@ -572,8 +575,9 @@
                     />
                   </div>
                   <div>
-                    <label class="text-xs text-gray-500">Columns</label>
+                    <label for="tile-cols" class="text-xs text-gray-500">Columns</label>
                     <input
+                      id="tile-cols"
                       type="number"
                       bind:value={tileSettings.cols}
                       min="1"
@@ -584,8 +588,9 @@
                 </div>
 
                 <div>
-                  <label class="text-xs text-gray-500">Overlap (mm)</label>
+                  <label for="tile-overlap" class="text-xs text-gray-500">Overlap (mm)</label>
                   <input
+                    id="tile-overlap"
                     type="number"
                     bind:value={tileSettings.overlap}
                     min="0"
@@ -680,6 +685,7 @@
           style="aspect-ratio: {printArea.width /
             printArea.height}; max-width: 90%; max-height: 90%;"
         >
+          <!-- eslint-disable-next-line svelte/no-at-html-tags -- sanitizeSvg() runs the markup through DOMPurify's SVG profile; see sanitize-svg.test.ts -->
           {@html sanitizeSvg(previewSvg)}
         </div>
       </div>

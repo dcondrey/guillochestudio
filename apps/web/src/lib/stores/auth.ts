@@ -5,10 +5,18 @@ import type { Database } from '$lib/types/database';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
+// Only these columns are sent to the browser. The rest of the profiles row holds
+// moderation state (trust_score, risk_flags, failed_login_attempts, locked_until)
+// that must not reach the client; keep in sync with the select in +layout.server.ts.
+export type PublicProfile = Pick<
+  Profile,
+  'id' | 'username' | 'display_name' | 'avatar_url' | 'bio' | 'subscription_tier' | 'created_at'
+>;
+
 // Core auth state
 export const session = writable<Session | null>(null);
 export const user = writable<User | null>(null);
-export const profile = writable<Profile | null>(null);
+export const profile = writable<PublicProfile | null>(null);
 export const authLoading = writable(true);
 
 // Derived stores for common checks
@@ -45,7 +53,7 @@ export function initializeAuth(data: { session: Session | null; user: User | nul
 }
 
 // Update profile data
-export function updateProfile(newProfile: Profile | null) {
+export function updateProfile(newProfile: PublicProfile | null) {
   profile.set(newProfile);
 }
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createEventDispatcher, onMount } from 'svelte';
+  import { createEventDispatcher } from 'svelte';
   import {
     generateAccessibilityReport,
     applyColorBlindSimulation,
@@ -11,20 +11,7 @@
     type ColorBlindSimulation,
   } from '$lib/services/accessibility';
 
-  // Sanitize SVG to prevent XSS attacks
-  function sanitizeSvg(svg: string): string {
-    if (!svg) return '';
-    // Remove potentially dangerous elements and attributes
-    return svg
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-      .replace(/\bon\w+\s*=/gi, 'data-blocked-')
-      .replace(/javascript:/gi, '')
-      .replace(/data:/gi, 'data-blocked:')
-      .replace(/<iframe/gi, '<blocked-iframe')
-      .replace(/<object/gi, '<blocked-object')
-      .replace(/<embed/gi, '<blocked-embed')
-      .replace(/<foreignObject/gi, '<blocked-foreignObject');
-  }
+  import { sanitizeSvg } from '$lib/utils/sanitize-svg';
 
   export let svgContent: string;
   export let backgroundColor: string = '#1a1a2e';
@@ -467,8 +454,9 @@
                 <p class="text-xs text-gray-500">Add title and description for screen readers.</p>
 
                 <div>
-                  <label class="text-xs text-gray-400">Title</label>
+                  <label for="pattern-title" class="text-xs text-gray-400">Title</label>
                   <input
+                    id="pattern-title"
                     type="text"
                     bind:value={patternTitle}
                     class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm text-white mt-1"
@@ -476,8 +464,9 @@
                 </div>
 
                 <div>
-                  <label class="text-xs text-gray-400">Description</label>
+                  <label for="pattern-description" class="text-xs text-gray-400">Description</label>
                   <textarea
+                    id="pattern-description"
                     bind:value={patternDescription}
                     rows="3"
                     class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm text-white mt-1"
@@ -514,6 +503,7 @@
           class="preview-container max-w-full max-h-full"
           style="background-color: {backgroundColor}"
         >
+          <!-- eslint-disable-next-line svelte/no-at-html-tags -- sanitizeSvg() runs the markup through DOMPurify's SVG profile; see sanitize-svg.test.ts -->
           {@html sanitizeSvg(simulatedSvg)}
         </div>
       </div>
