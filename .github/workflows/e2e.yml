@@ -67,9 +67,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: web-build
-          path: |
-            apps/web/.svelte-kit
-            apps/web/build
+          # .svelte-kit is a dot-directory; upload-artifact skips hidden paths by default.
+          path: apps/web/.svelte-kit
+          include-hidden-files: true
           retention-days: 1
 
   # Run E2E tests on Chromium
@@ -97,7 +97,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: web-build
-          path: apps/web
+          path: apps/web/.svelte-kit
 
       - name: Install Playwright Browsers
         working-directory: apps/web
@@ -154,7 +154,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: web-build
-          path: apps/web
+          path: apps/web/.svelte-kit
 
       - name: Install Playwright Browsers
         working-directory: apps/web
@@ -211,7 +211,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: web-build
-          path: apps/web
+          path: apps/web/.svelte-kit
 
       - name: Install Playwright Browsers
         working-directory: apps/web
@@ -268,7 +268,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: web-build
-          path: apps/web
+          path: apps/web/.svelte-kit
 
       - name: Install Playwright Browsers
         working-directory: apps/web

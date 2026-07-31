@@ -102,9 +102,11 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
+  // CI serves the built app so tests exercise the production bundle. The URL has
+  // to track baseURL, or Playwright waits on a port the tests never visit.
   webServer: {
-    command: 'pnpm dev',
-    url: 'http://localhost:5173',
+    command: process.env.CI ? 'pnpm preview --port 4173 --strictPort' : 'pnpm dev',
+    url: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },
