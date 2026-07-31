@@ -1,13 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
-/**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// Load test environment variables if available
-// import dotenv from 'dotenv';
-// dotenv.config({ path: path.resolve(__dirname, '.env.test') });
+// The package is type: module, so __dirname and require are not defined here.
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Storage state file for authenticated sessions
 const STORAGE_STATE = path.join(__dirname, 'playwright/.auth/user.json');
@@ -19,7 +15,7 @@ export default defineConfig({
   testDir: './src/tests/e2e',
 
   /* Global setup */
-  globalSetup: require.resolve('./src/tests/e2e/global.setup.ts'),
+  globalSetup: path.join(__dirname, 'src/tests/e2e/global.setup.ts'),
 
   /* Output folder for test artifacts */
   outputDir: './test-results',
