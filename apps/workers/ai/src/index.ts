@@ -7,8 +7,6 @@
  * 3. Generative Design - text-to-pattern generation
  */
 
-import { Ai } from '@cloudflare/ai';
-
 export interface Env {
   AI: Ai;
   AI_CACHE: KVNamespace;
@@ -64,53 +62,58 @@ interface TextToPatternResult {
 // Style keyword mappings with base parameters
 const STYLE_PRESETS: Record<string, Partial<PatternParams>> = {
   // Aesthetic styles
-  'elegant': { family: 'rose', k: 8, m: 0.15, symmetry: 8, lw: 1.5 },
+  elegant: { family: 'rose', k: 8, m: 0.15, symmetry: 8, lw: 1.5 },
   'art deco': { family: 'rose', k: 6, m: 0.2, symmetry: 6, lw: 2 },
-  'minimalist': { family: 'liss', k: 3, m: 0, symmetry: 1, lw: 1 },
-  'modern': { family: 'liss', k: 4, m: 0.1, symmetry: 1, lw: 1.2 },
-  'classic': { family: 'hypo', k: 13, m: 0.22, symmetry: 1, lw: 1 },
-  'traditional': { family: 'hypo', k: 11, m: 0.2, symmetry: 1, lw: 1 },
-  'ornate': { family: 'hypo', k: 23, m: 0.35, symmetry: 6, lw: 0.8 },
-  'intricate': { family: 'hypo', k: 29, m: 0.4, symmetry: 8, lw: 0.6 },
-  'complex': { family: 'hypo', k: 31, m: 0.45, symmetry: 12, lw: 0.5 },
-  'simple': { family: 'rose', k: 3, m: 0, symmetry: 3, lw: 2 },
-  'organic': { family: 'epi', k: 5, m: 0.3, symmetry: 5, lw: 1.5 },
-  'flowing': { family: 'epi', k: 4, m: 0.25, symmetry: 1, lw: 1.8 },
-  'botanical': { family: 'epi', k: 7, m: 0.35, symmetry: 7, lw: 1 },
-  'floral': { family: 'rose', k: 5, m: 0.2, symmetry: 5, lw: 1.2 },
-  'geometric': { family: 'rose', k: 8, m: 0, symmetry: 8, lw: 1.5 },
-  'spiral': { family: 'fermat', k: 8, m: 0.2, symmetry: 1, lw: 1 },
-  'cosmic': { family: 'fermat', k: 13, m: 0.3, symmetry: 1, lw: 0.8 },
-  'galaxy': { family: 'spiral', k: 5, m: 0.4, symmetry: 2, lw: 0.6 },
-  'mandala': { family: 'rose', k: 12, m: 0.15, symmetry: 12, kaleidoscope: true, lw: 1 },
-  'zen': { family: 'spiral', k: 3, m: 0.1, symmetry: 1, lw: 2 },
+  minimalist: { family: 'liss', k: 3, m: 0, symmetry: 1, lw: 1 },
+  modern: { family: 'liss', k: 4, m: 0.1, symmetry: 1, lw: 1.2 },
+  classic: { family: 'hypo', k: 13, m: 0.22, symmetry: 1, lw: 1 },
+  traditional: { family: 'hypo', k: 11, m: 0.2, symmetry: 1, lw: 1 },
+  ornate: { family: 'hypo', k: 23, m: 0.35, symmetry: 6, lw: 0.8 },
+  intricate: { family: 'hypo', k: 29, m: 0.4, symmetry: 8, lw: 0.6 },
+  complex: { family: 'hypo', k: 31, m: 0.45, symmetry: 12, lw: 0.5 },
+  simple: { family: 'rose', k: 3, m: 0, symmetry: 3, lw: 2 },
+  organic: { family: 'epi', k: 5, m: 0.3, symmetry: 5, lw: 1.5 },
+  flowing: { family: 'epi', k: 4, m: 0.25, symmetry: 1, lw: 1.8 },
+  botanical: { family: 'epi', k: 7, m: 0.35, symmetry: 7, lw: 1 },
+  floral: { family: 'rose', k: 5, m: 0.2, symmetry: 5, lw: 1.2 },
+  geometric: { family: 'rose', k: 8, m: 0, symmetry: 8, lw: 1.5 },
+  spiral: { family: 'fermat', k: 8, m: 0.2, symmetry: 1, lw: 1 },
+  cosmic: { family: 'fermat', k: 13, m: 0.3, symmetry: 1, lw: 0.8 },
+  galaxy: { family: 'spiral', k: 5, m: 0.4, symmetry: 2, lw: 0.6 },
+  mandala: { family: 'rose', k: 12, m: 0.15, symmetry: 12, kaleidoscope: true, lw: 1 },
+  zen: { family: 'spiral', k: 3, m: 0.1, symmetry: 1, lw: 2 },
 
   // Use cases
-  'security': { family: 'hypo', k: 17, m: 0.25, symmetry: 1, lw: 0.5 },
-  'banknote': { family: 'hypo', k: 19, m: 0.28, symmetry: 1, lw: 0.4 },
-  'certificate': { family: 'hypo', k: 15, m: 0.22, symmetry: 2, lw: 0.6 },
-  'diploma': { family: 'rose', k: 8, m: 0.18, symmetry: 4, lw: 0.8 },
-  'logo': { family: 'rose', k: 4, m: 0.1, symmetry: 4, lw: 2 },
-  'brand': { family: 'liss', k: 3, m: 0.15, symmetry: 1, lw: 2.5 },
-  'decorative': { family: 'epi', k: 6, m: 0.2, symmetry: 6, lw: 1.2 },
-  'border': { family: 'hypo', k: 7, m: 0.15, symmetry: 1, lw: 1 },
-  'frame': { family: 'rose', k: 4, m: 0.1, symmetry: 4, lw: 1.5 },
-  'watermark': { family: 'hypo', k: 11, m: 0.2, symmetry: 1, lw: 0.3 },
-  'engraving': { family: 'hypo', k: 21, m: 0.3, symmetry: 1, lw: 0.4 },
-  'etching': { family: 'hypo', k: 25, m: 0.35, symmetry: 1, lw: 0.3 },
+  security: { family: 'hypo', k: 17, m: 0.25, symmetry: 1, lw: 0.5 },
+  banknote: { family: 'hypo', k: 19, m: 0.28, symmetry: 1, lw: 0.4 },
+  certificate: { family: 'hypo', k: 15, m: 0.22, symmetry: 2, lw: 0.6 },
+  diploma: { family: 'rose', k: 8, m: 0.18, symmetry: 4, lw: 0.8 },
+  logo: { family: 'rose', k: 4, m: 0.1, symmetry: 4, lw: 2 },
+  brand: { family: 'liss', k: 3, m: 0.15, symmetry: 1, lw: 2.5 },
+  decorative: { family: 'epi', k: 6, m: 0.2, symmetry: 6, lw: 1.2 },
+  border: { family: 'hypo', k: 7, m: 0.15, symmetry: 1, lw: 1 },
+  frame: { family: 'rose', k: 4, m: 0.1, symmetry: 4, lw: 1.5 },
+  watermark: { family: 'hypo', k: 11, m: 0.2, symmetry: 1, lw: 0.3 },
+  engraving: { family: 'hypo', k: 21, m: 0.3, symmetry: 1, lw: 0.4 },
+  etching: { family: 'hypo', k: 25, m: 0.35, symmetry: 1, lw: 0.3 },
 
   // Color schemes (set colors)
-  'gold': { startColor: '#FFD700', endColor: '#B8860B', bgColor: '#1a1a2e', useGradient: true },
-  'silver': { startColor: '#C0C0C0', endColor: '#808080', bgColor: '#1a1a2e', useGradient: true },
-  'copper': { startColor: '#B87333', endColor: '#8B4513', bgColor: '#0d0d1a', useGradient: true },
-  'royal': { startColor: '#4B0082', endColor: '#8B008B', bgColor: '#0a0a1a', useGradient: true },
-  'ocean': { startColor: '#006994', endColor: '#00CED1', bgColor: '#001122', useGradient: true },
-  'forest': { startColor: '#228B22', endColor: '#006400', bgColor: '#0a1a0a', useGradient: true },
-  'sunset': { startColor: '#FF4500', endColor: '#FFD700', bgColor: '#1a0a1a', useGradient: true },
-  'neon': { startColor: '#00FF00', endColor: '#FF00FF', bgColor: '#000000', useGradient: true },
-  'monochrome': { startColor: '#FFFFFF', endColor: '#FFFFFF', bgColor: '#000000', useGradient: false },
-  'warm': { startColor: '#FF6B6B', endColor: '#FFA500', bgColor: '#1a0a0a', useGradient: true },
-  'cool': { startColor: '#4169E1', endColor: '#00CED1', bgColor: '#0a0a1a', useGradient: true },
+  gold: { startColor: '#FFD700', endColor: '#B8860B', bgColor: '#1a1a2e', useGradient: true },
+  silver: { startColor: '#C0C0C0', endColor: '#808080', bgColor: '#1a1a2e', useGradient: true },
+  copper: { startColor: '#B87333', endColor: '#8B4513', bgColor: '#0d0d1a', useGradient: true },
+  royal: { startColor: '#4B0082', endColor: '#8B008B', bgColor: '#0a0a1a', useGradient: true },
+  ocean: { startColor: '#006994', endColor: '#00CED1', bgColor: '#001122', useGradient: true },
+  forest: { startColor: '#228B22', endColor: '#006400', bgColor: '#0a1a0a', useGradient: true },
+  sunset: { startColor: '#FF4500', endColor: '#FFD700', bgColor: '#1a0a1a', useGradient: true },
+  neon: { startColor: '#00FF00', endColor: '#FF00FF', bgColor: '#000000', useGradient: true },
+  monochrome: {
+    startColor: '#FFFFFF',
+    endColor: '#FFFFFF',
+    bgColor: '#000000',
+    useGradient: false,
+  },
+  warm: { startColor: '#FF6B6B', endColor: '#FFA500', bgColor: '#1a0a0a', useGradient: true },
+  cool: { startColor: '#4169E1', endColor: '#00CED1', bgColor: '#0a0a1a', useGradient: true },
 
   // Complexity levels
   'high-detail': { k: 40, m: 0.4, symmetry: 1, lw: 0.3 },
@@ -145,11 +148,8 @@ const DEFAULT_PARAMS: PatternParams = {
  * AI Parameter Assistant
  * Analyzes keywords and suggests optimal parameters
  */
-async function suggestParameters(
-  env: Env,
-  keywords: string[]
-): Promise<ParameterSuggestion[]> {
-  const normalizedKeywords = keywords.map(k => k.toLowerCase().trim());
+async function suggestParameters(env: Env, keywords: string[]): Promise<ParameterSuggestion[]> {
+  const normalizedKeywords = keywords.map((k) => k.toLowerCase().trim());
   const suggestions: ParameterSuggestion[] = [];
 
   // Find matching style presets
@@ -171,8 +171,6 @@ async function suggestParameters(
   // Use AI for semantic understanding if keywords don't match presets directly
   if (matchedPresets.length === 0 || normalizedKeywords.length > matchedPresets.length) {
     try {
-      const ai = new Ai(env.AI);
-
       const prompt = `You are a pattern design expert. Given these style keywords: "${keywords.join(', ')}"
 
 Analyze what kind of guilloche/mathematical pattern the user wants. Consider:
@@ -191,7 +189,7 @@ Respond with ONLY a JSON object (no markdown, no explanation) containing:
   "description": "brief description of the suggested pattern"
 }`;
 
-      const response = await ai.run('@cf/meta/llama-3-8b-instruct', {
+      const response = await env.AI.run('@cf/meta/llama-3-8b-instruct', {
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 200,
       });
@@ -294,8 +292,6 @@ async function recognizePattern(
   env: Env,
   imageData: string // Base64 encoded image
 ): Promise<PatternRecognitionResult> {
-  const ai = new Ai(env.AI);
-
   try {
     // Use vision model to analyze the image
     const analysisPrompt = `Analyze this guilloche/mathematical pattern image. Describe:
@@ -321,11 +317,13 @@ Respond with ONLY a JSON object:
 
     // For image analysis, we'll use text description approach
     // In production, you'd use @cf/llava-hf/llava-1.5-7b-hf or similar vision model
-    const response = await ai.run('@cf/meta/llama-3-8b-instruct', {
-      messages: [{
-        role: 'user',
-        content: `I have an image of a guilloche pattern. Based on typical guilloche patterns, provide analysis for a ${imageData.length > 10000 ? 'complex' : 'simple'} pattern. ${analysisPrompt}`
-      }],
+    const response = await env.AI.run('@cf/meta/llama-3-8b-instruct', {
+      messages: [
+        {
+          role: 'user',
+          content: `I have an image of a guilloche pattern. Based on typical guilloche patterns, provide analysis for a ${imageData.length > 10000 ? 'complex' : 'simple'} pattern. ${analysisPrompt}`,
+        },
+      ],
       max_tokens: 300,
     });
 
@@ -358,17 +356,18 @@ Respond with ONLY a JSON object:
 
     // Set curve family
     const familyMap: Record<string, string> = {
-      'hypo': 'hypo',
-      'hypotrochoid': 'hypo',
-      'epi': 'epi',
-      'epitrochoid': 'epi',
-      'rose': 'rose',
-      'liss': 'liss',
-      'lissajous': 'liss',
-      'spiral': 'spiral',
-      'fermat': 'fermat',
+      hypo: 'hypo',
+      hypotrochoid: 'hypo',
+      epi: 'epi',
+      epitrochoid: 'epi',
+      rose: 'rose',
+      liss: 'liss',
+      lissajous: 'liss',
+      spiral: 'spiral',
+      fermat: 'fermat',
     };
-    params.family = (familyMap[analysis.curveType.toLowerCase()] || 'hypo') as PatternParams['family'];
+    params.family = (familyMap[analysis.curveType.toLowerCase()] ||
+      'hypo') as PatternParams['family'];
 
     // Set symmetry
     params.symmetry = Math.max(1, Math.min(24, analysis.symmetryCount || 1));
@@ -434,12 +433,7 @@ Respond with ONLY a JSON object:
  * Generative Design System
  * Converts natural language description to pattern parameters
  */
-async function textToPattern(
-  env: Env,
-  prompt: string
-): Promise<TextToPatternResult> {
-  const ai = new Ai(env.AI);
-
+async function textToPattern(env: Env, prompt: string): Promise<TextToPatternResult> {
   const systemPrompt = `You are an expert guilloche pattern designer. Convert natural language descriptions into precise mathematical pattern parameters.
 
 Available curve families:
@@ -496,10 +490,10 @@ Respond with ONLY a JSON object (no explanation):
 }`;
 
   try {
-    const response = await ai.run('@cf/meta/llama-3-8b-instruct', {
+    const response = await env.AI.run('@cf/meta/llama-3-8b-instruct', {
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
+        { role: 'user', content: userPrompt },
       ],
       max_tokens: 800,
     });
@@ -511,7 +505,9 @@ Respond with ONLY a JSON object (no explanation):
 
         // Validate and sanitize parameters
         const sanitizeParams = (p: any): PatternParams => ({
-          family: ['hypo', 'epi', 'rose', 'liss', 'spiral', 'fermat'].includes(p.family) ? p.family : 'hypo',
+          family: ['hypo', 'epi', 'rose', 'liss', 'spiral', 'fermat'].includes(p.family)
+            ? p.family
+            : 'hypo',
           R: Math.max(10, Math.min(450, p.R || 200)),
           r: Math.max(5, Math.min(300, p.r || 60)),
           d: Math.max(0, Math.min(320, p.d || 100)),
@@ -544,7 +540,10 @@ Respond with ONLY a JSON object (no explanation):
   }
 
   // Fallback: use keyword-based suggestion
-  const keywords = prompt.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+  const keywords = prompt
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((w) => w.length > 2);
   const suggestions = await suggestParameters(env, keywords);
 
   return {
@@ -554,25 +553,31 @@ Respond with ONLY a JSON object (no explanation):
   };
 }
 
+// The generated binding type for the bge embedding models carries no properties,
+// so the { shape, data } response has to be narrowed at runtime instead.
+function firstEmbedding(response: unknown): number[] | null {
+  if (typeof response !== 'object' || response === null) return null;
+  const { data } = response as { data?: unknown };
+  if (!Array.isArray(data) || data.length === 0) return null;
+  const first = data[0];
+  if (!Array.isArray(first) || !first.every((n): n is number => typeof n === 'number')) return null;
+  return first;
+}
+
 /**
  * Get embeddings for semantic search
  */
 async function getEmbeddings(env: Env, text: string): Promise<number[]> {
-  const ai = new Ai(env.AI);
-
   try {
-    const response = await ai.run('@cf/baai/bge-base-en-v1.5', {
+    const response = await env.AI.run('@cf/baai/bge-base-en-v1.5', {
       text: text,
     });
 
-    if (response && Array.isArray(response.data) && response.data.length > 0) {
-      return response.data[0];
-    }
+    return firstEmbedding(response) ?? [];
   } catch (error) {
     console.error('Embedding generation failed:', error);
+    return [];
   }
-
-  return [];
 }
 
 /**
@@ -583,11 +588,19 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
+    const origin = request.headers.get('Origin') ?? '';
+    const allowedOrigins =
+      env.ENVIRONMENT === 'production'
+        ? ['https://guillochestudio.com', 'https://www.guillochestudio.com']
+        : ['http://localhost:5173', 'http://localhost:4173'];
+    const corsOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+
     // CORS headers
     const corsHeaders = {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': corsOrigin,
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      Vary: 'Origin',
     };
 
     // Handle preflight
@@ -598,15 +611,21 @@ export default {
     try {
       // Health check
       if (path === '/health') {
-        return Response.json({ status: 'ok', timestamp: new Date().toISOString() }, { headers: corsHeaders });
+        return Response.json(
+          { status: 'ok', timestamp: new Date().toISOString() },
+          { headers: corsHeaders }
+        );
       }
 
       // AI Parameter Assistant
       if (path === '/api/ai/suggest' && request.method === 'POST') {
-        const body = await request.json() as { keywords: string[] };
+        const body = (await request.json()) as { keywords: string[] };
 
         if (!body.keywords || !Array.isArray(body.keywords)) {
-          return Response.json({ error: 'keywords array required' }, { status: 400, headers: corsHeaders });
+          return Response.json(
+            { error: 'keywords array required' },
+            { status: 400, headers: corsHeaders }
+          );
         }
 
         // Check cache
@@ -619,17 +638,22 @@ export default {
         const suggestions = await suggestParameters(env, body.keywords);
 
         // Cache for 1 hour
-        ctx.waitUntil(env.AI_CACHE.put(cacheKey, JSON.stringify(suggestions), { expirationTtl: 3600 }));
+        ctx.waitUntil(
+          env.AI_CACHE.put(cacheKey, JSON.stringify(suggestions), { expirationTtl: 3600 })
+        );
 
         return Response.json(suggestions, { headers: corsHeaders });
       }
 
       // Pattern Recognition
       if (path === '/api/ai/recognize' && request.method === 'POST') {
-        const body = await request.json() as { image: string };
+        const body = (await request.json()) as { image: string };
 
         if (!body.image) {
-          return Response.json({ error: 'image (base64) required' }, { status: 400, headers: corsHeaders });
+          return Response.json(
+            { error: 'image (base64) required' },
+            { status: 400, headers: corsHeaders }
+          );
         }
 
         const result = await recognizePattern(env, body.image);
@@ -638,7 +662,7 @@ export default {
 
       // Text to Pattern
       if (path === '/api/ai/generate' && request.method === 'POST') {
-        const body = await request.json() as { prompt: string };
+        const body = (await request.json()) as { prompt: string };
 
         if (!body.prompt) {
           return Response.json({ error: 'prompt required' }, { status: 400, headers: corsHeaders });
@@ -661,7 +685,7 @@ export default {
 
       // Get embeddings (for Supabase vector search)
       if (path === '/api/ai/embed' && request.method === 'POST') {
-        const body = await request.json() as { text: string };
+        const body = (await request.json()) as { text: string };
 
         if (!body.text) {
           return Response.json({ error: 'text required' }, { status: 400, headers: corsHeaders });
@@ -672,11 +696,13 @@ export default {
       }
 
       return Response.json({ error: 'Not found' }, { status: 404, headers: corsHeaders });
-
     } catch (error) {
       console.error('Worker error:', error);
       return Response.json(
-        { error: 'Internal server error', message: error instanceof Error ? error.message : 'Unknown error' },
+        {
+          error: 'Internal server error',
+          message: error instanceof Error ? error.message : 'Unknown error',
+        },
         { status: 500, headers: corsHeaders }
       );
     }
