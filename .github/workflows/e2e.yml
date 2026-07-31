@@ -76,6 +76,7 @@ jobs:
   e2e-chromium:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     if: ${{ github.event.inputs.browsers == 'all' || github.event.inputs.browsers == 'chromium' || github.event.inputs.browsers == '' }}
     steps:
       - name: Checkout
@@ -133,6 +134,7 @@ jobs:
   e2e-firefox:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     if: ${{ github.event.inputs.browsers == 'all' || github.event.inputs.browsers == 'firefox' || github.event.inputs.browsers == '' }}
     steps:
       - name: Checkout
@@ -190,6 +192,7 @@ jobs:
   e2e-webkit:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     if: ${{ github.event.inputs.browsers == 'all' || github.event.inputs.browsers == 'webkit' }}
     steps:
       - name: Checkout
@@ -247,6 +250,7 @@ jobs:
   e2e-mobile:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     if: ${{ github.event_name == 'schedule' || github.event.inputs.browsers == 'all' }}
     steps:
       - name: Checkout
