@@ -17,7 +17,7 @@ on:
           - production
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '22'
   RUST_TOOLCHAIN: 'stable'
 
 # Cancel in-progress runs on same branch
@@ -74,7 +74,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: ['20', '22']
+        node-version: ['22', '24']
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -108,7 +108,7 @@ jobs:
         run: pnpm test -- --coverage
 
       - name: Upload coverage reports
-        if: matrix.node-version == '20'
+        if: matrix.node-version == '22'
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}

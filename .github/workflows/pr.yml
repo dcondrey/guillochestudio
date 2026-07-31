@@ -11,7 +11,7 @@ on:
       - reopened
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '22'
   RUST_TOOLCHAIN: 'stable'
 
 # Cancel in-progress runs for the same PR

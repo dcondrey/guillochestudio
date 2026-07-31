@@ -19,7 +19,7 @@ on:
         default: 'all'
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '22'
 
 concurrency:
   group: e2e-${{ github.workflow }}-${{ github.ref }}
