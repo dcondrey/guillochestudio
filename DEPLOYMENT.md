@@ -25,6 +25,7 @@ npx wrangler pages project create guilloche-studio
 ```
 
 Configure custom domain in Cloudflare Dashboard:
+
 1. Go to Pages > guilloche-studio > Custom domains
 2. Add `guillochestudio.com` and `www.guillochestudio.com`
 3. Verify DNS records are configured
@@ -34,17 +35,20 @@ Configure custom domain in Cloudflare Dashboard:
 Set up the following secrets in GitHub repository settings (Settings > Secrets and variables > Actions):
 
 **Cloudflare:**
+
 - `CLOUDFLARE_API_TOKEN` - API token with Pages/Workers permissions
 - `CLOUDFLARE_ACCOUNT_ID` - Your Cloudflare account ID
 - `CLOUDFLARE_ZONE_ID` - Zone ID for guillochestudio.com
 
 **Supabase:**
+
 - `PUBLIC_SUPABASE_URL` - Supabase project URL
 - `PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
 - `SUPABASE_PROJECT_REF` - Supabase project reference
 - `SUPABASE_ACCESS_TOKEN` - Supabase CLI access token
 
 **Stripe:**
+
 - `PUBLIC_STRIPE_PUBLISHABLE_KEY` - Stripe publishable key
 - `STRIPE_SECRET_KEY` - Stripe secret key (for Workers)
 - `STRIPE_WEBHOOK_SECRET` - Stripe webhook signing secret
@@ -111,6 +115,7 @@ npx wrangler pages deploy apps/web/.svelte-kit/cloudflare --project-name=guilloc
 ### Automated Deployment (CI/CD)
 
 The GitHub Actions workflow automatically deploys:
+
 - **staging** branch → staging.guillochestudio.com
 - **main** branch → guillochestudio.com
 
@@ -119,12 +124,14 @@ The GitHub Actions workflow automatically deploys:
 ### 1. Configure Stripe Webhooks
 
 In Stripe Dashboard, add webhook endpoint:
+
 - URL: `https://guillochestudio.com/api/webhooks/stripe`
 - Events: `checkout.session.completed`, `customer.subscription.*`, `invoice.*`
 
 ### 2. Configure Supabase
 
 Run migrations:
+
 ```bash
 supabase link --project-ref YOUR_PROJECT_REF
 supabase db push
@@ -135,6 +142,7 @@ Set up RLS policies and enable realtime for collaboration tables.
 ### 3. Verify Workers AI
 
 Test AI features:
+
 ```bash
 curl -X POST https://guillochestudio.com/api/ai/suggest \
   -H "Content-Type: application/json" \
@@ -152,6 +160,7 @@ curl -X POST https://guillochestudio.com/api/ai/suggest \
 ### Error Tracking
 
 Configure Sentry or similar:
+
 ```javascript
 // apps/web/src/hooks.client.ts
 import * as Sentry from '@sentry/sveltekit';
@@ -165,6 +174,7 @@ Sentry.init({
 ### Health Checks
 
 Add uptime monitoring for:
+
 - `https://guillochestudio.com` (main site)
 - `https://guillochestudio.com/api/health` (API)
 - Supabase project health
@@ -174,6 +184,7 @@ Add uptime monitoring for:
 ### Build Failures
 
 **WASM build fails:**
+
 ```bash
 # Ensure Rust and wasm-pack are installed
 rustup target add wasm32-unknown-unknown
@@ -181,6 +192,7 @@ cargo install wasm-pack
 ```
 
 **Missing dependencies:**
+
 ```bash
 pnpm install --frozen-lockfile
 ```
@@ -188,11 +200,13 @@ pnpm install --frozen-lockfile
 ### Runtime Errors
 
 **Workers AI not responding:**
+
 - Verify AI binding in wrangler.toml
 - Check Workers Paid plan is active
 - Review Workers Analytics for errors
 
 **Supabase connection issues:**
+
 - Verify environment variables
 - Check RLS policies allow access
 - Review Supabase logs
@@ -200,11 +214,13 @@ pnpm install --frozen-lockfile
 ### Performance Issues
 
 **Slow renders:**
+
 - Ensure WASM engine is loading
 - Check browser console for fallback messages
 - Verify CDN caching is working
 
 **High latency:**
+
 - Enable Cloudflare Argo
 - Review Workers Analytics for slow functions
 - Optimize Supabase queries

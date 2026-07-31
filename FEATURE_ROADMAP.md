@@ -9,51 +9,54 @@ This document analyzes the feature sets of **Guardsoft CERBERUS** and **Artlandi
 ## Competitor Analysis
 
 ### Guardsoft CERBERUS (Security Printing Focus)
+
 **Price:** ~$2,000-5,000 (desktop license)
 **Platform:** Windows only
 
-| Feature | Description |
-|---------|-------------|
-| Rosettes | Closed circular guilloche shapes |
-| Borders | Linear repeating border patterns |
-| Grids & Backgrounds | Protective background patterns |
-| 3D Embossing | Relief effects based on halftone images |
-| Microtext | Text patterns along guilloche lines |
-| Image Overlay | Line displacement based on grayscale images |
-| Hatch/Engraving | Halftone representation via varying line width |
-| Guilloche Wizard | Pre-built templates with parameter editing |
-| Surface Mapping | Irregular guilloches on 3D surfaces |
-| Multi-layer | Complex compositions |
-| Mask Creation | Automated masking |
-| CMYK Support | Professional print color |
-| PostScript/EPS Export | Industry standard |
-| Parameter Encryption | Designs can't be reverse-engineered |
+| Feature               | Description                                    |
+| --------------------- | ---------------------------------------------- |
+| Rosettes              | Closed circular guilloche shapes               |
+| Borders               | Linear repeating border patterns               |
+| Grids & Backgrounds   | Protective background patterns                 |
+| 3D Embossing          | Relief effects based on halftone images        |
+| Microtext             | Text patterns along guilloche lines            |
+| Image Overlay         | Line displacement based on grayscale images    |
+| Hatch/Engraving       | Halftone representation via varying line width |
+| Guilloche Wizard      | Pre-built templates with parameter editing     |
+| Surface Mapping       | Irregular guilloches on 3D surfaces            |
+| Multi-layer           | Complex compositions                           |
+| Mask Creation         | Automated masking                              |
+| CMYK Support          | Professional print color                       |
+| PostScript/EPS Export | Industry standard                              |
+| Parameter Encryption  | Designs can't be reverse-engineered            |
 
 ### Artlandia SymmetryWorks (Surface Design Focus)
+
 **Price:** ~$399-599 (Adobe Illustrator plugin)
 **Platform:** Mac/Windows (requires Illustrator)
 
-| Feature | Description |
-|---------|-------------|
+| Feature             | Description                                |
+| ------------------- | ------------------------------------------ |
 | 17 Wallpaper Groups | All mathematically possible symmetry types |
-| Counterchange | Automatic color reversals |
-| Live Motif Editing | Real-time pattern updates |
-| Kaleidoscope | Mirror-based symmetry |
-| Replicas | Live-linked copies |
-| Multi-replicas | Grouped pattern copies |
-| Nested Patterns | Patterns within patterns |
-| Plaids & Stripes | Dedicated stripe design tools |
-| Harmonic Growth | Radiating growth patterns |
-| Optical Art | Op-art pattern generation |
-| 46 Color Symmetries | Secondary symmetry operations |
-| Pattern Swatches | Illustrator swatch export |
-| Vector Objects | Full Illustrator compatibility |
+| Counterchange       | Automatic color reversals                  |
+| Live Motif Editing  | Real-time pattern updates                  |
+| Kaleidoscope        | Mirror-based symmetry                      |
+| Replicas            | Live-linked copies                         |
+| Multi-replicas      | Grouped pattern copies                     |
+| Nested Patterns     | Patterns within patterns                   |
+| Plaids & Stripes    | Dedicated stripe design tools              |
+| Harmonic Growth     | Radiating growth patterns                  |
+| Optical Art         | Op-art pattern generation                  |
+| 46 Color Symmetries | Secondary symmetry operations              |
+| Pattern Swatches    | Illustrator swatch export                  |
+| Vector Objects      | Full Illustrator compatibility             |
 
 ---
 
 ## Current Guilloche Studio Capabilities
 
 ### Curve Families (9 types)
+
 - [x] Hypotrochoid
 - [x] Epitrochoid
 - [x] Hypocycloid
@@ -65,6 +68,7 @@ This document analyzes the feature sets of **Guardsoft CERBERUS** and **Artlandi
 - [x] Fermat Spiral
 
 ### Symmetry Operations
+
 - [x] Rotational symmetry (1-24 fold)
 - [x] Horizontal reflection
 - [x] Vertical reflection
@@ -73,6 +77,7 @@ This document analyzes the feature sets of **Guardsoft CERBERUS** and **Artlandi
 - [x] Global scale
 
 ### Effects & Styling
+
 - [x] Gradient strokes
 - [x] Glow/blur effects
 - [x] Dashed lines
@@ -82,6 +87,7 @@ This document analyzes the feature sets of **Guardsoft CERBERUS** and **Artlandi
 - [x] Adaptive resolution
 
 ### Export Formats
+
 - [x] SVG (with embedded metadata)
 - [x] PNG (up to 16000px)
 - [x] PDF (via print system)
@@ -90,6 +96,7 @@ This document analyzes the feature sets of **Guardsoft CERBERUS** and **Artlandi
 - [x] HPGL (plotters)
 
 ### Advanced Features
+
 - [x] Multi-layer support
 - [x] WASM acceleration (3-10x faster)
 - [x] Pattern DNA sharing (short codes)
@@ -104,29 +111,29 @@ This document analyzes the feature sets of **Guardsoft CERBERUS** and **Artlandi
 
 ### Missing from CERBERUS (Priority: HIGH)
 
-| Feature | Difficulty | Business Value | Priority |
-|---------|------------|----------------|----------|
-| **Rosette Mode** | Medium | High | P1 |
-| **Border/Linear Mode** | Medium | High | P1 |
-| **Grid Background Mode** | Medium | High | P1 |
-| **3D Relief/Embossing** | High | Very High | P1 |
-| **Microtext Integration** | Medium | High | P2 |
-| **Image-Based Modulation** | High | Very High | P1 |
-| **Hatch/Engraving Effects** | Medium | High | P2 |
-| **EPS Export** | Low | Medium | P3 |
-| **Parameter Encryption** | Medium | High | P2 |
+| Feature                     | Difficulty | Business Value | Priority |
+| --------------------------- | ---------- | -------------- | -------- |
+| **Rosette Mode**            | Medium     | High           | P1       |
+| **Border/Linear Mode**      | Medium     | High           | P1       |
+| **Grid Background Mode**    | Medium     | High           | P1       |
+| **3D Relief/Embossing**     | High       | Very High      | P1       |
+| **Microtext Integration**   | Medium     | High           | P2       |
+| **Image-Based Modulation**  | High       | Very High      | P1       |
+| **Hatch/Engraving Effects** | Medium     | High           | P2       |
+| **EPS Export**              | Low        | Medium         | P3       |
+| **Parameter Encryption**    | Medium     | High           | P2       |
 
 ### Missing from SymmetryWorks (Priority: MEDIUM)
 
-| Feature | Difficulty | Business Value | Priority |
-|---------|------------|----------------|----------|
-| **17 Wallpaper Groups** | High | High | P1 |
-| **Counterchange Patterns** | Medium | Medium | P2 |
-| **Multi-replicas** | Medium | Medium | P2 |
-| **Nested Patterns** | High | Medium | P3 |
-| **Plaid/Stripe Designer** | Medium | Medium | P2 |
-| **Harmonic Growth** | Medium | Medium | P3 |
-| **Optical Art Mode** | Medium | Medium | P3 |
+| Feature                    | Difficulty | Business Value | Priority |
+| -------------------------- | ---------- | -------------- | -------- |
+| **17 Wallpaper Groups**    | High       | High           | P1       |
+| **Counterchange Patterns** | Medium     | Medium         | P2       |
+| **Multi-replicas**         | Medium     | Medium         | P2       |
+| **Nested Patterns**        | High       | Medium         | P3       |
+| **Plaid/Stripe Designer**  | Medium     | Medium         | P2       |
+| **Harmonic Growth**        | Medium     | Medium         | P3       |
+| **Optical Art Mode**       | Medium     | Medium         | P3       |
 
 ---
 
@@ -134,19 +141,19 @@ This document analyzes the feature sets of **Guardsoft CERBERUS** and **Artlandi
 
 These features give us competitive advantages:
 
-| Feature | Competitor Status |
-|---------|-------------------|
-| **Web-Based (No Install)** | Both require installation |
-| **Cross-Platform** | CERBERUS = Windows only |
-| **No Adobe Required** | SymmetryWorks = Illustrator only |
-| **AI Suggestions** | Neither has AI |
-| **Pattern DNA Sharing** | Unique |
-| **Real-Time Collaboration** | Neither has this |
-| **CNC/Laser Direct Export** | CERBERUS has limited |
-| **G-code Generation** | Unique |
-| **WASM Performance** | Neither has web WASM |
-| **Marketplace/Community** | Neither has this |
-| **Subscription Model** | Both are expensive perpetual |
+| Feature                     | Competitor Status                |
+| --------------------------- | -------------------------------- |
+| **Web-Based (No Install)**  | Both require installation        |
+| **Cross-Platform**          | CERBERUS = Windows only          |
+| **No Adobe Required**       | SymmetryWorks = Illustrator only |
+| **AI Suggestions**          | Neither has AI                   |
+| **Pattern DNA Sharing**     | Unique                           |
+| **Real-Time Collaboration** | Neither has this                 |
+| **CNC/Laser Direct Export** | CERBERUS has limited             |
+| **G-code Generation**       | Unique                           |
+| **WASM Performance**        | Neither has web WASM             |
+| **Marketplace/Community**   | Neither has this                 |
+| **Subscription Model**      | Both are expensive perpetual     |
 
 ---
 
@@ -155,35 +162,40 @@ These features give us competitive advantages:
 ### Phase 1: Security Printing Parity (Weeks 1-6)
 
 #### 1.1 Pattern Modes (Week 1-2)
+
 Add three new pattern modes to complement the current "Single Curve" mode:
 
 ```typescript
 type PatternMode =
-  | 'curve'      // Current: Single curve with symmetry
-  | 'rosette'    // Closed circular patterns
-  | 'border'     // Linear repeating patterns
-  | 'grid'       // Background grid patterns
+  | 'curve' // Current: Single curve with symmetry
+  | 'rosette' // Closed circular patterns
+  | 'border' // Linear repeating patterns
+  | 'grid'; // Background grid patterns
 ```
 
 **Rosette Mode:**
+
 - Closed circular guilloche shapes
 - Envelope options: circle, ellipse, polygon, custom
 - Fill density control
 - Center hole/solid options
 
 **Border Mode:**
+
 - Linear pattern repeat
 - Corner handling (miter, round, continue)
 - Wave/straight baseline
 - Periodic boundary matching
 
 **Grid Mode:**
+
 - 2D repeating backgrounds
 - Tile types: square, hex, irregular
 - Pattern-on-pattern overlay
 - Density and angle controls
 
 #### 1.2 Image-Based Modulation (Week 3-4)
+
 Enable line displacement based on grayscale images:
 
 ```typescript
@@ -202,6 +214,7 @@ interface ImageModulation {
 - Support for halftone-style effects
 
 #### 1.3 Microtext Integration (Week 5)
+
 Add text along guilloche paths:
 
 ```typescript
@@ -216,6 +229,7 @@ interface MicrotextOptions {
 ```
 
 #### 1.4 Hatch/Engraving Effects (Week 6)
+
 Line-based halftone rendering:
 
 ```typescript
@@ -231,13 +245,28 @@ interface HatchEffect {
 ### Phase 2: Symmetry Enhancement (Weeks 7-10)
 
 #### 2.1 All 17 Wallpaper Groups (Week 7-8)
+
 Implement complete crystallographic symmetry:
 
 ```typescript
 type WallpaperGroup =
-  | 'p1' | 'p2' | 'pm' | 'pg' | 'cm' | 'pmm' | 'pmg'
-  | 'pgg' | 'cmm' | 'p4' | 'p4m' | 'p4g' | 'p3'
-  | 'p3m1' | 'p31m' | 'p6' | 'p6m';
+  | 'p1'
+  | 'p2'
+  | 'pm'
+  | 'pg'
+  | 'cm'
+  | 'pmm'
+  | 'pmg'
+  | 'pgg'
+  | 'cmm'
+  | 'p4'
+  | 'p4m'
+  | 'p4g'
+  | 'p3'
+  | 'p3m1'
+  | 'p31m'
+  | 'p6'
+  | 'p6m';
 
 interface SymmetryConfig {
   group: WallpaperGroup;
@@ -247,6 +276,7 @@ interface SymmetryConfig {
 ```
 
 #### 2.2 Counterchange Patterns (Week 9)
+
 Color reversal symmetries:
 
 ```typescript
@@ -259,6 +289,7 @@ interface CounterchangeConfig {
 ```
 
 #### 2.3 Multi-Layer Enhancements (Week 10)
+
 Advanced layer operations:
 
 - Layer effects: drop shadow, inner glow, bevel
@@ -270,6 +301,7 @@ Advanced layer operations:
 ### Phase 3: Advanced Tools (Weeks 11-16)
 
 #### 3.1 Vector Drawing Tools (Week 11-12)
+
 Basic drawing for custom base shapes:
 
 - Pen tool (bezier curves)
@@ -278,6 +310,7 @@ Basic drawing for custom base shapes:
 - Node editing
 
 #### 3.2 3D Surface Mapping (Week 13-14)
+
 Map guilloches to 3D surfaces:
 
 ```typescript
@@ -289,6 +322,7 @@ interface Surface3D {
 ```
 
 #### 3.3 Animation System (Week 15-16)
+
 Expand animation beyond keyframes:
 
 - Timeline editor UI
@@ -300,24 +334,28 @@ Expand animation beyond keyframes:
 ### Phase 4: Professional Features (Weeks 17-20)
 
 #### 4.1 Security Features (Week 17)
+
 - Parameter encryption for exported files
 - Watermarking system
 - Serial number embedding
 - Anti-copy patterns (trap lines)
 
 #### 4.2 Batch Processing (Week 18)
+
 - Template-based generation
 - CSV/Excel data merge
 - Numbered series generation
 - Automated variations
 
 #### 4.3 Color Management (Week 19)
+
 - Full ICC profile support
 - Spot color definitions
 - Pantone library integration
 - Color separation preview
 
 #### 4.4 Plugin System (Week 20)
+
 - JavaScript plugin API
 - Community plugin repository
 - Custom curve formula support
@@ -369,45 +407,51 @@ type ExtendedExportFormat = ExportFormat |
 ## Competitive Positioning
 
 ### vs CERBERUS
-| Aspect | CERBERUS | Guilloche Studio |
-|--------|----------|------------------|
-| Price | $2,000-5,000 one-time | $12-49/month |
-| Platform | Windows only | Web (any device) |
-| Learning Curve | Steep | Intuitive |
-| Collaboration | None | Real-time |
-| Updates | Paid upgrades | Continuous |
-| Support | Email only | Chat + Community |
+
+| Aspect         | CERBERUS              | Guilloche Studio |
+| -------------- | --------------------- | ---------------- |
+| Price          | $2,000-5,000 one-time | $12-49/month     |
+| Platform       | Windows only          | Web (any device) |
+| Learning Curve | Steep                 | Intuitive        |
+| Collaboration  | None                  | Real-time        |
+| Updates        | Paid upgrades         | Continuous       |
+| Support        | Email only            | Chat + Community |
 
 ### vs SymmetryWorks
-| Aspect | SymmetryWorks | Guilloche Studio |
-|--------|---------------|------------------|
-| Price | $399 + Illustrator | $12-49/month |
-| Dependencies | Requires Illustrator | Standalone |
-| Use Case | Surface design | Security + Art |
-| Sharing | File-based | DNA codes + Cloud |
-| Automation | Manual | AI-assisted |
+
+| Aspect       | SymmetryWorks        | Guilloche Studio  |
+| ------------ | -------------------- | ----------------- |
+| Price        | $399 + Illustrator   | $12-49/month      |
+| Dependencies | Requires Illustrator | Standalone        |
+| Use Case     | Surface design       | Security + Art    |
+| Sharing      | File-based           | DNA codes + Cloud |
+| Automation   | Manual               | AI-assisted       |
 
 ---
 
 ## Success Metrics
 
 ### Phase 1 Completion Criteria
+
 - [ ] All three pattern modes (rosette, border, grid) functional
 - [ ] Image modulation producing quality emboss effects
 - [ ] Microtext readable at 0.5pt
 - [ ] Hatch effects matching CERBERUS quality
 
 ### Phase 2 Completion Criteria
+
 - [ ] All 17 wallpaper groups implemented
 - [ ] Counterchange patterns working with any color pair
 - [ ] Layer system matching Illustrator capabilities
 
 ### Phase 3 Completion Criteria
+
 - [ ] Vector tools usable for custom shapes
 - [ ] 3D surface mapping producing professional results
 - [ ] Animation export working across formats
 
 ### Phase 4 Completion Criteria
+
 - [ ] Security features meeting banking standards
 - [ ] Batch processing handling 1000+ variations
 - [ ] Color management passing print proofing tests
@@ -419,6 +463,7 @@ type ExtendedExportFormat = ExportFormat |
 Guilloche Studio already has significant advantages over both competitors in terms of accessibility, pricing, and modern features (AI, collaboration, web-based). By implementing the roadmap above, we will achieve feature parity within 20 weeks while maintaining our unique advantages.
 
 The key differentiators will be:
+
 1. **Accessibility** - No expensive software or installation required
 2. **AI Integration** - Intelligent parameter suggestions
 3. **Community** - Marketplace and pattern sharing
