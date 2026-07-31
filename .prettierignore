@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+pnpm-lock.yaml
+
+# Build outputs
+dist/
+build/
+.svelte-kit/
+.vercel/
+.cloudflare/
+.wrangler/
+.turbo/
+
+# Rust/WASM
+target/
+pkg/
+*.wasm
+
+# Testing
+coverage/
+playwright-report/
+test-results/
+
+# Generated / vendored assets
+static/fonts/
+*.min.js
+*.min.css
+
+# Unreferenced standalone prototype; not part of the SvelteKit build or deploy.
+index.html

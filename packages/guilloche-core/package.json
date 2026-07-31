@@ -14,12 +14,17 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "check": "tsc --noEmit",
-    "test": "vitest"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@guilloche/shared": "workspace:*"
+    "@guilloche/shared": "workspace:*",
+    "clipper2-js": "^1.2.4",
+    "rbush": "^4.0.1"
   },
   "devDependencies": {
+    "@types/rbush": "^4.0.0",
     "typescript": "^5.4.0",
     "vitest": "^1.4.0"
   }
