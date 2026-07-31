@@ -1,7 +1,7 @@
 # CodeQL configuration for Guilloche Studio
 # https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/customizing-code-scanning
 
-name: "Guilloche Studio CodeQL Config"
+name: 'Guilloche Studio CodeQL Config'
 
 # Specify additional queries to run
 queries:
@@ -25,8 +25,8 @@ paths-ignore:
   - '**/tests'
   - '**/__tests__'
   - '**/test'
-  - '**/pkg'  # WASM build output
-  - '**/target'  # Rust build output
+  - '**/pkg' # WASM build output
+  - '**/target' # Rust build output
 
 # Query filters to customize which alerts are reported
 query-filters:

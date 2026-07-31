@@ -4,142 +4,142 @@
 version: 2
 updates:
   # NPM/pnpm dependencies
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: 'npm'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "America/Los_Angeles"
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'America/Los_Angeles'
     open-pull-requests-limit: 10
     commit-message:
-      prefix: "deps"
-      prefix-development: "deps(dev)"
+      prefix: 'deps'
+      prefix-development: 'deps(dev)'
     labels:
-      - "dependencies"
-      - "npm"
+      - 'dependencies'
+      - 'npm'
     groups:
       # Group minor and patch updates for production dependencies
       production-minor:
         patterns:
-          - "*"
+          - '*'
         exclude-patterns:
-          - "@types/*"
-          - "typescript"
-          - "vitest"
-          - "playwright"
-          - "eslint*"
-          - "prettier"
+          - '@types/*'
+          - 'typescript'
+          - 'vitest'
+          - 'playwright'
+          - 'eslint*'
+          - 'prettier'
         update-types:
-          - "minor"
-          - "patch"
+          - 'minor'
+          - 'patch'
       # Group TypeScript and type definitions
       typescript:
         patterns:
-          - "@types/*"
-          - "typescript"
+          - '@types/*'
+          - 'typescript'
         update-types:
-          - "minor"
-          - "patch"
+          - 'minor'
+          - 'patch'
       # Group testing tools
       testing:
         patterns:
-          - "vitest"
-          - "@vitest/*"
-          - "@testing-library/*"
-          - "playwright"
-          - "@playwright/*"
+          - 'vitest'
+          - '@vitest/*'
+          - '@testing-library/*'
+          - 'playwright'
+          - '@playwright/*'
         update-types:
-          - "minor"
-          - "patch"
+          - 'minor'
+          - 'patch'
       # Group linting tools
       linting:
         patterns:
-          - "eslint*"
-          - "@eslint/*"
-          - "prettier"
-          - "@sveltejs/eslint-*"
+          - 'eslint*'
+          - '@eslint/*'
+          - 'prettier'
+          - '@sveltejs/eslint-*'
         update-types:
-          - "minor"
-          - "patch"
+          - 'minor'
+          - 'patch'
       # Group Svelte ecosystem
       svelte:
         patterns:
-          - "svelte"
-          - "@sveltejs/*"
-          - "svelte-*"
+          - 'svelte'
+          - '@sveltejs/*'
+          - 'svelte-*'
         update-types:
-          - "minor"
-          - "patch"
+          - 'minor'
+          - 'patch'
     ignore:
       # Ignore major updates for critical packages (review manually)
-      - dependency-name: "svelte"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "@sveltejs/kit"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "typescript"
-        update-types: ["version-update:semver-major"]
+      - dependency-name: 'svelte'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@sveltejs/kit'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
 
   # Rust/Cargo dependencies
-  - package-ecosystem: "cargo"
-    directory: "/packages/guilloche-wasm"
+  - package-ecosystem: 'cargo'
+    directory: '/packages/guilloche-wasm'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "America/Los_Angeles"
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'America/Los_Angeles'
     open-pull-requests-limit: 5
     commit-message:
-      prefix: "deps(rust)"
+      prefix: 'deps(rust)'
     labels:
-      - "dependencies"
-      - "rust"
+      - 'dependencies'
+      - 'rust'
     groups:
       # Group all Rust dependency updates
       rust-dependencies:
         patterns:
-          - "*"
+          - '*'
         update-types:
-          - "minor"
-          - "patch"
+          - 'minor'
+          - 'patch'
 
   # GitHub Actions
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: 'github-actions'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "America/Los_Angeles"
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'America/Los_Angeles'
     open-pull-requests-limit: 5
     commit-message:
-      prefix: "ci"
+      prefix: 'ci'
     labels:
-      - "dependencies"
-      - "github-actions"
+      - 'dependencies'
+      - 'github-actions'
     groups:
       # Group all GitHub Actions updates
       actions:
         patterns:
-          - "*"
+          - '*'
         update-types:
-          - "minor"
-          - "patch"
+          - 'minor'
+          - 'patch'
 
   # Docker (if applicable)
-  - package-ecosystem: "docker"
-    directory: "/"
+  - package-ecosystem: 'docker'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "America/Los_Angeles"
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'America/Los_Angeles'
     open-pull-requests-limit: 2
     commit-message:
-      prefix: "deps(docker)"
+      prefix: 'deps(docker)'
     labels:
-      - "dependencies"
-      - "docker"
+      - 'dependencies'
+      - 'docker'
 
 # Registries for private packages (uncomment if needed)
 # registries:
