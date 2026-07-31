@@ -193,8 +193,13 @@
                 </div>
 
                 <!-- License Type -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2"> License Type </label>
+                <div role="group" aria-labelledby="license-type-label">
+                  <span
+                    id="license-type-label"
+                    class="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    License Type
+                  </span>
                   <div class="space-y-2">
                     <label
                       class="flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-colors

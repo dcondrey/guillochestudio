@@ -9,7 +9,6 @@
     PlotterConnection,
     renderPathPreview,
     type PlotterConfig,
-    type MaterialPreset,
     type OptimizationResult,
     type PlotterStatus,
   } from '$lib/services/plotter';
@@ -122,13 +121,6 @@
     plotterConnection?.abort();
   }
 
-  function exportHPGL(): void {
-    if (!optimizationResult) return;
-
-    const hpgl = generateHPGL(optimizationResult.paths, currentConfig, currentMaterial);
-    dispatch('export', { format: 'hpgl', content: hpgl });
-  }
-
   function downloadHPGL(): void {
     if (!optimizationResult) return;
 
@@ -185,8 +177,11 @@
   <div class="p-4 space-y-6">
     <!-- Plotter Selection -->
     <div class="space-y-3">
-      <label class="block text-sm font-medium text-gray-300">Plotter Model</label>
+      <label for="plotter-model" class="block text-sm font-medium text-gray-300"
+        >Plotter Model</label
+      >
       <select
+        id="plotter-model"
         bind:value={selectedPlotter}
         on:change={optimize}
         class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
@@ -208,8 +203,9 @@
 
     <!-- Material Selection -->
     <div class="space-y-3">
-      <label class="block text-sm font-medium text-gray-300">Material</label>
+      <label for="plotter-material" class="block text-sm font-medium text-gray-300">Material</label>
       <select
+        id="plotter-material"
         bind:value={selectedMaterial}
         class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:border-indigo-500"
       >
@@ -226,8 +222,14 @@
 
     <!-- Preview Canvas -->
     <div class="space-y-2">
-      <div class="flex items-center justify-between">
-        <label class="text-sm font-medium text-gray-300">Path Preview</label>
+      <div
+        role="group"
+        aria-labelledby="plotter-path-preview-label"
+        class="flex items-center justify-between"
+      >
+        <span id="plotter-path-preview-label" class="text-sm font-medium text-gray-300"
+          >Path Preview</span
+        >
         <label class="flex items-center gap-2 text-sm text-gray-400">
           <input
             type="checkbox"
@@ -281,8 +283,10 @@
     {/if}
 
     <!-- Connection Section -->
-    <div class="space-y-3">
-      <label class="block text-sm font-medium text-gray-300">Direct Connection</label>
+    <div role="group" aria-labelledby="plotter-connection-label" class="space-y-3">
+      <span id="plotter-connection-label" class="block text-sm font-medium text-gray-300"
+        >Direct Connection</span
+      >
 
       {#if !plotterStatus?.connected}
         <button
@@ -397,8 +401,8 @@
     </div>
 
     <!-- Export Buttons -->
-    <div class="space-y-3">
-      <label class="block text-sm font-medium text-gray-300">Export</label>
+    <div role="group" aria-labelledby="plotter-export-label" class="space-y-3">
+      <span id="plotter-export-label" class="block text-sm font-medium text-gray-300">Export</span>
       <div class="grid grid-cols-2 gap-3">
         <button
           on:click={downloadHPGL}

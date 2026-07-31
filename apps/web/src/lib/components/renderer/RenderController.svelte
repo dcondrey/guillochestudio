@@ -1,6 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
-  import type { RenderConfig, RenderState, RenderResult } from '$lib/services/progressive-renderer';
+  import type { RenderConfig, RenderState } from '$lib/services/progressive-renderer';
   import { detectCapabilities, type EngineCapabilities } from '$lib/services/wasm-engine';
   import { onMount } from 'svelte';
 
@@ -47,12 +47,6 @@
     { value: 'high', label: 'High', description: 'More detail' },
     { value: 'ultra', label: 'Ultra', description: 'Maximum quality' },
   ] as const;
-
-  // Format time
-  function formatTime(ms: number): string {
-    if (ms < 1000) return `${Math.round(ms)}ms`;
-    return `${(ms / 1000).toFixed(1)}s`;
-  }
 </script>
 
 <div class="render-controller" class:disabled>
@@ -97,8 +91,8 @@
   <!-- Controls -->
   <div class="controls">
     <div class="control-row">
-      <div class="control-group">
-        <label class="control-label">Quality</label>
+      <div role="group" aria-labelledby="render-quality-label" class="control-group">
+        <span id="render-quality-label" class="control-label">Quality</span>
         <div class="quality-selector">
           {#each qualityPresets as preset}
             <button
@@ -114,8 +108,8 @@
         </div>
       </div>
 
-      <div class="control-group">
-        <label class="control-label">Engine</label>
+      <div role="group" aria-labelledby="render-engine-label" class="control-group">
+        <span id="render-engine-label" class="control-label">Engine</span>
         <div class="engine-selector">
           <button
             class="engine-button"

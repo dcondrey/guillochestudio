@@ -10,7 +10,6 @@
     estimateJobTime,
     downloadGCode,
     downloadDXF,
-    type MachineProfile,
     type CNCSettings,
     type LaserSettings,
     type DXFOptions,
@@ -225,8 +224,9 @@
       <div class="flex-1 overflow-y-auto p-4 space-y-4">
         <!-- Machine Selection -->
         <div class="space-y-2">
-          <label class="block text-sm font-medium text-gray-300">Machine</label>
+          <label for="cnc-machine" class="block text-sm font-medium text-gray-300">Machine</label>
           <select
+            id="cnc-machine"
             bind:value={selectedMachineId}
             class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white text-sm"
           >
@@ -252,8 +252,11 @@
         {#if activeTab === 'laser'}
           <!-- Laser Settings -->
           <div class="space-y-3">
-            <label class="block text-sm font-medium text-gray-300">Material Preset</label>
+            <label for="cnc-material-preset" class="block text-sm font-medium text-gray-300"
+              >Material Preset</label
+            >
             <select
+              id="cnc-material-preset"
               bind:value={selectedMaterialPreset}
               on:change={() => applyMaterialPreset(selectedMaterialPreset)}
               class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white text-sm"
@@ -265,8 +268,8 @@
             </select>
           </div>
 
-          <div class="space-y-3">
-            <label class="block text-sm font-medium text-gray-300">Mode</label>
+          <div role="group" aria-labelledby="laser-mode-label" class="space-y-3">
+            <span id="laser-mode-label" class="block text-sm font-medium text-gray-300">Mode</span>
             <div class="grid grid-cols-3 gap-2">
               <button
                 class="px-3 py-2 text-sm rounded capitalize transition-colors"
@@ -303,18 +306,26 @@
 
           <div class="space-y-2">
             <div class="flex justify-between">
-              <label class="text-sm font-medium text-gray-300">Power</label>
+              <label for="laser-power" class="text-sm font-medium text-gray-300">Power</label>
               <span class="text-sm text-indigo-400">{laserSettings.power}%</span>
             </div>
-            <input type="range" bind:value={laserSettings.power} min="1" max="100" class="w-full" />
+            <input
+              id="laser-power"
+              type="range"
+              bind:value={laserSettings.power}
+              min="1"
+              max="100"
+              class="w-full"
+            />
           </div>
 
           <div class="space-y-2">
             <div class="flex justify-between">
-              <label class="text-sm font-medium text-gray-300">Speed</label>
+              <label for="laser-speed" class="text-sm font-medium text-gray-300">Speed</label>
               <span class="text-sm text-indigo-400">{laserSettings.speed} mm/min</span>
             </div>
             <input
+              id="laser-speed"
               type="range"
               bind:value={laserSettings.speed}
               min="100"
@@ -326,8 +337,9 @@
 
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="text-xs text-gray-500">Passes</label>
+              <label for="laser-passes" class="text-xs text-gray-500">Passes</label>
               <input
+                id="laser-passes"
                 type="number"
                 bind:value={laserSettings.passes}
                 min="1"
@@ -348,8 +360,9 @@
         {:else if activeTab === 'cnc'}
           <!-- CNC Settings -->
           <div class="space-y-3">
-            <label class="block text-sm font-medium text-gray-300">Tool</label>
+            <label for="cnc-tool" class="block text-sm font-medium text-gray-300">Tool</label>
             <select
+              id="cnc-tool"
               bind:value={selectedTool}
               class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white text-sm"
             >
@@ -359,8 +372,10 @@
             </select>
           </div>
 
-          <div class="space-y-3">
-            <label class="block text-sm font-medium text-gray-300">Operation</label>
+          <div role="group" aria-labelledby="cnc-operation-label" class="space-y-3">
+            <span id="cnc-operation-label" class="block text-sm font-medium text-gray-300"
+              >Operation</span
+            >
             <div class="grid grid-cols-2 gap-2">
               <button
                 class="px-3 py-2 text-sm rounded capitalize transition-colors"
@@ -407,8 +422,9 @@
 
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="text-xs text-gray-500">Feed Rate (mm/min)</label>
+              <label for="cnc-feed-rate" class="text-xs text-gray-500">Feed Rate (mm/min)</label>
               <input
+                id="cnc-feed-rate"
                 type="number"
                 bind:value={cncSettings.feedRate}
                 min="100"
@@ -418,8 +434,10 @@
               />
             </div>
             <div>
-              <label class="text-xs text-gray-500">Plunge Rate (mm/min)</label>
+              <label for="cnc-plunge-rate" class="text-xs text-gray-500">Plunge Rate (mm/min)</label
+              >
               <input
+                id="cnc-plunge-rate"
                 type="number"
                 bind:value={cncSettings.plungeRate}
                 min="50"
@@ -432,8 +450,11 @@
 
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="text-xs text-gray-500">Spindle Speed (RPM)</label>
+              <label for="cnc-spindle-speed" class="text-xs text-gray-500"
+                >Spindle Speed (RPM)</label
+              >
               <input
+                id="cnc-spindle-speed"
                 type="number"
                 bind:value={cncSettings.spindleSpeed}
                 min="1000"
@@ -443,8 +464,9 @@
               />
             </div>
             <div>
-              <label class="text-xs text-gray-500">Passes</label>
+              <label for="cnc-passes" class="text-xs text-gray-500">Passes</label>
               <input
+                id="cnc-passes"
                 type="number"
                 bind:value={cncSettings.passes}
                 min="1"
@@ -455,8 +477,10 @@
           </div>
 
           <div>
-            <label class="text-xs text-gray-500">Depth per Pass (mm)</label>
+            <label for="cnc-depth-per-pass" class="text-xs text-gray-500">Depth per Pass (mm)</label
+            >
             <input
+              id="cnc-depth-per-pass"
               type="number"
               bind:value={cncSettings.depthPerPass}
               min="0.1"
@@ -476,8 +500,8 @@
           </label>
         {:else if activeTab === 'dxf'}
           <!-- DXF Options -->
-          <div class="space-y-3">
-            <label class="block text-sm font-medium text-gray-300">Units</label>
+          <div role="group" aria-labelledby="dxf-units-label" class="space-y-3">
+            <span id="dxf-units-label" class="block text-sm font-medium text-gray-300">Units</span>
             <div class="grid grid-cols-2 gap-2">
               <button
                 class="px-3 py-2 text-sm rounded transition-colors"
@@ -509,8 +533,11 @@
           </div>
 
           <div class="space-y-2">
-            <label class="block text-sm font-medium text-gray-300">DXF Version</label>
+            <label for="dxf-version" class="block text-sm font-medium text-gray-300"
+              >DXF Version</label
+            >
             <select
+              id="dxf-version"
               bind:value={dxfOptions.version}
               class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white text-sm"
             >
@@ -532,8 +559,9 @@
           </label>
 
           <div>
-            <label class="text-xs text-gray-500">Decimal Precision</label>
+            <label for="dxf-precision" class="text-xs text-gray-500">Decimal Precision</label>
             <input
+              id="dxf-precision"
               type="number"
               bind:value={dxfOptions.precision}
               min="1"

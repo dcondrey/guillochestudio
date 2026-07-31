@@ -16,7 +16,7 @@
   aria-label="Loading pattern cards"
 >
   <span class="sr-only">Loading {count} pattern {count === 1 ? 'card' : 'cards'}</span>
-  {#each Array(count) as _, i}
+  {#each Array(count) as _}
     <div class="pattern-card-skeleton" aria-hidden="true">
       <div class="thumbnail">
         <Skeleton
