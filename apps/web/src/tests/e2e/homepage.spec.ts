@@ -6,90 +6,77 @@ test.describe('Homepage', () => {
   });
 
   test('should load the homepage successfully', async ({ page }) => {
-    // Check the page title
     await expect(page).toHaveTitle(/Guilloch[ée] Studio/i);
   });
 
   test('should display the hero section with main heading', async ({ page }) => {
-    // Check for hero section content
-    const heading = page.locator('h1');
-    await expect(heading).toContainText(/create|mathematical|patterns/i);
+    // The hero h1 is split across lines ("Precision, / by design."), so assert on
+    // the section rather than a single copy string that the next redesign will break.
+    const heading = page.locator('main h1').first();
+    await expect(heading).toBeVisible();
+    await expect(heading).not.toBeEmpty();
   });
 
   test('should display the navigation bar with logo', async ({ page }) => {
-    // Check for logo/brand
     await expect(page.getByText(/Guilloch[ée] Studio/i).first()).toBeVisible();
   });
 
-  test('should show sign in and get started buttons for unauthenticated users', async ({
-    page,
-  }) => {
-    // Check for auth buttons
-    await expect(page.getByRole('link', { name: /sign in/i })).toBeVisible();
+  test('should show log in and get started links for unauthenticated users', async ({ page }) => {
+    await expect(page.getByRole('link', { name: /log in/i })).toBeVisible();
     await expect(page.getByRole('link', { name: /get started/i })).toBeVisible();
   });
 
-  test('should display features section', async ({ page }) => {
-    // Scroll to features section
-    const featuresSection = page.locator('#features');
-    await featuresSection.scrollIntoViewIfNeeded();
+  test('should display the capabilities section', async ({ page }) => {
+    const capabilities = page.locator('#capabilities');
+    await capabilities.scrollIntoViewIfNeeded();
 
-    // Check for features heading
-    await expect(page.getByRole('heading', { name: /everything you need/i })).toBeVisible();
-
-    // Check for specific feature cards
-    await expect(page.getByText(/mathematical precision/i)).toBeVisible();
-    await expect(page.getByText(/symmetry engine/i)).toBeVisible();
-    await expect(page.getByText(/wasm performance/i)).toBeVisible();
+    await expect(page.getByRole('heading', { name: /capabilities/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /vector perfection/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /security core/i })).toBeVisible();
   });
 
-  test('should display pricing section with plans', async ({ page }) => {
-    // Scroll to pricing section
-    await page.getByRole('heading', { name: /pricing/i }).scrollIntoViewIfNeeded();
+  test('should display pricing section with all three plans', async ({ page }) => {
+    const pricing = page.locator('#pricing');
+    await pricing.scrollIntoViewIfNeeded();
 
-    // Check for pricing heading
-    await expect(page.getByRole('heading', { name: /pricing/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /simple licensing/i })).toBeVisible();
 
-    // Check for pricing plans
-    await expect(page.getByText(/free/i).first()).toBeVisible();
+    for (const plan of ['Free', 'Pro', 'Enterprise']) {
+      await expect(pricing.getByRole('heading', { name: plan, exact: true })).toBeVisible();
+    }
   });
 
-  test('should navigate to studio when clicking "Try the Studio"', async ({ page }) => {
-    // Click the try studio button
-    await page.getByRole('link', { name: /try the studio/i }).click();
-
-    // Should navigate to studio
+  test('should navigate to studio from the primary call to action', async ({ page }) => {
+    // "Launch Engine" appears twice: the hero CTA and the closing CTA.
+    await page
+      .getByRole('link', { name: /launch engine/i })
+      .first()
+      .click();
     await expect(page).toHaveURL(/\/studio/);
   });
 
-  test('should navigate to login when clicking "Sign In"', async ({ page }) => {
-    // Click sign in
-    await page.getByRole('link', { name: /sign in/i }).click();
-
-    // Should navigate to login page
+  test('should navigate to login when clicking "Log in"', async ({ page }) => {
+    await page.getByRole('link', { name: /log in/i }).click();
     await expect(page).toHaveURL(/\/auth\/login/);
   });
 
-  test('should navigate to signup when clicking "Get Started Free"', async ({ page }) => {
-    // Click get started
+  test('should navigate to signup when clicking "Get Started"', async ({ page }) => {
     await page
       .getByRole('link', { name: /get started/i })
       .first()
       .click();
-
-    // Should navigate to signup page
     await expect(page).toHaveURL(/\/auth\/signup/);
   });
 
-  test('should display footer with links', async ({ page }) => {
-    // Scroll to footer
-    await page.locator('footer').scrollIntoViewIfNeeded();
+  test('should display footer with platform and legal links', async ({ page }) => {
+    const footer = page.locator('footer');
+    await footer.scrollIntoViewIfNeeded();
 
-    // Check for footer links
-    await expect(page.getByRole('link', { name: /about/i })).toBeVisible();
-    await expect(page.getByRole('link', { name: /documentation/i })).toBeVisible();
-    await expect(page.getByRole('link', { name: /privacy/i })).toBeVisible();
-    await expect(page.getByRole('link', { name: /terms/i })).toBeVisible();
+    await expect(footer.getByRole('link', { name: /documentation/i })).toBeVisible();
+    await expect(footer.getByRole('link', { name: /licensing/i })).toBeVisible();
+    await expect(footer.getByRole('link', { name: /privacy standards/i })).toBeVisible();
+    await expect(footer.getByRole('link', { name: /terms of use/i })).toBeVisible();
+    await expect(footer.getByRole('link', { name: /compliance/i })).toBeVisible();
   });
 
   test('should have proper meta description', async ({ page }) => {
@@ -98,13 +85,9 @@ test.describe('Homepage', () => {
   });
 
   test('should be responsive on mobile viewport', async ({ page }) => {
-    // Set mobile viewport
     await page.setViewportSize({ width: 375, height: 667 });
 
-    // Hero section should still be visible
-    await expect(page.locator('h1')).toBeVisible();
-
-    // Navigation should be visible (may be condensed on mobile)
+    await expect(page.locator('main h1').first()).toBeVisible();
     await expect(page.getByText(/Guilloch[ée] Studio/i).first()).toBeVisible();
   });
 });
