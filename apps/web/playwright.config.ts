@@ -8,6 +8,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Storage state file for authenticated sessions
 const STORAGE_STATE = path.join(__dirname, 'playwright/.auth/user.json');
 
+// One source of truth for where the app is served: the webServer command, the URL
+// Playwright waits on, and the baseURL tests navigate to must all agree.
+const WEB_SERVER_PORT = process.env.PLAYWRIGHT_PORT || (process.env.CI ? '4173' : '5173');
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || `http://localhost:${WEB_SERVER_PORT}`;
+
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
@@ -36,7 +41,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173',
+    baseURL: BASE_URL,
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -100,9 +105,13 @@ export default defineConfig({
   /* Run your local dev server before starting the tests */
   // CI serves the built app so tests exercise the production bundle. The URL has
   // to track baseURL, or Playwright waits on a port the tests never visit.
+  // --strictPort matters: without it vite silently binds the next free port when
+  // 5173 is taken, and Playwright then waits out its timeout on a dead URL.
   webServer: {
-    command: process.env.CI ? 'pnpm preview --port 4173 --strictPort' : 'pnpm dev',
-    url: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173',
+    command: process.env.CI
+      ? `pnpm preview --port ${WEB_SERVER_PORT} --strictPort`
+      : `pnpm dev --port ${WEB_SERVER_PORT} --strictPort`,
+    url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
   },

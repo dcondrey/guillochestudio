@@ -29,6 +29,9 @@ jobs:
   # Build the application first
   build:
     runs-on: ubuntu-latest
+    # Dependabot PRs run without repo secrets, so the build bakes in placeholder
+    # credentials and the preview server fails its env validation on startup.
+    if: github.actor != 'dependabot[bot]'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
