@@ -45,40 +45,15 @@ const envValidation = (() => {
 export const validatedEnv = envValidation;
 
 // =============================================================================
-// Security Headers & CSP
-// =============================================================================
-
-function getCSP(nonce: string): string {
-  const directives = [
-    "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'wasm-unsafe-eval' https://plausible.io https://js.stripe.com https://static.cloudflareinsights.com`,
-    `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
-    "img-src 'self' data: blob: https://*.supabase.co https://*.stripe.com",
-    "font-src 'self' data: https://fonts.gstatic.com",
-    "connect-src 'self' blob: https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://plausible.io https://cloudflareinsights.com",
-    "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
-    "worker-src 'self' blob:",
-    "child-src 'self' blob:",
-    "object-src 'none'",
-    "base-uri 'self'",
-    "form-action 'self'",
-    dev ? '' : 'upgrade-insecure-requests',
-  ].filter(Boolean);
-  return directives.join('; ');
-}
-
-// =============================================================================
 // Main Handler
 // =============================================================================
 
 export const handle: Handle = async ({ event, resolve }) => {
   // 1. Context
-  const nonce = crypto.randomUUID().replace(/-/g, '');
   const requestId = extractRequestId(event.request);
   const ip = event.request.headers.get('cf-connecting-ip') || event.getClientAddress();
   const logger = createRequestLogger(event.request, { ip });
 
-  event.locals.nonce = nonce;
   event.locals.requestId = requestId;
   event.locals.logger = logger;
 
@@ -121,19 +96,14 @@ export const handle: Handle = async ({ event, resolve }) => {
   event.locals.user = user;
 
   // 3. Resolve
-  // Note: nonce is stored in event.locals.nonce and used via %sveltekit.nonce% in app.html
-  // The CSP header is added in step 4 using the nonce
   const response = await resolve(event, {
     filterSerializedResponseHeaders: (name) =>
       name === 'content-range' || name === 'x-supabase-api-version',
   });
 
   // 4. Finalize Headers
-  const isHtml = response.headers.get('content-type')?.includes('text/html');
-  if (isHtml) {
-    response.headers.set('Content-Security-Policy', getCSP(nonce));
-  }
-
+  // Content-Security-Policy is emitted by SvelteKit from kit.csp in svelte.config.js,
+  // so that its inline hydration script carries a matching nonce.
   response.headers.set('X-Frame-Options', 'SAMEORIGIN');
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');

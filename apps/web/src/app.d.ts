@@ -179,7 +179,6 @@ declare global {
       safeGetSession: () => Promise<{ session: Session | null; user: User | null }>;
       session: Session | null;
       user: User | null;
-      nonce: string;
       rateLimitHeaders?: Record<string, string>;
       /** Unique request ID for tracing and correlation */
       requestId: string;

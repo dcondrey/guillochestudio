@@ -904,8 +904,9 @@
                         on:change={(e) =>
                           updateActiveLayerParam('reflectH', e.currentTarget.checked)}
                         class="accent-blue-600"
+                        aria-label="Horizontal reflection"
                       />
-                      <span class="text-[9px] font-semibold uppercase">↔ H</span>
+                      <span aria-hidden="true" class="text-[9px] font-semibold uppercase">↔ H</span>
                     </label>
                     <label
                       class="flex items-center gap-2 p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100"
@@ -916,8 +917,9 @@
                         on:change={(e) =>
                           updateActiveLayerParam('reflectV', e.currentTarget.checked)}
                         class="accent-blue-600"
+                        aria-label="Vertical reflection"
                       />
-                      <span class="text-[9px] font-semibold uppercase">↕ V</span>
+                      <span aria-hidden="true" class="text-[9px] font-semibold uppercase">↕ V</span>
                     </label>
                     <label
                       class="flex items-center gap-2 p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100"
@@ -928,8 +930,9 @@
                         on:change={(e) =>
                           updateActiveLayerParam('kaleidoscope', e.currentTarget.checked)}
                         class="accent-blue-600"
+                        aria-label="Kaleidoscope"
                       />
-                      <span class="text-[9px] font-semibold uppercase">◇ K</span>
+                      <span aria-hidden="true" class="text-[9px] font-semibold uppercase">◇ K</span>
                     </label>
                   </div>
                 </div>
