@@ -592,12 +592,14 @@
           <button
             on:click={() => (activeTool = tool.id)}
             title={tool.title}
+            aria-label={tool.title}
+            aria-pressed={activeTool === tool.id}
             class="w-10 h-10 text-[10px] font-semibold uppercase rounded-xl transition-all
                           {activeTool === tool.id
               ? 'bg-white text-black shadow-sm'
               : 'text-gray-400 hover:text-gray-600'}"
           >
-            {tool.label}
+            <span aria-hidden="true">{tool.label}</span>
           </button>
         {/each}
       </nav>
@@ -608,18 +610,21 @@
         <button
           on:click={undo}
           title="Undo (Cmd+Z)"
+          aria-label="Undo"
           class="w-10 h-10 flex items-center justify-center bg-gray-50 hover:bg-gray-100 rounded-full transition-all text-xs"
           >↶</button
         >
         <button
           on:click={redo}
           title="Redo (Cmd+Shift+Z)"
+          aria-label="Redo"
           class="w-10 h-10 flex items-center justify-center bg-gray-50 hover:bg-gray-100 rounded-full transition-all text-xs"
           >↷</button
         >
         <button
           on:click={resetView}
           title="Reset View"
+          aria-label="Reset view"
           class="w-10 h-10 flex items-center justify-center bg-gray-50 hover:bg-gray-100 rounded-full transition-all text-xs"
           >⌂</button
         >

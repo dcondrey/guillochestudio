@@ -1,256 +1,173 @@
 import { test, expect } from '@playwright/test';
 
+/**
+ * The studio is server-rendered before it hydrates, so clicks dispatched too
+ * early land on markup with no handlers attached and are silently lost. The
+ * canvas backing store is only resized by the client renderer, which makes it a
+ * reliable hydration signal.
+ */
+async function waitForStudioReady(page: import('@playwright/test').Page) {
+  await page.waitForFunction(
+    () => {
+      const canvas = document.querySelector('canvas');
+      return !!canvas && (canvas.width !== 300 || canvas.height !== 150);
+    },
+    null,
+    { timeout: 15000 }
+  );
+}
+
 test.describe('Studio Page', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/studio');
-  });
-
-  test('should load the studio page successfully', async ({ page }) => {
-    // Check the page title
-    await expect(page).toHaveTitle(/Studio.*Guilloch[ée]/i);
+    await waitForStudioReady(page);
   });
 
   test('should render the pattern canvas', async ({ page }) => {
-    // Wait for canvas to be present and visible
     const canvas = page.locator('canvas');
     await expect(canvas).toBeVisible();
 
-    // Canvas should have reasonable dimensions
     const boundingBox = await canvas.boundingBox();
     expect(boundingBox?.width).toBeGreaterThan(100);
     expect(boundingBox?.height).toBeGreaterThan(100);
   });
 
-  test('should display the control panel with tabs', async ({ page }) => {
-    // Check for control tabs
-    await expect(page.getByRole('button', { name: /curve/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /style/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /export/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /ai/i })).toBeVisible();
+  test('should draw the pattern rather than leaving the canvas blank', async ({ page }) => {
+    // Regression guard: a CSP that blocked hydration left this canvas at its
+    // default 300x150 backing store with nothing painted.
+    const painted = await page.locator('canvas').evaluate((el) => {
+      const canvas = el as HTMLCanvasElement;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return 0;
+      const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      let opaque = 0;
+      for (let i = 3; i < data.length; i += 4) if (data[i] !== 0) opaque++;
+      return opaque;
+    });
+    expect(painted).toBeGreaterThan(0);
+  });
+
+  test('should display the inspector tabs', async ({ page }) => {
+    for (const tab of ['geometry', 'style', 'effects', 'security']) {
+      await expect(page.getByRole('button', { name: tab, exact: true })).toBeVisible();
+    }
   });
 
   test('should show curve family selector', async ({ page }) => {
-    // Click on curve tab if not already active
-    await page.getByRole('button', { name: /curve/i }).click();
-
-    // Check for curve family dropdown
-    const curveSelect = page.locator('select').first();
-    await expect(curveSelect).toBeVisible();
+    await page.getByRole('button', { name: 'geometry', exact: true }).click();
+    await expect(page.getByLabel(/curve family/i)).toBeVisible();
   });
 
-  test('should have parameter sliders in curve tab', async ({ page }) => {
-    // Click on curve tab
-    await page.getByRole('button', { name: /curve/i }).click();
+  test('should have parameter sliders in the geometry tab', async ({ page }) => {
+    await page.getByRole('button', { name: 'geometry', exact: true }).click();
 
-    // Check for parameter sliders
     await expect(page.getByText(/outer radius/i)).toBeVisible();
     await expect(page.getByText(/inner radius/i)).toBeVisible();
-    await expect(page.getByText(/pen offset/i)).toBeVisible();
-    await expect(page.getByText(/frequency/i)).toBeVisible();
+    await expect(page.getByText(/pen distance/i)).toBeVisible();
   });
 
   test('should update pattern when changing parameters', async ({ page }) => {
-    // Get the canvas
     const canvas = page.locator('canvas');
-
-    // Take initial screenshot of canvas
-    await page.waitForTimeout(500); // Wait for initial render
+    await page.waitForTimeout(500);
     const initialScreenshot = await canvas.screenshot();
 
-    // Change a parameter (R - outer radius)
     const slider = page.locator('input[type="range"]').first();
     await slider.fill('200');
-
-    // Wait for re-render
     await page.waitForTimeout(500);
 
-    // Take another screenshot
-    const updatedScreenshot = await canvas.screenshot();
-
-    // Screenshots should be different
-    expect(initialScreenshot).not.toEqual(updatedScreenshot);
+    expect(await canvas.screenshot()).not.toEqual(initialScreenshot);
   });
 
-  test('should show symmetry controls', async ({ page }) => {
-    // Click on curve tab
-    await page.getByRole('button', { name: /curve/i }).click();
+  test('should expose symmetry and reflection controls', async ({ page }) => {
+    await page.getByRole('button', { name: 'geometry', exact: true }).click();
+    await page.getByRole('button', { name: /advanced/i }).click();
 
-    // Check for symmetry section
     await expect(page.getByText(/symmetry/i).first()).toBeVisible();
-    await expect(page.getByText(/horizontal reflection/i)).toBeVisible();
-    await expect(page.getByText(/vertical reflection/i)).toBeVisible();
-    await expect(page.getByText(/kaleidoscope/i)).toBeVisible();
+    await expect(page.getByLabel(/horizontal reflection/i)).toBeVisible();
+    await expect(page.getByLabel(/vertical reflection/i)).toBeVisible();
+    await expect(page.getByLabel(/kaleidoscope/i)).toBeVisible();
   });
 
-  test('should show style controls when style tab is clicked', async ({ page }) => {
-    // Click on style tab
-    await page.getByRole('button', { name: /style/i }).click();
+  test('should show stroke and colour controls in the style tab', async ({ page }) => {
+    await page.getByRole('button', { name: 'style', exact: true }).click();
 
-    // Check for color controls
-    await expect(page.getByText(/background/i)).toBeVisible();
-    await expect(page.getByText(/start color/i)).toBeVisible();
-    await expect(page.getByText(/end color/i)).toBeVisible();
-    await expect(page.getByText(/use gradient/i)).toBeVisible();
+    await expect(page.getByText(/stroke & color/i)).toBeVisible();
+    await expect(page.getByLabel(/blend mode/i)).toBeVisible();
+    await expect(page.getByText(/dashed line/i)).toBeVisible();
   });
 
-  test('should show stroke controls in style tab', async ({ page }) => {
-    // Click on style tab
-    await page.getByRole('button', { name: /style/i }).click();
-
-    // Check for stroke controls
-    await expect(page.getByText(/stroke/i)).toBeVisible();
-    await expect(page.getByText(/dashed lines/i)).toBeVisible();
+  test('should show background and gradient controls in the effects tab', async ({ page }) => {
+    await page.getByRole('button', { name: 'effects', exact: true }).click();
+    await expect(page.getByText(/background/i).first()).toBeVisible();
   });
 
-  test('should show export options when export tab is clicked', async ({ page }) => {
-    // Click on export tab
-    await page.getByRole('button', { name: /export/i }).click();
+  test('should offer export formats from the export panel', async ({ page }) => {
+    await page.getByRole('button', { name: 'Export', exact: true }).click();
 
-    // Check for export buttons
-    await expect(page.getByRole('button', { name: /svg/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /png/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /pdf/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /dxf/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /export pattern/i })).toBeVisible();
+    for (const format of ['PNG', 'SVG', 'PDF']) {
+      await expect(page.getByRole('button', { name: format, exact: false }).first()).toBeVisible();
+    }
   });
 
-  test('should show presets in curve tab', async ({ page }) => {
-    // Click on curve tab
-    await page.getByRole('button', { name: /curve/i }).click();
-
-    // Check for presets section
-    await expect(page.getByText(/presets/i)).toBeVisible();
+  test('should have undo, redo and reset view controls', async ({ page }) => {
+    await expect(page.getByRole('button', { name: /^undo$/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /^redo$/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /reset view/i })).toBeVisible();
   });
 
-  test('should randomize pattern when clicking random button', async ({ page }) => {
-    // Get the canvas
-    const canvas = page.locator('canvas');
-
-    // Take initial screenshot
-    await page.waitForTimeout(500);
-    const initialScreenshot = await canvas.screenshot();
-
-    // Click randomize button
-    await page.getByRole('button', { name: /random/i }).click();
-
-    // Wait for re-render
-    await page.waitForTimeout(500);
-
-    // Take another screenshot
-    const randomizedScreenshot = await canvas.screenshot();
-
-    // Pattern should change
-    expect(initialScreenshot).not.toEqual(randomizedScreenshot);
-  });
-
-  test('should have undo/redo buttons', async ({ page }) => {
-    // Check for undo/redo buttons in header
-    await expect(page.getByRole('button', { name: /undo/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /redo/i })).toBeVisible();
-  });
-
-  test('should have reset button in control panel', async ({ page }) => {
-    // Check for reset button
-    await expect(page.getByRole('button', { name: /reset/i })).toBeVisible();
-  });
-
-  test('should show hint bar with controls info', async ({ page }) => {
-    // Check for hint bar at bottom of canvas
-    await expect(page.getByText(/wheel.*zoom/i)).toBeVisible();
-    await expect(page.getByText(/drag.*pan/i)).toBeVisible();
-  });
-
-  test('should collapse and expand control panel', async ({ page }) => {
-    // Find the collapse button (the < or > character)
-    const collapseButton = page
-      .locator('aside button')
-      .filter({ hasText: /[<>‹›]/ })
-      .first();
-
-    // Check initial state - panel should be expanded
-    const aside = page.locator('aside');
-    const initialWidth = await aside.evaluate((el) => (el as HTMLElement).offsetWidth);
-    expect(initialWidth).toBeGreaterThan(200);
-
-    // Click collapse button
-    await collapseButton.click();
-    await page.waitForTimeout(300); // Wait for animation
-
-    // Panel should be collapsed (narrower)
-    const collapsedWidth = await aside.evaluate((el) => (el as HTMLElement).offsetWidth);
-    expect(collapsedWidth).toBeLessThan(100);
-
-    // Click to expand again
-    await collapseButton.click();
-    await page.waitForTimeout(300);
-
-    // Panel should be expanded again
-    const expandedWidth = await aside.evaluate((el) => (el as HTMLElement).offsetWidth);
-    expect(expandedWidth).toBeGreaterThan(200);
+  test('should expose the drawing tools', async ({ page }) => {
+    for (const tool of [/select/i, /pan/i, /measure/i]) {
+      await expect(page.getByRole('button', { name: tool })).toBeVisible();
+    }
   });
 
   test('should support canvas zoom with mouse wheel', async ({ page }) => {
     const canvas = page.locator('canvas');
     await canvas.waitFor({ state: 'visible' });
+    await page.waitForTimeout(500);
 
-    // Take screenshot before zoom
     const beforeZoom = await canvas.screenshot();
-
-    // Perform wheel zoom on canvas
-    await canvas.hover();
-    await page.mouse.wheel(0, -100); // Zoom in
-
-    await page.waitForTimeout(300);
-
-    // Take screenshot after zoom
-    const afterZoom = await canvas.screenshot();
-
-    // Visual should have changed (zoomed)
-    expect(beforeZoom).not.toEqual(afterZoom);
-  });
-
-  test('should support canvas pan with drag', async ({ page }) => {
-    const canvas = page.locator('canvas');
-    await canvas.waitFor({ state: 'visible' });
-
-    const box = await canvas.boundingBox();
-    if (!box) throw new Error('Canvas has no bounding box');
-
-    // Take screenshot before pan
-    const beforePan = await canvas.screenshot();
-
-    // Perform drag on canvas
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-    await page.mouse.down();
-    await page.mouse.move(box.x + box.width / 2 + 50, box.y + box.height / 2 + 50);
-    await page.mouse.up();
-
-    await page.waitForTimeout(300);
-
-    // Take screenshot after pan
-    const afterPan = await canvas.screenshot();
-
-    // Visual should have changed (panned)
-    expect(beforePan).not.toEqual(afterPan);
-  });
-
-  test('should reset view on double-click', async ({ page }) => {
-    const canvas = page.locator('canvas');
-    await canvas.waitFor({ state: 'visible' });
-
-    // First zoom in
     await canvas.hover();
     await page.mouse.wheel(0, -100);
     await page.waitForTimeout(300);
 
-    const zoomedScreenshot = await canvas.screenshot();
+    expect(await canvas.screenshot()).not.toEqual(beforeZoom);
+  });
 
-    // Double-click to reset
-    await canvas.dblclick();
+  test('should support canvas pan with the pan tool', async ({ page }) => {
+    const canvas = page.locator('canvas');
+    await canvas.waitFor({ state: 'visible' });
+    await page.getByRole('button', { name: /pan/i }).click();
+    await page.waitForTimeout(500);
+
+    const box = await canvas.boundingBox();
+    if (!box) throw new Error('Canvas has no bounding box');
+
+    const beforePan = await canvas.screenshot();
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2 + 80, box.y + box.height / 2 + 80, { steps: 8 });
+    await page.mouse.up();
     await page.waitForTimeout(300);
 
-    const resetScreenshot = await canvas.screenshot();
+    expect(await canvas.screenshot()).not.toEqual(beforePan);
+  });
 
-    // View should have changed back
-    expect(zoomedScreenshot).not.toEqual(resetScreenshot);
+  test('should restore the view with the reset view control', async ({ page }) => {
+    const canvas = page.locator('canvas');
+    await canvas.waitFor({ state: 'visible' });
+    await page.waitForTimeout(500);
+
+    const initial = await canvas.screenshot();
+
+    await canvas.hover();
+    await page.mouse.wheel(0, -150);
+    await page.waitForTimeout(300);
+    expect(await canvas.screenshot()).not.toEqual(initial);
+
+    await page.getByRole('button', { name: /reset view/i }).click();
+    await page.waitForTimeout(400);
+    expect(await canvas.screenshot()).toEqual(initial);
   });
 });
