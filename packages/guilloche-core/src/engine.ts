@@ -12,6 +12,9 @@ import {
   DEFAULT_GRID_CONFIG,
 } from '@guilloche/shared';
 
+/** Fraction of the pattern radius that a noise value of 1.0 displaces a point by. */
+const NOISE_SCALE = 0.02;
+
 /**
  * A 2D coordinate point
  */
@@ -50,6 +53,13 @@ export interface GeneratedPath {
   bounds: { minX: number; minY: number; maxX: number; maxY: number };
   /** Copy of the parameters used to generate this path */
   params: PatternParams;
+  /**
+   * Identity of the inputs that produced this geometry. Renderers key their own
+   * caches off this rather than re-deriving one from `params`, which previously
+   * drifted and let changes to symmetry, reflection, mode and noise redraw a
+   * stale path.
+   */
+  cacheKey?: string;
 }
 
 /**
@@ -106,7 +116,7 @@ export class GuillocheEngine {
     const p = this.params;
     // Build key from parameters that affect the computed path
     // Using template literals is ~10x faster than JSON.stringify for this use case
-    let key = `${p.mode}|${p.family}|${p.R}|${p.r}|${p.d}|${p.k}|${p.m}|${p.mf}|${p.phase}|${p.rot}|${p.s}|${p.steps}|${p.lw}|${p.symmetry}|${p.reflectH ? 1 : 0}|${p.reflectV ? 1 : 0}|${p.adaptiveSteps ? 1 : 0}`;
+    let key = `${p.mode}|${p.family}|${p.R}|${p.r}|${p.d}|${p.k}|${p.m}|${p.mf}|${p.phase}|${p.rot}|${p.s}|${p.steps}|${p.lw}|${p.symmetry}|${p.reflectH ? 1 : 0}|${p.reflectV ? 1 : 0}|${p.adaptiveSteps ? 1 : 0}|${p.noise}|${p.kaleidoscope ? 1 : 0}`;
 
     // Add mode-specific config
     if (p.mode === 'rosette' && p.rosette) {
@@ -159,12 +169,91 @@ export class GuillocheEngine {
         break;
     }
 
+    if (this.params.kaleidoscope) {
+      result = this.applyKaleidoscope(result);
+    }
+
+    if (this.params.noise > 0) {
+      result = this.applyNoise(result);
+    }
+
     if (this.params.crop?.active) {
       result = this.applyClipping(result);
     }
 
+    result = { ...result, cacheKey };
     this.pathCache.set(cacheKey, result);
     return result;
+  }
+
+  /**
+   * Jitter every point by up to ±noise. Applied once here rather than inside each
+   * mode generator so it covers curve, rosette, border and grid alike.
+   *
+   * The offsets come from a seeded generator, not Math.random: results are cached
+   * by parameter key, so an unseeded jitter would hand back one frozen realisation
+   * while making identical inputs render differently run to run.
+   */
+  /**
+   * Fold the pattern into a single quadrant by mirroring every point about both
+   * axes. The parameter existed and was surfaced in the studio, but no generator
+   * ever read it, so the control did nothing.
+   */
+  private applyKaleidoscope(path: GeneratedPath): GeneratedPath {
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    const segments = path.segments.map((segment) => ({
+      ...segment,
+      points: segment.points.map((point) => {
+        const x = Math.abs(point.x);
+        const y = Math.abs(point.y);
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
+        return { ...point, x, y };
+      }),
+    }));
+
+    return { ...path, segments, bounds: { minX, minY, maxX, maxY } };
+  }
+
+  private applyNoise(path: GeneratedPath): GeneratedPath {
+    // noise is a normalised 0..1 amount (the API schema bounds it there), so it is
+    // scaled against the pattern radius. Used raw it is sub-pixel on a default
+    // 240-unit pattern, which made the studio's slider look like it did nothing.
+    const amount = this.params.noise * Math.max(this.params.R, 1) * NOISE_SCALE;
+    let seed = 0x9e3779b9;
+    const random = () => {
+      seed |= 0;
+      seed = (seed + 0x6d2b79f5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    const segments = path.segments.map((segment) => ({
+      ...segment,
+      points: segment.points.map((point) => {
+        const x = point.x + (random() - 0.5) * amount;
+        const y = point.y + (random() - 0.5) * amount;
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
+        return { ...point, x, y };
+      }),
+    }));
+
+    return { ...path, segments, bounds: { minX, minY, maxX, maxY } };
   }
 
   /**

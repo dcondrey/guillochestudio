@@ -670,4 +670,81 @@ describe('GuillocheEngine', () => {
       }
     });
   });
+  describe('noise', () => {
+    // noise is normalised 0..1 and scaled against the radius inside the engine.
+    const base = { family: 'hypo' as const, steps: 400, symmetry: 1, R: 240 };
+    const maxDisplacement = (noise: number, R: number) => (noise * R * 0.02) / 2;
+
+    it('displaces points when enabled', () => {
+      engine.setParams({ ...base, noise: 0 });
+      const clean = engine.computePath().segments[0].points[100];
+
+      engine.setParams({ ...base, noise: 0.5 });
+      const noisy = engine.computePath().segments[0].points[100];
+
+      expect(noisy.x !== clean.x || noisy.y !== clean.y).toBe(true);
+    });
+
+    it('is deterministic, so cached and re-rendered output agree', () => {
+      engine.setParams({ ...base, noise: 0.5 });
+      const first = engine.computePath().segments[0].points[100];
+
+      engine.clearCache();
+      engine.setParams({ ...base, noise: 0.5 });
+      const second = engine.computePath().segments[0].points[100];
+
+      expect(second.x).toBe(first.x);
+      expect(second.y).toBe(first.y);
+    });
+
+    it('scales displacement with the pattern radius', () => {
+      engine.setParams({ ...base, noise: 0 });
+      const clean = engine.computePath().segments[0].points;
+
+      engine.setParams({ ...base, noise: 1 });
+      const noisy = engine.computePath().segments[0].points;
+
+      const bound = maxDisplacement(1, base.R);
+      let moved = 0;
+      for (let i = 0; i < clean.length; i++) {
+        const dx = Math.abs(noisy[i].x - clean[i].x);
+        const dy = Math.abs(noisy[i].y - clean[i].y);
+        expect(dx).toBeLessThanOrEqual(bound);
+        expect(dy).toBeLessThanOrEqual(bound);
+        if (dx > 0 || dy > 0) moved++;
+      }
+      // A full-strength noise value must be visible, not sub-pixel.
+      expect(bound).toBeGreaterThan(1);
+      expect(moved).toBeGreaterThan(clean.length * 0.9);
+    });
+  });
+  describe('kaleidoscope', () => {
+    const base = { family: 'hypo' as const, steps: 400, symmetry: 1, R: 240 };
+
+    it('folds the pattern into a single quadrant', () => {
+      engine.setParams({ ...base, kaleidoscope: false });
+      const plain = engine.computePath();
+      expect(plain.bounds.minX).toBeLessThan(0);
+
+      engine.setParams({ ...base, kaleidoscope: true });
+      const folded = engine.computePath();
+
+      expect(folded.bounds.minX).toBeGreaterThanOrEqual(0);
+      expect(folded.bounds.minY).toBeGreaterThanOrEqual(0);
+      for (const segment of folded.segments) {
+        for (const point of segment.points) {
+          expect(point.x).toBeGreaterThanOrEqual(0);
+          expect(point.y).toBeGreaterThanOrEqual(0);
+        }
+      }
+    });
+
+    it('participates in the cache key so toggling it redraws', () => {
+      engine.setParams({ ...base, kaleidoscope: false });
+      const off = engine.computePath().cacheKey;
+      engine.setParams({ ...base, kaleidoscope: true });
+      const on = engine.computePath().cacheKey;
+      expect(on).not.toBe(off);
+    });
+  });
 });

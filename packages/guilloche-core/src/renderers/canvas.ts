@@ -105,9 +105,18 @@ export class CanvasRenderer {
   /**
    * Generate a cache key for a path based on its parameters
    */
-  private generateCacheKey(path: GeneratedPath, optimized: boolean): string {
-    const params = path.params;
-    return `${params.family}-${params.R}-${params.r}-${params.d}-${params.k}-${params.m}-${params.phase}-${params.rot}-${params.s}-${params.steps}-${optimized}`;
+  /**
+   * Cache identity for a path, or null when it cannot be established.
+   *
+   * This used to be re-derived from a hand-picked subset of `params`, which
+   * omitted symmetry, mf, reflection, kaleidoscope, mode config and noise —
+   * changing any of those produced new geometry that collided with an existing
+   * key, so the renderer drew the previous pattern and the control looked dead.
+   * The engine now stamps its own key on the path; paths built elsewhere have
+   * none and skip the cache rather than risk a collision.
+   */
+  private generateCacheKey(path: GeneratedPath, optimized: boolean): string | null {
+    return path.cacheKey ? `${path.cacheKey}-${optimized}` : null;
   }
 
   /**
@@ -168,11 +177,13 @@ export class CanvasRenderer {
    */
   private getCachedPath(path: GeneratedPath, optimized: boolean, fitTolerance: number): CachedPath {
     const cacheKey = this.generateCacheKey(path, optimized);
-    const cached = this.pathCache.get(cacheKey);
 
-    if (cached) {
-      cached.cachedPath.timestamp = Date.now();
-      return cached.cachedPath;
+    if (cacheKey !== null) {
+      const cached = this.pathCache.get(cacheKey);
+      if (cached) {
+        cached.cachedPath.timestamp = Date.now();
+        return cached.cachedPath;
+      }
     }
 
     // Build new Path2D
@@ -189,6 +200,8 @@ export class CanvasRenderer {
       optimized,
       timestamp: Date.now(),
     };
+
+    if (cacheKey === null) return cachedPath;
 
     // Add to cache, evicting old entries if needed
     if (this.pathCache.size >= this.maxCacheSize) {
@@ -688,7 +701,7 @@ export class CanvasRenderer {
     }
 
     const cacheKey = this.generateCacheKey(path, true);
-    const cacheStatus = this.pathCache.has(cacheKey) ? 'hit' : 'miss';
+    const cacheStatus = cacheKey !== null && this.pathCache.has(cacheKey) ? 'hit' : 'miss';
 
     // Rough estimate: ~0.01ms per point for non-cached, ~0.001ms for cached
     const estimatedRenderTime = cacheStatus === 'hit' ? totalPoints * 0.001 : totalPoints * 0.01;
