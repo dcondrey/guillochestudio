@@ -14,20 +14,10 @@
 
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import Stripe from 'stripe';
 import { z } from 'zod';
-import { STRIPE_SECRET_KEY } from '$env/static/private';
-import { STRIPE_PRICES } from '$lib/config/stripe';
+import { getStripe, getStripePrices } from '$lib/server/stripe';
 import { validate } from '$lib/utils/validation';
 import { SecurityMiddleware, createSecurityErrorResponse } from '$lib/services/security-middleware';
-
-// =============================================================================
-// Stripe Client
-// =============================================================================
-
-const stripe = new Stripe(STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
-});
 
 // =============================================================================
 // Response Helpers
@@ -163,14 +153,14 @@ export const POST: RequestHandler = async (event) => {
   const { tier, interval } = validation.data!;
 
   // Get price ID from configuration
-  const priceId = STRIPE_PRICES[tier][interval];
+  const priceId = getStripePrices()[tier][interval];
 
   if (!priceId) {
     errorResponse('INVALID_PRICE', 'Invalid pricing configuration', 400);
   }
 
   try {
-    const checkoutSession = await stripe.checkout.sessions.create({
+    const checkoutSession = await getStripe().checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
       line_items: [

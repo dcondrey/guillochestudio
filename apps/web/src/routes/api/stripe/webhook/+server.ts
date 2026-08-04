@@ -5,29 +5,36 @@
 
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import Stripe from 'stripe';
-import {
-  STRIPE_SECRET_KEY,
-  STRIPE_WEBHOOK_SECRET,
-  SUPABASE_SERVICE_ROLE_KEY,
-} from '$env/static/private';
+import type Stripe from 'stripe';
+import { env } from '$env/dynamic/private';
 import { PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '$lib/types/database';
+import { getStripe } from '$lib/server/stripe';
 
 // =============================================================================
-// Stripe & Supabase Clients
+// Supabase Client
 // =============================================================================
 
-const stripe = new Stripe(STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
-});
+let serviceRoleClient: SupabaseClient | null = null;
 
-// Use service role key for webhook operations (bypasses RLS)
-const supabaseTyped = createClient<Database>(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
-// Untyped client for operations where type inference fails
-const supabase = supabaseTyped as SupabaseClient;
+/**
+ * Service-role client for webhook operations, which must bypass RLS.
+ * Built on first use so the key is read at runtime rather than compiled in.
+ */
+function getServiceRoleClient(): SupabaseClient {
+  if (!serviceRoleClient) {
+    const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!serviceRoleKey) {
+      throw new Error('SUPABASE_SERVICE_ROLE_KEY is not configured');
+    }
+    serviceRoleClient = createClient<Database>(
+      PUBLIC_SUPABASE_URL,
+      serviceRoleKey
+    ) as SupabaseClient;
+  }
+  return serviceRoleClient;
+}
 
 // =============================================================================
 // Response Helpers
@@ -49,6 +56,13 @@ function errorResponse(code: string, message: string, status: number): never {
 
 export const POST: RequestHandler = async ({ request, locals }) => {
   const logger = locals.logger;
+  const stripe = getStripe();
+  const supabase = getServiceRoleClient();
+
+  const webhookSecret = env.STRIPE_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    errorResponse('CONFIGURATION_ERROR', 'Webhook secret is not configured', 500);
+  }
 
   // Webhooks must use raw body for signature verification
   const body = await request.text();
@@ -61,7 +75,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   // Verify webhook signature
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(body, signature, STRIPE_WEBHOOK_SECRET);
+    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
   } catch (err) {
     logger.warn('Webhook signature verification failed', {
       reason: err instanceof Error ? err.message : String(err),

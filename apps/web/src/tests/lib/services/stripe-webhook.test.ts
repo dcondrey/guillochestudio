@@ -29,11 +29,13 @@ const mockFrom = vi.hoisted(() =>
   })
 );
 
-vi.mock('$env/static/private', () => ({
-  STRIPE_SECRET_KEY: 'sk_test_mock',
-  STRIPE_WEBHOOK_SECRET: 'whsec_mock',
-  SUPABASE_SERVICE_ROLE_KEY: 'service-role-key-mock',
-  PRIVATE_SIGNING_SECRET: 'signing-secret-mock',
+vi.mock('$env/dynamic/private', () => ({
+  env: {
+    STRIPE_SECRET_KEY: 'sk_test_mock',
+    STRIPE_WEBHOOK_SECRET: 'whsec_mock',
+    SUPABASE_SERVICE_ROLE_KEY: 'service-role-key-mock',
+    PRIVATE_SIGNING_SECRET: 'signing-secret-mock',
+  },
 }));
 
 vi.mock('$env/static/public', () => ({

@@ -15,19 +15,10 @@
 
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import Stripe from 'stripe';
-import { STRIPE_SECRET_KEY } from '$env/static/private';
+import { getStripe } from '$lib/server/stripe';
 import { PurchaseRequestSchema, validate } from '$lib/utils/validation';
 import { calculateLicensePrices, calculateRoyalty } from '$lib/services/marketplace';
 import { SecurityMiddleware, createSecurityErrorResponse } from '$lib/services/security-middleware';
-
-// =============================================================================
-// Stripe Client
-// =============================================================================
-
-const stripe = new Stripe(STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
-});
 
 // =============================================================================
 // Response Helpers
@@ -258,7 +249,7 @@ export const POST: RequestHandler = async (event) => {
     let stripeCustomerId = buyerProfile?.stripe_customer_id;
 
     if (!stripeCustomerId) {
-      const customer = await stripe.customers.create({
+      const customer = await getStripe().customers.create({
         email: user.email,
         metadata: {
           supabase_user_id: user.id,
@@ -295,7 +286,7 @@ export const POST: RequestHandler = async (event) => {
     }
 
     // Create Stripe Checkout session
-    const checkoutSession = await stripe.checkout.sessions.create({
+    const checkoutSession = await getStripe().checkout.sessions.create({
       customer: stripeCustomerId,
       payment_method_types: ['card'],
       line_items: [

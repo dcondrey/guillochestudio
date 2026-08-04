@@ -1,8 +1,10 @@
-// Stub for $env/static/private — overridden per-test by vi.mock()
-export const STRIPE_SECRET_KEY = '';
-export const STRIPE_WEBHOOK_SECRET = '';
-export const SUPABASE_SERVICE_ROLE_KEY = '';
-export const PRIVATE_SIGNING_SECRET = '';
-export const OPENAI_API_KEY = '';
-export const ANTHROPIC_API_KEY = '';
-export const SENTRY_DSN = '';
+// Stub for $env/dynamic/private — overridden per-test by vi.mock()
+export const env: Record<string, string> = {
+  STRIPE_SECRET_KEY: '',
+  STRIPE_WEBHOOK_SECRET: '',
+  SUPABASE_SERVICE_ROLE_KEY: '',
+  PRIVATE_SIGNING_SECRET: '',
+  OPENAI_API_KEY: '',
+  ANTHROPIC_API_KEY: '',
+  SENTRY_DSN: '',
+};

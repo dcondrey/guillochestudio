@@ -5,16 +5,7 @@
 
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import Stripe from 'stripe';
-import { STRIPE_SECRET_KEY } from '$env/static/private';
-
-// =============================================================================
-// Stripe Client
-// =============================================================================
-
-const stripe = new Stripe(STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
-});
+import { getStripe } from '$lib/server/stripe';
 
 // =============================================================================
 // Response Helpers
@@ -77,7 +68,7 @@ export const POST: RequestHandler = async ({ locals, url }) => {
     }
 
     // Create portal session
-    const portalSession = await stripe.billingPortal.sessions.create({
+    const portalSession = await getStripe().billingPortal.sessions.create({
       customer: profile.stripe_customer_id,
       return_url: `${url.origin}/settings`,
     });

@@ -33,7 +33,7 @@ export default defineConfig({
       $stores: resolve('./src/lib/stores'),
       $services: resolve('./src/lib/services'),
       $utils: resolve('./src/lib/utils'),
-      '$env/static/private': resolve('./src/tests/mocks/env-private.ts'),
+      '$env/dynamic/private': resolve('./src/tests/mocks/env-private.ts'),
       '$env/static/public': resolve('./src/tests/mocks/env-public.ts'),
     },
   },

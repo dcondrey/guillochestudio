@@ -7,7 +7,7 @@ import { dev } from '$app/environment';
 import type { Handle, HandleServerError } from '@sveltejs/kit';
 import { validateEnv, validateProductionStripeConfig } from '$lib/config/env';
 import * as publicEnv from '$env/static/public';
-import * as privateEnv from '$env/static/private';
+import { env as privateEnv } from '$env/dynamic/private';
 import {
   Logger,
   createRequestLogger,
@@ -20,7 +20,15 @@ import { createPerformanceMonitor } from '$lib/utils/performance';
 // Environment Validation
 // =============================================================================
 
-const envValidation = (() => {
+// Private env is only populated at request time (on Cloudflare it comes from the
+// platform bindings), so validation cannot run at module scope. It runs once on
+// the first request instead, and the outcome is cached.
+let envChecked = false;
+
+function validateEnvOnce(): void {
+  if (envChecked) return;
+  envChecked = true;
+
   try {
     const result = validateEnv(
       publicEnv as unknown as Record<string, string>,
@@ -33,22 +41,19 @@ const envValidation = (() => {
       PUBLIC_STRIPE_PUBLISHABLE_KEY: result.public.PUBLIC_STRIPE_PUBLISHABLE_KEY,
       STRIPE_SECRET_KEY: result.private?.STRIPE_SECRET_KEY,
     });
-
-    return result;
   } catch (error) {
     console.error(error);
     if (!dev) throw error;
-    return null;
   }
-})();
-
-export const validatedEnv = envValidation;
+}
 
 // =============================================================================
 // Main Handler
 // =============================================================================
 
 export const handle: Handle = async ({ event, resolve }) => {
+  validateEnvOnce();
+
   // 1. Context
   const requestId = extractRequestId(event.request);
   const ip = event.request.headers.get('cf-connecting-ip') || event.getClientAddress();
@@ -125,14 +130,10 @@ export const handleError: HandleServerError = async ({ error, event, message }) 
   const err = error instanceof Error ? error : new Error(String(error));
   logger.error(`Unhandled error: ${message}`, err);
 
-  if (!dev && (privateEnv as Record<string, string | undefined>)['SENTRY_DSN']) {
-    try {
-      const Sentry = await import('@sentry/sveltekit');
-      Sentry.captureException(err, { extra: { errorId, message, url: event.url.href } });
-    } catch {
-      // Sentry unavailable — error already logged above
-    }
-  }
+  // Server-side Sentry reporting is not wired up here: @sentry/sveltekit's server
+  // SDK targets Node, and pulling it into the Cloudflare worker bundle drags in its
+  // client entry, which imports $app/stores and fails the adapter's esbuild pass.
+  // @sentry/cloudflare is the supported package for this runtime.
 
   return { message: dev ? message : 'An unexpected error occurred', errorId };
 };
