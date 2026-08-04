@@ -9,6 +9,9 @@
     EXPORT_SIZES,
     getPathLength,
     getDefaultParams,
+    DEFAULT_ROSETTE_CONFIG,
+    DEFAULT_BORDER_CONFIG,
+    DEFAULT_GRID_CONFIG,
   } from '@guilloche/shared';
   import type { ExportFormat } from '@guilloche/shared';
   import { exportPDF, downloadPDF } from '$lib/services/pdf-export';
@@ -26,6 +29,7 @@
     moveLayer,
     moveLayerBy,
     resetLayerPosition,
+    updateActiveLayerModeConfig,
     saveToHistory,
     bakeActiveLayer,
     updateManualPath,
@@ -135,6 +139,101 @@
     { id: 'glow', label: 'Glow', min: 0, max: 20, step: 0.5 },
     { id: 'noise', label: 'Noise', min: 0, max: 1, step: 0.01 },
   ];
+
+  /**
+   * Controls for the rosette, border and grid modes. Every field here is one the
+   * engine actually reads — border.cornerStyle is deliberately absent because
+   * nothing consumes it.
+   */
+  type ModeField =
+    | { key: string; label: string; type: 'range'; min: number; max: number; step: number }
+    | { key: string; label: string; type: 'select'; options: string[] }
+    | { key: string; label: string; type: 'toggle' };
+
+  const modeFields: Record<'rosette' | 'border' | 'grid', ModeField[]> = {
+    rosette: [
+      {
+        key: 'envelope',
+        label: 'Envelope',
+        type: 'select',
+        options: ['circle', 'ellipse', 'polygon', 'star'],
+      },
+      { key: 'outerRadius', label: 'Outer Radius', type: 'range', min: 20, max: 400, step: 1 },
+      { key: 'innerRadius', label: 'Inner Radius', type: 'range', min: 0, max: 1, step: 0.01 },
+      { key: 'fillDensity', label: 'Fill Density', type: 'range', min: 1, max: 40, step: 1 },
+      { key: 'envelopeSides', label: 'Envelope Sides', type: 'range', min: 3, max: 16, step: 1 },
+      {
+        key: 'starPointiness',
+        label: 'Star Pointiness',
+        type: 'range',
+        min: 0,
+        max: 1,
+        step: 0.01,
+      },
+      { key: 'radialWave', label: 'Radial Wave', type: 'range', min: 0, max: 50, step: 0.5 },
+      { key: 'spiralTwist', label: 'Spiral Twist', type: 'range', min: -5, max: 5, step: 0.1 },
+    ],
+    border: [
+      { key: 'length', label: 'Length', type: 'range', min: 100, max: 2000, step: 10 },
+      { key: 'width', label: 'Width', type: 'range', min: 10, max: 400, step: 5 },
+      { key: 'repeatCount', label: 'Repeats', type: 'range', min: 1, max: 24, step: 1 },
+      { key: 'waveAmplitude', label: 'Wave Amplitude', type: 'range', min: 0, max: 100, step: 1 },
+      {
+        key: 'waveFrequency',
+        label: 'Wave Frequency',
+        type: 'range',
+        min: 0.5,
+        max: 12,
+        step: 0.5,
+      },
+      { key: 'taper', label: 'Taper', type: 'range', min: 0, max: 1, step: 0.01 },
+      { key: 'mirrorAlternate', label: 'Mirror Alternate', type: 'toggle' },
+    ],
+    grid: [
+      {
+        key: 'tileType',
+        label: 'Tile Type',
+        type: 'select',
+        options: ['square', 'hex', 'triangle', 'diamond'],
+      },
+      { key: 'rows', label: 'Rows', type: 'range', min: 1, max: 12, step: 1 },
+      { key: 'cols', label: 'Columns', type: 'range', min: 1, max: 12, step: 1 },
+      { key: 'tileWidth', label: 'Tile Width', type: 'range', min: 20, max: 300, step: 5 },
+      { key: 'tileHeight', label: 'Tile Height', type: 'range', min: 20, max: 300, step: 5 },
+      { key: 'spacing', label: 'Spacing', type: 'range', min: 0, max: 100, step: 1 },
+      { key: 'stagger', label: 'Stagger', type: 'range', min: 0, max: 1, step: 0.01 },
+      {
+        key: 'scaleVariation',
+        label: 'Scale Variation',
+        type: 'range',
+        min: 0,
+        max: 1,
+        step: 0.01,
+      },
+      { key: 'angle', label: 'Angle', type: 'range', min: 0, max: 6.28, step: 0.01 },
+      { key: 'rotateAlternate', label: 'Rotate Alternate', type: 'toggle' },
+    ],
+  };
+
+  const MODE_DEFAULTS = {
+    rosette: DEFAULT_ROSETTE_CONFIG,
+    border: DEFAULT_BORDER_CONFIG,
+    grid: DEFAULT_GRID_CONFIG,
+  } as const;
+
+  /** Current value of a mode field, falling back to the engine's own default. */
+  function modeValue(layer: any, mode: 'rosette' | 'border' | 'grid', key: string) {
+    const defaults = MODE_DEFAULTS[mode] as unknown as Record<string, unknown>;
+    return layer?.params?.[mode]?.[key] ?? defaults[key];
+  }
+
+  // Narrowed here rather than in the markup: Svelte template expressions cannot
+  // contain type syntax, so the union and the lookup both live in the script.
+  $: configMode =
+    $activeLayer?.params?.mode && $activeLayer.params.mode !== 'curve'
+      ? ($activeLayer.params.mode as 'rosette' | 'border' | 'grid')
+      : null;
+  $: currentModeFields = configMode ? modeFields[configMode] : [];
 
   function handleBlendModeChange(layerId: string, value: string) {
     updateLayerStyle(layerId, { blendMode: value as import('@guilloche/shared').BlendMode });
@@ -917,6 +1016,97 @@
                   {/each}
                 </div>
               </div>
+
+              <!-- Settings for the selected pattern mode -->
+              {#if configMode}
+                <div
+                  role="group"
+                  aria-labelledby="studio-mode-settings-label"
+                  class="space-y-5 pt-4 border-t border-gray-100"
+                  transition:slide={{ duration: 200 }}
+                >
+                  <span
+                    id="studio-mode-settings-label"
+                    class="block text-[9px] font-semibold uppercase tracking-widest text-blue-600"
+                    >{configMode} Settings</span
+                  >
+
+                  {#each currentModeFields as field (field.key)}
+                    {@const value = modeValue($activeLayer, configMode, field.key)}
+                    {#if field.type === 'range'}
+                      <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                          <label
+                            for="mode-{field.key}"
+                            class="text-[9px] font-semibold uppercase tracking-widest text-gray-500"
+                            >{field.label}</label
+                          >
+                          <span class="text-sm font-bold"
+                            >{Number(value).toFixed(field.step < 1 ? 2 : 0)}</span
+                          >
+                        </div>
+                        <input
+                          id="mode-{field.key}"
+                          type="range"
+                          min={field.min}
+                          max={field.max}
+                          step={field.step}
+                          {value}
+                          on:input={(e) =>
+                            updateActiveLayerModeConfig(
+                              configMode,
+                              field.key,
+                              +e.currentTarget.value
+                            )}
+                          class="w-full h-1.5 bg-gray-100 rounded-full appearance-none cursor-pointer accent-black"
+                        />
+                      </div>
+                    {:else if field.type === 'select'}
+                      <div class="space-y-3">
+                        <label
+                          for="mode-{field.key}"
+                          class="block text-[9px] font-semibold uppercase tracking-widest text-gray-500"
+                          >{field.label}</label
+                        >
+                        <select
+                          id="mode-{field.key}"
+                          {value}
+                          on:change={(e) =>
+                            updateActiveLayerModeConfig(
+                              configMode,
+                              field.key,
+                              e.currentTarget.value
+                            )}
+                          class="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-100"
+                        >
+                          {#each field.options as option}
+                            <option value={option}>{option}</option>
+                          {/each}
+                        </select>
+                      </div>
+                    {:else}
+                      <label
+                        class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl cursor-pointer hover:bg-gray-100"
+                      >
+                        <span class="text-[9px] font-semibold uppercase tracking-widest"
+                          >{field.label}</span
+                        >
+                        <input
+                          type="checkbox"
+                          checked={Boolean(value)}
+                          on:change={(e) =>
+                            updateActiveLayerModeConfig(
+                              configMode,
+                              field.key,
+                              e.currentTarget.checked
+                            )}
+                          class="w-5 h-5 accent-blue-600"
+                        />
+                      </label>
+                    {/if}
+                  {/each}
+                </div>
+              {/if}
 
               <!-- Curve Family -->
               <div class="space-y-3">

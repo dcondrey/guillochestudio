@@ -116,6 +116,29 @@ test.describe('Studio Page', () => {
     await expect(page.getByLabel(/kaleidoscope/i)).toBeVisible();
   });
 
+  for (const mode of ['Rosette', 'Border', 'Grid']) {
+    test(`should expose ${mode} settings and apply them`, async ({ page }) => {
+      const canvas = page.locator('canvas');
+      await page.getByRole('button', { name: 'geometry', exact: true }).click();
+
+      const asCurve = await settledFingerprint(page, canvas);
+      await page
+        .getByRole('button', { name: new RegExp(mode, 'i') })
+        .first()
+        .click();
+      await expect.poll(() => fingerprint(canvas), { timeout: 10000 }).not.toBe(asCurve);
+
+      // Settings only exist because the engine reads them; a mode with no panel
+      // would mean the mode is unconfigurable.
+      await expect(page.getByText(new RegExp(`${mode} Settings`, 'i'))).toBeVisible();
+
+      const inMode = await settledFingerprint(page, canvas);
+      const sliders = page.locator('input[type="range"]');
+      await sliders.nth((await sliders.count()) - 1).fill('8');
+      await expect.poll(() => fingerprint(canvas), { timeout: 10000 }).not.toBe(inMode);
+    });
+  }
+
   test('should show stroke and colour controls in the style tab', async ({ page }) => {
     await page.getByRole('button', { name: 'style', exact: true }).click();
 

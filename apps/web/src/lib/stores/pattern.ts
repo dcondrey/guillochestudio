@@ -1,6 +1,13 @@
 import { writable, derived, get } from 'svelte/store';
 import type { PatternParams, PatternLayer, ManualPath } from '@guilloche/shared';
-import { getDefaultParams, deepClone, generateId } from '@guilloche/shared';
+import {
+  getDefaultParams,
+  deepClone,
+  generateId,
+  DEFAULT_ROSETTE_CONFIG,
+  DEFAULT_BORDER_CONFIG,
+  DEFAULT_GRID_CONFIG,
+} from '@guilloche/shared';
 import { GuillocheEngine, type GeneratedPath } from '@guilloche/core';
 
 // Maximum history states to keep
@@ -164,6 +171,37 @@ export function updateActiveLayerParam<K extends keyof PatternParams>(
         return { ...l, params: { ...l.params, [key]: value } as PatternParams };
       }
       return l;
+    })
+  );
+}
+
+const MODE_CONFIG_DEFAULTS = {
+  rosette: DEFAULT_ROSETTE_CONFIG,
+  border: DEFAULT_BORDER_CONFIG,
+  grid: DEFAULT_GRID_CONFIG,
+} as const;
+
+/**
+ * Update one field of a pattern mode's configuration on the active layer.
+ *
+ * The config objects are undefined until first edited — the engine falls back to
+ * its defaults — so seed from those defaults rather than writing a partial object
+ * the engine would then read holes out of.
+ */
+export function updateActiveLayerModeConfig(
+  mode: keyof typeof MODE_CONFIG_DEFAULTS,
+  key: string,
+  value: number | string | boolean
+): void {
+  const aid = get(activeLayerId);
+  layers.update((ls) =>
+    ls.map((l) => {
+      if (l.id !== aid) return l;
+      const current = { ...MODE_CONFIG_DEFAULTS[mode], ...(l.params[mode] ?? {}) };
+      return {
+        ...l,
+        params: { ...l.params, [mode]: { ...current, [key]: value } } as Partial<PatternParams>,
+      };
     })
   );
 }
