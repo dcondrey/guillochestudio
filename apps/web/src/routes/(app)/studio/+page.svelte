@@ -22,6 +22,8 @@
     updateLayerStyle,
     addLayer,
     removeLayer,
+    toggleLayerVisibility,
+    moveLayer,
     bakeActiveLayer,
     updateManualPath,
     undo,
@@ -57,16 +59,31 @@
 
   // Viewport State
   let view = { zoom: 1, panX: 0, panY: 0 };
-  type ToolType = 'select' | 'pan' | 'text' | 'measure' | 'edit';
+  type ToolType = 'select' | 'pan' | 'measure' | 'edit';
   let activeTool: ToolType = 'select';
 
-  // Tool configuration
-  const tools: { id: ToolType; label: string; title: string }[] = [
-    { id: 'select', label: 'V', title: 'Select (V)' },
-    { id: 'pan', label: 'H', title: 'Pan (H)' },
-    { id: 'edit', label: 'A', title: 'Direct Edit (A)' },
-    { id: 'text', label: 'T', title: 'Microtext (T)' },
-    { id: 'measure', label: 'M', title: 'Measure (M)' },
+  // Tool configuration. The former 'text' tool is gone: nothing ever read it, and
+  // microtext is toggled per layer from the Effects tab.
+  const tools: { id: ToolType; label: string; title: string; hint: string }[] = [
+    {
+      id: 'select',
+      label: 'Select',
+      title: 'Select (V)',
+      hint: 'Click a pattern to select its layer',
+    },
+    {
+      id: 'pan',
+      label: 'Pan',
+      title: 'Pan (H)',
+      hint: 'Drag to move the canvas — or hold Alt with any tool',
+    },
+    {
+      id: 'edit',
+      label: 'Edit',
+      title: 'Direct Edit (A)',
+      hint: 'Drag bezier points. Bake a layer to an editable path first',
+    },
+    { id: 'measure', label: 'Measure', title: 'Measure (M)', hint: 'Drag to measure a distance' },
   ];
   let dragging = false;
   let lastMouse = { x: 0, y: 0 };
@@ -204,6 +221,13 @@
     const handleSize = 3 / view.zoom;
     const anchorSize = 4 / view.zoom;
 
+    // Same origin shift the renderer applies. Without it the edit handles drew in
+    // the top-left corner while screenToWorld hit-tested them at the pattern, so
+    // the Edit tool appeared to do nothing.
+    const dpr = window.devicePixelRatio || 1;
+    ctx.save();
+    ctx.translate(canvas.width / dpr / 2, canvas.height / dpr / 2);
+
     path.segments.forEach((seg: any, sIdx: number) => {
       seg.points.forEach((pt: any, pIdx: number) => {
         const isSelected = selectedPoint?.segIdx === sIdx && selectedPoint?.ptIdx === pIdx;
@@ -249,6 +273,8 @@
         }
       });
     });
+
+    ctx.restore();
   }
 
   function drawMeasureTool(ctx: CanvasRenderingContext2D) {
@@ -280,6 +306,13 @@
     ctx.font = `${textParams.fontSize || 3}px monospace`;
     ctx.fillStyle = textParams.color || '#000';
 
+    // Path coordinates are centred on the origin; CanvasRenderer.renderPath applies
+    // this same translation internally. Without it the microtext renders as a copy
+    // of the pattern anchored to the top-left corner instead of over the pattern.
+    const dpr = window.devicePixelRatio || 1;
+    ctx.save();
+    ctx.translate(canvas.width / dpr / 2, canvas.height / dpr / 2);
+
     path.segments.forEach((seg: any) => {
       const length = getPathLength(seg.points);
       const density = textParams.density || 1;
@@ -299,6 +332,8 @@
         ctx.restore();
       }
     });
+
+    ctx.restore();
   }
 
   function screenToWorld(sx: number, sy: number) {
@@ -430,9 +465,6 @@
         break;
       case 'a':
         activeTool = 'edit';
-        break;
-      case 't':
-        activeTool = 'text';
         break;
       case 'm':
         activeTool = 'measure';
@@ -591,15 +623,15 @@
         {#each tools as tool}
           <button
             on:click={() => (activeTool = tool.id)}
-            title={tool.title}
+            title="{tool.title} — {tool.hint}"
             aria-label={tool.title}
             aria-pressed={activeTool === tool.id}
-            class="w-10 h-10 text-[10px] font-semibold uppercase rounded-xl transition-all
+            class="px-4 h-10 text-[10px] font-semibold uppercase tracking-wider rounded-xl transition-all
                           {activeTool === tool.id
               ? 'bg-white text-black shadow-sm'
               : 'text-gray-400 hover:text-gray-600'}"
           >
-            <span aria-hidden="true">{tool.label}</span>
+            {tool.label}
           </button>
         {/each}
       </nav>
@@ -689,11 +721,41 @@
                     >{layer.name}</span
                   >
                 </div>
-                <div class="flex items-center gap-1">
-                  <span class="text-[8px] text-gray-300 uppercase">{layer.type}</span>
+                <div class="flex items-center gap-0.5">
+                  <button
+                    on:click|stopPropagation={() => toggleLayerVisibility(layer.id)}
+                    title={layer.visible ? 'Hide layer' : 'Show layer'}
+                    aria-label={layer.visible ? `Hide ${layer.name}` : `Show ${layer.name}`}
+                    aria-pressed={layer.visible}
+                    class="px-1.5 text-sm transition-colors {layer.visible
+                      ? 'text-gray-600 hover:text-black'
+                      : 'text-gray-300 hover:text-gray-500'}"
+                  >
+                    <span aria-hidden="true">{layer.visible ? '◉' : '○'}</span>
+                  </button>
+                  <button
+                    on:click|stopPropagation={() => moveLayer(layer.id, 'up')}
+                    disabled={$layers.findIndex((l) => l.id === layer.id) === $layers.length - 1}
+                    title="Bring forward"
+                    aria-label={`Bring ${layer.name} forward`}
+                    class="px-1 text-xs text-gray-400 hover:text-black disabled:opacity-20 disabled:hover:text-gray-400"
+                  >
+                    <span aria-hidden="true">▲</span>
+                  </button>
+                  <button
+                    on:click|stopPropagation={() => moveLayer(layer.id, 'down')}
+                    disabled={$layers.findIndex((l) => l.id === layer.id) === 0}
+                    title="Send backward"
+                    aria-label={`Send ${layer.name} backward`}
+                    class="px-1 text-xs text-gray-400 hover:text-black disabled:opacity-20 disabled:hover:text-gray-400"
+                  >
+                    <span aria-hidden="true">▼</span>
+                  </button>
                   <button
                     on:click|stopPropagation={() => removeLayer(layer.id)}
-                    class="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity px-2 text-lg"
+                    title="Delete layer"
+                    aria-label={`Delete ${layer.name}`}
+                    class="text-gray-300 hover:text-red-500 transition-colors px-1.5 text-lg"
                     >×</button
                   >
                 </div>
@@ -735,9 +797,11 @@
         >
           <span>Zoom {(view.zoom * 100).toFixed(0)}%</span>
           <div class="w-px h-4 bg-gray-100"></div>
-          <span class="text-blue-600 uppercase">{activeTool}</span>
-          <div class="w-px h-4 bg-gray-100"></div>
           <span class="text-gray-400">{$layers.length} Layers</span>
+          <div class="w-px h-4 bg-gray-100"></div>
+          <span class="normal-case font-medium tracking-normal text-gray-500">
+            {tools.find((t) => t.id === activeTool)?.hint ?? ''}
+          </span>
         </div>
       </div>
 

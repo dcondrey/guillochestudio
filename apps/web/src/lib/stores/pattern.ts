@@ -164,6 +164,30 @@ export function updateLayerStyle(id: string, updates: Partial<PatternLayer>): vo
   layers.update((ls) => ls.map((l) => (l.id === id ? { ...l, ...updates } : l)));
 }
 
+export function toggleLayerVisibility(id: string): void {
+  layers.update((ls) => ls.map((l) => (l.id === id ? { ...l, visible: !l.visible } : l)));
+  saveToHistory('Toggled layer visibility');
+}
+
+/**
+ * Move a layer within the stack. Composition order follows array order, so
+ * swapping entries is what changes which layer draws on top.
+ */
+export function moveLayer(id: string, direction: 'up' | 'down'): void {
+  layers.update((ls) => {
+    const index = ls.findIndex((l) => l.id === id);
+    if (index === -1) return ls;
+
+    const target = direction === 'up' ? index + 1 : index - 1;
+    if (target < 0 || target >= ls.length) return ls;
+
+    const next = [...ls];
+    [next[index], next[target]] = [next[target], next[index]];
+    return next;
+  });
+  saveToHistory('Reordered layers');
+}
+
 export function addLayer(name?: string, type: 'vector' | 'image' | 'path' = 'vector'): void {
   const newLayer: PatternLayer = {
     id: generateId(),
