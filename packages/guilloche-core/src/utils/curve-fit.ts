@@ -162,12 +162,6 @@ function generateBezier(
     C[1][1] += dot(A[i][1], A[i][1]);
 
     const u = uPrime[i];
-    const tmp = subtract(
-      points[first + i],
-      add(add(scale(p0, B0(u) + B1(u)), scale(p3, B2(u) + B3(u))), { x: 0, y: 0 })
-    );
-
-    // Correct tmp calculation
     const b0 = B0(u);
     const b1 = B1(u);
     const b2 = B2(u);
@@ -195,12 +189,31 @@ function generateBezier(
     alpha_r = (C[0][0] * X[1] - C[1][0] * X[0]) / det;
   }
 
-  // Prevent negative alphas
   const segLength = distance(p0, p3);
   const epsilon = 1.0e-6 * segLength;
 
-  if (alpha_l < epsilon || alpha_r < epsilon) {
+  // Arc length actually spanned by the points being fitted. A control handle can
+  // legitimately be longer than the chord (tight loops shorten the chord towards
+  // zero) but never longer than the curve it approximates.
+  let arcLength = 0;
+  for (let i = first; i < last; i++) {
+    arcLength += distance(points[i], points[i + 1]);
+  }
+
+  if (
+    !Number.isFinite(alpha_l) ||
+    !Number.isFinite(alpha_r) ||
+    alpha_l < epsilon ||
+    alpha_r < epsilon
+  ) {
+    // Degenerate solve — fall back to the standard heuristic.
     alpha_l = alpha_r = segLength / 3.0;
+  } else {
+    // The least-squares system is ill-conditioned on the dense, self-intersecting
+    // spans these patterns produce and can return handles orders of magnitude
+    // longer than the span, which renders as a line shooting off the pattern.
+    alpha_l = Math.min(alpha_l, arcLength);
+    alpha_r = Math.min(alpha_r, arcLength);
   }
 
   return {
