@@ -29,6 +29,8 @@ export const layers = writable<PatternLayer[]>([
     blendMode: 'normal',
     params: getDefaultParams(),
     opacity: 1,
+    offsetX: 0,
+    offsetY: 0,
   },
 ]);
 
@@ -83,6 +85,8 @@ export const renderedComposition = derived(
             blendMode: layer.blendMode,
             opacity: layer.opacity,
             color: layer.color,
+            offsetX: layer.offsetX ?? 0,
+            offsetY: layer.offsetY ?? 0,
           });
         } else if (layer.type === 'path' && layer.manualPath) {
           // Manual path rendering (convert ManualPath format to GeneratedPath for renderer)
@@ -101,6 +105,8 @@ export const renderedComposition = derived(
             blendMode: layer.blendMode,
             opacity: layer.opacity,
             color: layer.color,
+            offsetX: layer.offsetX ?? 0,
+            offsetY: layer.offsetY ?? 0,
           });
         } else if (layer.type === 'image' && layer.imageUrl) {
           try {
@@ -114,6 +120,8 @@ export const renderedComposition = derived(
               opacity: layer.opacity,
               brightness: layer.brightness || 1,
               contrast: layer.contrast || 1,
+              offsetX: layer.offsetX ?? 0,
+              offsetY: layer.offsetY ?? 0,
             });
           } catch {
             // image load failure is non-fatal; layer renders without image
@@ -164,6 +172,23 @@ export function updateLayerStyle(id: string, updates: Partial<PatternLayer>): vo
   layers.update((ls) => ls.map((l) => (l.id === id ? { ...l, ...updates } : l)));
 }
 
+/**
+ * Nudge a layer's position by a canvas-space delta. Called continuously while
+ * dragging, so it does not push history — the caller commits once on drag end.
+ */
+export function moveLayerBy(id: string, dx: number, dy: number): void {
+  layers.update((ls) =>
+    ls.map((l) =>
+      l.id === id ? { ...l, offsetX: (l.offsetX ?? 0) + dx, offsetY: (l.offsetY ?? 0) + dy } : l
+    )
+  );
+}
+
+export function resetLayerPosition(id: string): void {
+  layers.update((ls) => ls.map((l) => (l.id === id ? { ...l, offsetX: 0, offsetY: 0 } : l)));
+  saveToHistory('Reset layer position');
+}
+
 export function toggleLayerVisibility(id: string): void {
   layers.update((ls) => ls.map((l) => (l.id === id ? { ...l, visible: !l.visible } : l)));
   saveToHistory('Toggled layer visibility');
@@ -198,6 +223,8 @@ export function addLayer(name?: string, type: 'vector' | 'image' | 'path' = 'vec
     blendMode: 'normal',
     params: getDefaultParams(),
     opacity: 1,
+    offsetX: 0,
+    offsetY: 0,
     brightness: 1,
     contrast: 1,
   };
@@ -282,6 +309,8 @@ export function resetParams(): void {
       blendMode: 'normal',
       params: getDefaultParams(),
       opacity: 1,
+      offsetX: 0,
+      offsetY: 0,
     },
   ]);
   activeLayerId.set(get(layers)[0].id);

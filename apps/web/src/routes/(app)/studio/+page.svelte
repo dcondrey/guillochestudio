@@ -24,6 +24,9 @@
     removeLayer,
     toggleLayerVisibility,
     moveLayer,
+    moveLayerBy,
+    resetLayerPosition,
+    saveToHistory,
     bakeActiveLayer,
     updateManualPath,
     undo,
@@ -86,6 +89,8 @@
     { id: 'measure', label: 'Measure', title: 'Measure (M)', hint: 'Drag to measure a distance' },
   ];
   let dragging = false;
+  let layerMoved = false;
+  let grabbedLayer = false;
   let lastMouse = { x: 0, y: 0 };
 
   // Interaction State
@@ -175,6 +180,11 @@
     const items = $renderedComposition || [];
 
     for (const comp of items) {
+      // Per-layer position. renderPath re-centres internally, so this composes on
+      // top of the shared pan/zoom transform.
+      ctx.save();
+      ctx.translate(comp.offsetX ?? 0, comp.offsetY ?? 0);
+
       if (comp.type === 'vector') {
         renderer.renderPath(comp.path, {
           strokeColor: $params.useGradient ? undefined : comp.color,
@@ -203,6 +213,8 @@
           contrast: comp.contrast,
         });
       }
+
+      ctx.restore();
     }
 
     ctx.restore();
@@ -347,6 +359,7 @@
 
   function handleMouseDown(e: MouseEvent) {
     dragging = true;
+    grabbedLayer = false;
     lastMouse = { x: e.clientX, y: e.clientY };
     const rect = canvas.getBoundingClientRect();
     const m = { x: e.clientX - rect.left, y: e.clientY - rect.top };
@@ -389,10 +402,13 @@
       for (let i = $renderedComposition.length - 1; i >= 0; i--) {
         const comp = $renderedComposition[i];
         if (comp.type !== 'vector') continue;
+        // Compare in the layer's own space by removing its position offset.
+        const localX = world.x - (comp.offsetX ?? 0);
+        const localY = world.y - (comp.offsetY ?? 0);
         let hit = false;
         for (const seg of comp.path.segments) {
           for (const p of seg.points) {
-            if (Math.abs(p.x - world.x) < threshold && Math.abs(p.y - world.y) < threshold) {
+            if (Math.abs(p.x - localX) < threshold && Math.abs(p.y - localY) < threshold) {
               hit = true;
               break;
             }
@@ -401,6 +417,7 @@
         }
         if (hit) {
           activeLayerId.set(comp.layerId);
+          grabbedLayer = true;
           break;
         }
       }
@@ -420,6 +437,11 @@
       view.panY += dy;
     } else if (activeTool === 'measure') {
       measureCurrent = m;
+    } else if (activeTool === 'select' && grabbedLayer && $activeLayerId) {
+      // Drag the selected layer. Divide by zoom so the layer tracks the cursor
+      // at any zoom level.
+      moveLayerBy($activeLayerId, dx / view.zoom, dy / view.zoom);
+      layerMoved = true;
     } else if (activeTool === 'edit' && selectedPoint && $activeLayer?.manualPath) {
       const path = { ...$activeLayer.manualPath };
       const pt = path.segments[selectedPoint.segIdx].points[selectedPoint.ptIdx];
@@ -694,36 +716,43 @@
         </div>
         <div class="flex-1 overflow-y-auto p-4 space-y-3">
           {#each $layers as layer (layer.id)}
+            <!-- The row is a plain container: it holds per-layer action buttons, and
+                 nesting those inside another button is invalid and makes the row's
+                 accessible name swallow every child label. -->
             <div
-              role="button"
-              tabindex="0"
-              aria-pressed={layer.id === $activeLayerId}
-              on:click={() => activeLayerId.set(layer.id)}
-              on:keydown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  activeLayerId.set(layer.id);
-                }
-              }}
-              class="p-5 rounded-3xl border transition-all cursor-pointer group {layer.id ===
-              $activeLayerId
+              class="p-5 rounded-3xl border transition-all group {layer.id === $activeLayerId
                 ? 'bg-white border-blue-100 shadow-xl ring-4 ring-blue-50/50'
                 : 'bg-gray-50/50 border-transparent hover:border-gray-200'}"
             >
               <div class="flex items-center justify-between">
-                <div class="flex items-center gap-4">
-                  <div
+                <button
+                  on:click={() => activeLayerId.set(layer.id)}
+                  aria-pressed={layer.id === $activeLayerId}
+                  aria-label={`Select ${layer.name}`}
+                  class="flex items-center gap-4 flex-1 min-w-0 text-left cursor-pointer"
+                >
+                  <span
                     class="w-3 h-3 rounded-full shrink-0"
                     style="background-color: {layer.color}"
-                  ></div>
+                  ></span>
                   <span
                     class="text-[10px] font-semibold uppercase tracking-widest truncate max-w-[120px]"
                     >{layer.name}</span
                   >
-                </div>
+                </button>
                 <div class="flex items-center gap-0.5">
+                  {#if layer.offsetX || layer.offsetY}
+                    <button
+                      on:click={() => resetLayerPosition(layer.id)}
+                      title="Recentre layer"
+                      aria-label={`Recentre ${layer.name}`}
+                      class="px-1 text-xs text-blue-500 hover:text-blue-700"
+                    >
+                      <span aria-hidden="true">⌖</span>
+                    </button>
+                  {/if}
                   <button
-                    on:click|stopPropagation={() => toggleLayerVisibility(layer.id)}
+                    on:click={() => toggleLayerVisibility(layer.id)}
                     title={layer.visible ? 'Hide layer' : 'Show layer'}
                     aria-label={layer.visible ? `Hide ${layer.name}` : `Show ${layer.name}`}
                     aria-pressed={layer.visible}
@@ -734,7 +763,7 @@
                     <span aria-hidden="true">{layer.visible ? '◉' : '○'}</span>
                   </button>
                   <button
-                    on:click|stopPropagation={() => moveLayer(layer.id, 'up')}
+                    on:click={() => moveLayer(layer.id, 'up')}
                     disabled={$layers.findIndex((l) => l.id === layer.id) === $layers.length - 1}
                     title="Bring forward"
                     aria-label={`Bring ${layer.name} forward`}
@@ -743,7 +772,7 @@
                     <span aria-hidden="true">▲</span>
                   </button>
                   <button
-                    on:click|stopPropagation={() => moveLayer(layer.id, 'down')}
+                    on:click={() => moveLayer(layer.id, 'down')}
                     disabled={$layers.findIndex((l) => l.id === layer.id) === 0}
                     title="Send backward"
                     aria-label={`Send ${layer.name} backward`}
@@ -752,7 +781,7 @@
                     <span aria-hidden="true">▼</span>
                   </button>
                   <button
-                    on:click|stopPropagation={() => removeLayer(layer.id)}
+                    on:click={() => removeLayer(layer.id)}
                     title="Delete layer"
                     aria-label={`Delete ${layer.name}`}
                     class="text-gray-300 hover:text-red-500 transition-colors px-1.5 text-lg"
@@ -776,6 +805,11 @@
         on:mousemove={handleMouseMove}
         on:mouseup={() => {
           dragging = false;
+          if (layerMoved) {
+            // One history entry per drag, not per mousemove.
+            saveToHistory('Moved layer');
+            layerMoved = false;
+          }
           if (activeTool === 'measure') {
             measureStart = null;
             render();

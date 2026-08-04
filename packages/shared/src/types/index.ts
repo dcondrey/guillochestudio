@@ -214,6 +214,9 @@ export interface PatternLayer {
   blendMode: BlendMode;
   params: Partial<PatternParams>;
   opacity: number;
+  /** Canvas-space offset from the composition centre. */
+  offsetX?: number;
+  offsetY?: number;
   imageUrl?: string;
   brightness?: number;
   contrast?: number;
