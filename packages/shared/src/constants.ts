@@ -62,7 +62,6 @@ export const DEFAULT_ROSETTE_CONFIG: RosetteConfig = {
 export const DEFAULT_BORDER_CONFIG: BorderConfig = {
   length: 800,
   width: 100,
-  cornerStyle: 'miter',
   waveAmplitude: 0,
   waveFrequency: 1,
   repeatCount: 4,

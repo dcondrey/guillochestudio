@@ -159,9 +159,6 @@ const ROSETTE_ENVELOPES: RosetteConfig['envelope'][] = ['circle', 'ellipse', 'po
 // Tile types for grid
 const GRID_TILE_TYPES: GridConfig['tileType'][] = ['square', 'hex', 'triangle', 'diamond'];
 
-// Corner styles for border
-const BORDER_CORNER_STYLES: BorderConfig['cornerStyle'][] = ['miter', 'round', 'continue', 'none'];
-
 const HARMONIOUS_COLORS = [
   // Blues
   ['#1e3a5f', '#3b82f6'],
@@ -319,7 +316,6 @@ function randomizeBorderConfig(base?: BorderConfig): BorderConfig {
   return {
     length: randomInRange(ranges.length[0], ranges.length[1]),
     width: randomInRange(ranges.width[0], ranges.width[1]),
-    cornerStyle: randomPick(BORDER_CORNER_STYLES),
     waveAmplitude: randomInRange(ranges.waveAmplitude[0], ranges.waveAmplitude[1]),
     waveFrequency: randomInRange(ranges.waveFrequency[0], ranges.waveFrequency[1]),
     repeatCount: randomInRange(ranges.repeatCount[0], ranges.repeatCount[1]),
@@ -478,7 +474,6 @@ function interpolateBorderConfig(from: BorderConfig, to: BorderConfig, t: number
   return {
     length: from.length + (to.length - from.length) * t,
     width: from.width + (to.width - from.width) * t,
-    cornerStyle: t >= 0.5 ? to.cornerStyle : from.cornerStyle,
     waveAmplitude: from.waveAmplitude + (to.waveAmplitude - from.waveAmplitude) * t,
     waveFrequency: from.waveFrequency + (to.waveFrequency - from.waveFrequency) * t,
     repeatCount: Math.round(from.repeatCount + (to.repeatCount - from.repeatCount) * t),

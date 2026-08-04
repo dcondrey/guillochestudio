@@ -16,8 +16,6 @@ export type PatternMode = 'curve' | 'rosette' | 'border' | 'grid';
 
 export type RosetteEnvelope = 'circle' | 'ellipse' | 'polygon' | 'star';
 
-export type BorderCornerStyle = 'miter' | 'round' | 'continue' | 'none';
-
 export type GridTileType = 'square' | 'hex' | 'triangle' | 'diamond';
 
 /**
@@ -45,7 +43,6 @@ export interface RosetteConfig {
 export interface BorderConfig {
   length: number;
   width: number;
-  cornerStyle: BorderCornerStyle;
   waveAmplitude: number;
   waveFrequency: number;
   repeatCount: number;
