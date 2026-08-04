@@ -17,6 +17,36 @@ async function waitForStudioReady(page: import('@playwright/test').Page) {
   );
 }
 
+/**
+ * Hash a canvas screenshot rather than comparing raw buffers. On a mismatch,
+ * expect(buffer).toEqual(buffer) serialises two multi-hundred-KB buffers into a
+ * diff, which takes minutes; comparing short digests fails fast instead.
+ */
+async function fingerprint(locator: import('@playwright/test').Locator): Promise<string> {
+  const buffer = await locator.screenshot();
+  const { createHash } = await import('crypto');
+  return createHash('sha1').update(buffer).digest('hex');
+}
+
+/**
+ * Wait for the canvas to stop changing before capturing a baseline. Rendering
+ * settles asynchronously, so a fixed sleep can latch a half-drawn frame and make
+ * any later "returns to the original" comparison spuriously fail.
+ */
+async function settledFingerprint(
+  page: import('@playwright/test').Page,
+  locator: import('@playwright/test').Locator
+): Promise<string> {
+  let previous = await fingerprint(locator);
+  for (let attempt = 0; attempt < 25; attempt++) {
+    await page.waitForTimeout(150);
+    const current = await fingerprint(locator);
+    if (current === previous) return current;
+    previous = current;
+  }
+  throw new Error('Canvas never settled');
+}
+
 test.describe('Studio Page', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/studio');
@@ -68,14 +98,12 @@ test.describe('Studio Page', () => {
 
   test('should update pattern when changing parameters', async ({ page }) => {
     const canvas = page.locator('canvas');
-    await page.waitForTimeout(500);
-    const initialScreenshot = await canvas.screenshot();
+    const initial = await settledFingerprint(page, canvas);
 
     const slider = page.locator('input[type="range"]').first();
     await slider.fill('200');
-    await page.waitForTimeout(500);
 
-    expect(await canvas.screenshot()).not.toEqual(initialScreenshot);
+    await expect.poll(() => fingerprint(canvas), { timeout: 8000 }).not.toBe(initial);
   });
 
   test('should expose symmetry and reflection controls', async ({ page }) => {
@@ -117,57 +145,89 @@ test.describe('Studio Page', () => {
   });
 
   test('should expose the drawing tools', async ({ page }) => {
-    for (const tool of [/select/i, /pan/i, /measure/i]) {
-      await expect(page.getByRole('button', { name: tool })).toBeVisible();
+    // Exact names: layer rows also expose a "Select <layer>" button.
+    for (const tool of ['Select (V)', 'Pan (H)', 'Direct Edit (A)', 'Measure (M)']) {
+      await expect(page.getByRole('button', { name: tool, exact: true })).toBeVisible();
     }
   });
 
   test('should support canvas zoom with mouse wheel', async ({ page }) => {
     const canvas = page.locator('canvas');
-    await canvas.waitFor({ state: 'visible' });
-    await page.waitForTimeout(500);
+    const beforeZoom = await settledFingerprint(page, canvas);
 
-    const beforeZoom = await canvas.screenshot();
     await canvas.hover();
     await page.mouse.wheel(0, -100);
-    await page.waitForTimeout(300);
 
-    expect(await canvas.screenshot()).not.toEqual(beforeZoom);
+    await expect.poll(() => fingerprint(canvas), { timeout: 8000 }).not.toBe(beforeZoom);
   });
 
   test('should support canvas pan with the pan tool', async ({ page }) => {
     const canvas = page.locator('canvas');
-    await canvas.waitFor({ state: 'visible' });
-    await page.getByRole('button', { name: /pan/i }).click();
-    await page.waitForTimeout(500);
+    await page.getByRole('button', { name: 'Pan (H)', exact: true }).click();
 
     const box = await canvas.boundingBox();
     if (!box) throw new Error('Canvas has no bounding box');
+    const beforePan = await settledFingerprint(page, canvas);
 
-    const beforePan = await canvas.screenshot();
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
     await page.mouse.move(box.x + box.width / 2 + 80, box.y + box.height / 2 + 80, { steps: 8 });
     await page.mouse.up();
-    await page.waitForTimeout(300);
 
-    expect(await canvas.screenshot()).not.toEqual(beforePan);
+    await expect.poll(() => fingerprint(canvas), { timeout: 8000 }).not.toBe(beforePan);
   });
 
   test('should restore the view with the reset view control', async ({ page }) => {
     const canvas = page.locator('canvas');
-    await canvas.waitFor({ state: 'visible' });
-    await page.waitForTimeout(500);
-
-    const initial = await canvas.screenshot();
+    const initial = await settledFingerprint(page, canvas);
 
     await canvas.hover();
     await page.mouse.wheel(0, -150);
-    await page.waitForTimeout(300);
-    expect(await canvas.screenshot()).not.toEqual(initial);
+    await expect.poll(() => fingerprint(canvas), { timeout: 8000 }).not.toBe(initial);
 
     await page.getByRole('button', { name: /reset view/i }).click();
-    await page.waitForTimeout(400);
-    expect(await canvas.screenshot()).toEqual(initial);
+    await expect.poll(() => fingerprint(canvas), { timeout: 8000 }).toBe(initial);
+  });
+
+  test('should hide and show a layer', async ({ page }) => {
+    const canvas = page.locator('canvas');
+    const visible = await settledFingerprint(page, canvas);
+
+    await page
+      .getByRole('button', { name: /^hide /i })
+      .first()
+      .click();
+    // The composition recomputes asynchronously, so poll rather than sleeping.
+    await expect.poll(() => fingerprint(canvas), { timeout: 8000 }).not.toBe(visible);
+
+    await page
+      .getByRole('button', { name: /^show /i })
+      .first()
+      .click();
+    await expect.poll(() => fingerprint(canvas), { timeout: 8000 }).toBe(visible);
+  });
+
+  test('should reposition a layer by dragging it, and recentre it again', async ({ page }) => {
+    const canvas = page.locator('canvas');
+
+    const box = await canvas.boundingBox();
+    if (!box) throw new Error('Canvas has no bounding box');
+    const centred = await settledFingerprint(page, canvas);
+
+    // Grab the pattern where it is drawn and drag it away from centre.
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2 + 120, box.y + box.height / 2 + 90, { steps: 12 });
+    await page.mouse.up();
+
+    await expect.poll(() => fingerprint(canvas), { timeout: 8000 }).not.toBe(centred);
+
+    // The recentre control only exists while the layer is off-centre.
+    const recentre = page.getByRole('button', { name: /recentre/i }).first();
+    await expect(recentre).toBeVisible();
+    await recentre.click();
+
+    await expect(page.getByRole('button', { name: /recentre/i })).toHaveCount(0);
+    await expect.poll(() => fingerprint(canvas), { timeout: 8000 }).toBe(centred);
   });
 });
