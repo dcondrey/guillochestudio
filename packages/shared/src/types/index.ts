@@ -21,17 +21,6 @@ export type BorderCornerStyle = 'miter' | 'round' | 'continue' | 'none';
 export type GridTileType = 'square' | 'hex' | 'triangle' | 'diamond';
 
 /**
- * Advanced Modulation types for relief and security effects
- */
-export interface ModulationParams {
-  depth: number; // Relief depth (displacement)
-  frequency: number; // Modulation frequency
-  phase: number; // Phase shift
-  type: 'sine' | 'saw' | 'noise';
-  target: 'radius' | 'width' | 'phase';
-}
-
-/**
  * Security ink / element configuration
  */
 export interface SecurityConfig {
@@ -137,14 +126,7 @@ export interface PatternParams {
   adaptiveSteps: boolean;
 
   // Advanced features
-  modulation?: ModulationParams;
   security?: SecurityConfig;
-  stepRepeat?: {
-    count: number;
-    offsetX: number;
-    offsetY: number;
-    rotateStep: number;
-  };
 
   // Security text integration
   text?: {
