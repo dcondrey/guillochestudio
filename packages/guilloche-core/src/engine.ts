@@ -16,6 +16,78 @@ import {
 const NOISE_SCALE = 0.02;
 
 /**
+ * Liang-Barsky: trim a line segment to the part inside an axis-aligned rectangle,
+ * or null when it misses entirely. Returning the exact crossing points (rather
+ * than the nearest sample) is what keeps a cropped pattern inside its own edge.
+ */
+function clipToRect(
+  p1: Point,
+  p2: Point,
+  xMin: number,
+  yMin: number,
+  xMax: number,
+  yMax: number
+): [Point, Point] | null {
+  const dx = p2.x - p1.x;
+  const dy = p2.y - p1.y;
+  let t0 = 0;
+  let t1 = 1;
+
+  const edges: Array<[number, number]> = [
+    [-dx, p1.x - xMin],
+    [dx, xMax - p1.x],
+    [-dy, p1.y - yMin],
+    [dy, yMax - p1.y],
+  ];
+
+  for (const [p, q] of edges) {
+    if (p === 0) {
+      if (q < 0) return null; // Parallel to this edge and wholly outside it.
+      continue;
+    }
+    const t = q / p;
+    if (p < 0) {
+      if (t > t1) return null;
+      if (t > t0) t0 = t;
+    } else {
+      if (t < t0) return null;
+      if (t < t1) t1 = t;
+    }
+  }
+
+  return [
+    { x: p1.x + dx * t0, y: p1.y + dy * t0 },
+    { x: p1.x + dx * t1, y: p1.y + dy * t1 },
+  ];
+}
+
+/**
+ * Bounding box of a set of segments. The SVG viewBox, EPS bounding box and PDF
+ * page box all derive from this, so a transform that moves or removes points has
+ * to refresh it or the export gains phantom margins.
+ */
+function boundsOf(segments: PathSegment[]): GeneratedPath['bounds'] {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+
+  for (const segment of segments) {
+    for (const point of segment.points) {
+      if (point.x < minX) minX = point.x;
+      if (point.y < minY) minY = point.y;
+      if (point.x > maxX) maxX = point.x;
+      if (point.y > maxY) maxY = point.y;
+    }
+  }
+
+  // An empty path has no extent; a zero box stops consumers propagating Infinity
+  // into a viewBox.
+  if (minX === Infinity) return { minX: 0, minY: 0, maxX: 0, maxY: 0 };
+  return { minX, minY, maxX, maxY };
+}
+
+/**
  * A 2D coordinate point
  */
 export interface Point {
@@ -187,6 +259,24 @@ export class GuillocheEngine {
   }
 
   /**
+   * Fold the pattern into a single quadrant by mirroring every point about both
+   * axes. The parameter existed and was surfaced in the studio, but no generator
+   * ever read it, so the control did nothing.
+   */
+  private applyKaleidoscope(path: GeneratedPath): GeneratedPath {
+    const segments = path.segments.map((segment) => ({
+      ...segment,
+      points: segment.points.map((point) => ({
+        ...point,
+        x: Math.abs(point.x),
+        y: Math.abs(point.y),
+      })),
+    }));
+
+    return { ...path, segments, bounds: boundsOf(segments) };
+  }
+
+  /**
    * Jitter every point by up to ±noise. Applied once here rather than inside each
    * mode generator so it covers curve, rosette, border and grid alike.
    *
@@ -194,33 +284,6 @@ export class GuillocheEngine {
    * by parameter key, so an unseeded jitter would hand back one frozen realisation
    * while making identical inputs render differently run to run.
    */
-  /**
-   * Fold the pattern into a single quadrant by mirroring every point about both
-   * axes. The parameter existed and was surfaced in the studio, but no generator
-   * ever read it, so the control did nothing.
-   */
-  private applyKaleidoscope(path: GeneratedPath): GeneratedPath {
-    let minX = Infinity;
-    let minY = Infinity;
-    let maxX = -Infinity;
-    let maxY = -Infinity;
-
-    const segments = path.segments.map((segment) => ({
-      ...segment,
-      points: segment.points.map((point) => {
-        const x = Math.abs(point.x);
-        const y = Math.abs(point.y);
-        minX = Math.min(minX, x);
-        minY = Math.min(minY, y);
-        maxX = Math.max(maxX, x);
-        maxY = Math.max(maxY, y);
-        return { ...point, x, y };
-      }),
-    }));
-
-    return { ...path, segments, bounds: { minX, minY, maxX, maxY } };
-  }
-
   private applyNoise(path: GeneratedPath): GeneratedPath {
     // noise is a normalised 0..1 amount (the API schema bounds it there), so it is
     // scaled against the pattern radius. Used raw it is sub-pixel on a default
@@ -235,25 +298,16 @@ export class GuillocheEngine {
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
 
-    let minX = Infinity;
-    let minY = Infinity;
-    let maxX = -Infinity;
-    let maxY = -Infinity;
-
     const segments = path.segments.map((segment) => ({
       ...segment,
-      points: segment.points.map((point) => {
-        const x = point.x + (random() - 0.5) * amount;
-        const y = point.y + (random() - 0.5) * amount;
-        minX = Math.min(minX, x);
-        minY = Math.min(minY, y);
-        maxX = Math.max(maxX, x);
-        maxY = Math.max(maxY, y);
-        return { ...point, x, y };
-      }),
+      points: segment.points.map((point) => ({
+        ...point,
+        x: point.x + (random() - 0.5) * amount,
+        y: point.y + (random() - 0.5) * amount,
+      })),
     }));
 
-    return { ...path, segments, bounds: { minX, minY, maxX, maxY } };
+    return { ...path, segments, bounds: boundsOf(segments) };
   }
 
   /**
@@ -347,33 +401,42 @@ export class GuillocheEngine {
   }
 
   private applyClipping(path: GeneratedPath): GeneratedPath {
-    const crop = this.params.crop!;
-    const clippedSegments: PathSegment[] = [];
-    const { x: xMin, y: yMin, width, height } = crop;
+    const { x: xMin, y: yMin, width, height } = this.params.crop!;
     const xMax = xMin + width;
     const yMax = yMin + height;
+    const clippedSegments: PathSegment[] = [];
 
     for (const segment of path.segments) {
-      let currentPoints: Point[] = [];
+      let run: Point[] = [];
+      const flush = () => {
+        if (run.length > 1) clippedSegments.push({ ...segment, points: run });
+        run = [];
+      };
+
       for (let i = 0; i < segment.points.length - 1; i++) {
         const p1 = segment.points[i];
         const p2 = segment.points[i + 1];
-        const isInside = (p: Point) => p.x >= xMin && p.x <= xMax && p.y >= yMin && p.y <= yMax;
-
-        if (isInside(p1)) {
-          if (currentPoints.length === 0) currentPoints.push(p1);
-          currentPoints.push(p2);
-          if (!isInside(p2)) {
-            clippedSegments.push({ ...segment, points: [...currentPoints] });
-            currentPoints = [];
-          }
-        } else if (isInside(p2)) {
-          currentPoints = [p1, p2];
+        const span = clipToRect(p1, p2, xMin, yMin, xMax, yMax);
+        if (!span) {
+          flush();
+          continue;
         }
+
+        // Consecutive spans belong to the same stroke only while they stay
+        // joined; a span starting away from the previous one means the curve
+        // left the rectangle and came back.
+        const [entry, exit] = span;
+        const last = run[run.length - 1];
+        if (!last || last.x !== entry.x || last.y !== entry.y) {
+          flush();
+          run.push(entry);
+        }
+        run.push(exit);
+        if (exit.x !== p2.x || exit.y !== p2.y) flush();
       }
-      if (currentPoints.length > 1) clippedSegments.push({ ...segment, points: currentPoints });
+      flush();
     }
-    return { ...path, segments: clippedSegments };
+    return { ...path, segments: clippedSegments, bounds: boundsOf(clippedSegments) };
   }
 
   private computeCurvePath(): GeneratedPath {
@@ -562,7 +625,7 @@ export class GuillocheEngine {
 
       for (let i = 0; i <= baseSteps; i++) {
         const t = i * dt;
-        let [curveX, curveY] = pointFor(t, p);
+        const [, curveY] = pointFor(t, p);
 
         // Normalize curve to unit dimensions
         const normalizedT = i / baseSteps;

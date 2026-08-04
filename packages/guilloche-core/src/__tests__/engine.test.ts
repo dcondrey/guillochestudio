@@ -279,7 +279,6 @@ describe('GuillocheEngine', () => {
         border: {
           length: 800,
           width: 100,
-          cornerStyle: 'miter',
           waveAmplitude: 0,
           waveFrequency: 1,
           repeatCount: 4,
@@ -306,7 +305,6 @@ describe('GuillocheEngine', () => {
         border: {
           length: 800,
           width: 100,
-          cornerStyle: 'miter',
           waveAmplitude: 20,
           waveFrequency: 2,
           repeatCount: 2,
@@ -325,7 +323,6 @@ describe('GuillocheEngine', () => {
         border: {
           length: 800,
           width: 100,
-          cornerStyle: 'miter',
           waveAmplitude: 0,
           waveFrequency: 1,
           repeatCount: 2,
@@ -745,6 +742,63 @@ describe('GuillocheEngine', () => {
       engine.setParams({ ...base, kaleidoscope: true });
       const on = engine.computePath().cacheKey;
       expect(on).not.toBe(off);
+    });
+  });
+
+  describe('crop', () => {
+    const base = { family: 'hypo' as const, steps: 800, symmetry: 1, R: 240, r: 60, d: 80 };
+    // The curve's radius ranges over 100..260, so this box cuts through it.
+    const box = { x: -150, y: -140, width: 300, height: 290, active: true };
+
+    it('keeps every point inside the crop rectangle', () => {
+      engine.setParams({ ...base, crop: box });
+      const cropped = engine.computePath();
+
+      expect(cropped.segments.length).toBeGreaterThan(0);
+      for (const segment of cropped.segments) {
+        for (const point of segment.points) {
+          // Clipping is exact, so allow only floating-point slack.
+          expect(point.x).toBeGreaterThanOrEqual(box.x - 1e-9);
+          expect(point.x).toBeLessThanOrEqual(box.x + box.width + 1e-9);
+          expect(point.y).toBeGreaterThanOrEqual(box.y - 1e-9);
+          expect(point.y).toBeLessThanOrEqual(box.y + box.height + 1e-9);
+        }
+      }
+    });
+
+    it('tightens the reported bounds, which drive export viewBoxes', () => {
+      engine.setParams({ ...base, crop: { ...box, active: false } });
+      const whole = engine.computePath().bounds;
+      engine.setParams({ ...base, crop: box });
+      const cropped = engine.computePath().bounds;
+
+      expect(cropped.maxX).toBeLessThan(whole.maxX);
+      expect(cropped.maxX).toBeLessThanOrEqual(box.x + box.width + 1e-9);
+      expect(cropped.minY).toBeGreaterThanOrEqual(box.y - 1e-9);
+    });
+
+    it('splits a stroke that leaves and re-enters the rectangle', () => {
+      engine.setParams({ ...base, crop: box });
+      const cropped = engine.computePath();
+      engine.setParams({ ...base, crop: { ...box, active: false } });
+      const whole = engine.computePath();
+
+      expect(cropped.segments.length).toBeGreaterThan(whole.segments.length);
+    });
+
+    it('drops the pattern entirely when the rectangle misses it', () => {
+      engine.setParams({
+        ...base,
+        crop: { x: 5000, y: 5000, width: 10, height: 10, active: true },
+      });
+      expect(engine.computePath().segments).toHaveLength(0);
+    });
+
+    it('participates in the cache key so resizing it redraws', () => {
+      engine.setParams({ ...base, crop: box });
+      const small = engine.computePath().cacheKey;
+      engine.setParams({ ...base, crop: { ...box, width: 200 } });
+      expect(engine.computePath().cacheKey).not.toBe(small);
     });
   });
 });
