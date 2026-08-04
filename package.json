@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@11.12.0",
+  "packageManager": "pnpm@11.18.0",
   "description": "Guilloche Studio Pro - Mathematical pattern generation SaaS platform",
   "homepage": "https://guillochestudio.com",
   "repository": {
