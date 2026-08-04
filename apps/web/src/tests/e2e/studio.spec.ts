@@ -2,15 +2,22 @@ import { test, expect } from '@playwright/test';
 
 /**
  * The studio is server-rendered before it hydrates, so clicks dispatched too
- * early land on markup with no handlers attached and are silently lost. The
- * canvas backing store is only resized by the client renderer, which makes it a
- * reliable hydration signal.
+ * early land on markup with no handlers attached and are silently lost.
+ *
+ * Resizing the backing store is not enough of a signal: the renderer sizes the
+ * canvas first and paints on a later frame, once the composition store resolves.
+ * Waiting for actual pixels is what makes the first assertion of a test reliable.
  */
 async function waitForStudioReady(page: import('@playwright/test').Page) {
   await page.waitForFunction(
     () => {
       const canvas = document.querySelector('canvas');
-      return !!canvas && (canvas.width !== 300 || canvas.height !== 150);
+      if (!canvas || (canvas.width === 300 && canvas.height === 150)) return false;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return false;
+      const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      for (let i = 3; i < data.length; i += 4) if (data[i] !== 0) return true;
+      return false;
     },
     null,
     { timeout: 15000 }
@@ -63,18 +70,22 @@ test.describe('Studio Page', () => {
   });
 
   test('should draw the pattern rather than leaving the canvas blank', async ({ page }) => {
-    // Regression guard: a CSP that blocked hydration left this canvas at its
-    // default 300x150 backing store with nothing painted.
-    const painted = await page.locator('canvas').evaluate((el) => {
+    // Regression guard: a CSP that blocked hydration left this canvas unpainted.
+    // Counting opaque pixels would not catch it — the background fill is opaque
+    // on its own — so count pixels that differ from the background instead.
+    const strokePixels = await page.locator('canvas').evaluate((el) => {
       const canvas = el as HTMLCanvasElement;
       const ctx = canvas.getContext('2d');
       if (!ctx) return 0;
       const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      let opaque = 0;
-      for (let i = 3; i < data.length; i += 4) if (data[i] !== 0) opaque++;
-      return opaque;
+      const [bgR, bgG, bgB] = [data[0], data[1], data[2]];
+      let differing = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i] !== bgR || data[i + 1] !== bgG || data[i + 2] !== bgB) differing++;
+      }
+      return differing;
     });
-    expect(painted).toBeGreaterThan(0);
+    expect(strokePixels).toBeGreaterThan(1000);
   });
 
   test('should display the inspector tabs', async ({ page }) => {
@@ -114,6 +125,36 @@ test.describe('Studio Page', () => {
     await expect(page.getByLabel(/horizontal reflection/i)).toBeVisible();
     await expect(page.getByLabel(/vertical reflection/i)).toBeVisible();
     await expect(page.getByLabel(/kaleidoscope/i)).toBeVisible();
+  });
+
+  test('should apply the adaptive resolution toggle', async ({ page }) => {
+    const canvas = page.locator('canvas');
+    await page.getByRole('button', { name: 'geometry', exact: true }).click();
+    await page.getByRole('button', { name: /advanced/i }).click();
+
+    const adaptive = page.getByText(/adaptive resolution/i);
+    await expect(adaptive).toBeVisible();
+
+    const before = await settledFingerprint(page, canvas);
+    await adaptive.click();
+    await expect.poll(() => fingerprint(canvas), { timeout: 8000 }).not.toBe(before);
+  });
+
+  test('should crop the pattern to a region and restore it', async ({ page }) => {
+    const canvas = page.locator('canvas');
+    await page.getByRole('button', { name: 'effects', exact: true }).click();
+
+    const uncropped = await settledFingerprint(page, canvas);
+    const crop = page.getByText(/crop to region/i);
+    await crop.click();
+
+    // The numeric bounds only exist while the crop is on.
+    await expect(page.getByLabel('Width', { exact: true })).toBeVisible();
+    await expect.poll(() => fingerprint(canvas), { timeout: 8000 }).not.toBe(uncropped);
+
+    await crop.click();
+    await expect(page.getByLabel('Width', { exact: true })).toHaveCount(0);
+    await expect.poll(() => fingerprint(canvas), { timeout: 8000 }).toBe(uncropped);
   });
 
   for (const mode of ['Rosette', 'Border', 'Grid']) {

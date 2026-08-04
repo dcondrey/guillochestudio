@@ -140,10 +140,37 @@
     { id: 'noise', label: 'Noise', min: 0, max: 1, step: 0.01 },
   ];
 
+  type CropKey = 'x' | 'y' | 'width' | 'height';
+
+  const cropFields: { key: CropKey; label: string }[] = [
+    { key: 'x', label: 'Left' },
+    { key: 'y', label: 'Top' },
+    { key: 'width', label: 'Width' },
+    { key: 'height', label: 'Height' },
+  ];
+
+  /**
+   * Crop coordinates are path units about the origin, so seed the box around the
+   * current pattern. Enabling a crop whose bounds are still undefined would clip
+   * every point away and read as "the pattern vanished".
+   */
+  function defaultCrop() {
+    const extent = Math.max($params.R + $params.r + $params.d, 1);
+    return { x: -extent, y: -extent, width: extent * 2, height: extent * 2, active: false };
+  }
+
+  function toggleCrop(active: boolean): void {
+    updateParams({ crop: { ...($params.crop ?? defaultCrop()), active } });
+  }
+
+  function updateCropField(key: CropKey, value: number): void {
+    if (!Number.isFinite(value)) return;
+    updateParams({ crop: { ...($params.crop ?? defaultCrop()), [key]: value } });
+  }
+
   /**
    * Controls for the rosette, border and grid modes. Every field here is one the
-   * engine actually reads — border.cornerStyle is deliberately absent because
-   * nothing consumes it.
+   * engine actually reads.
    */
   type ModeField =
     | { key: string; label: string; type: 'range'; min: number; max: number; step: number }
@@ -1242,6 +1269,21 @@
                       <span aria-hidden="true" class="text-[9px] font-semibold uppercase">◇ K</span>
                     </label>
                   </div>
+
+                  <label
+                    class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl cursor-pointer hover:bg-gray-100"
+                  >
+                    <span class="text-[9px] font-semibold uppercase tracking-widest"
+                      >Adaptive Resolution</span
+                    >
+                    <input
+                      type="checkbox"
+                      checked={$activeLayer.params.adaptiveSteps ?? true}
+                      on:change={(e) =>
+                        updateActiveLayerParam('adaptiveSteps', e.currentTarget.checked)}
+                      class="w-5 h-5 accent-blue-600"
+                    />
+                  </label>
                 </div>
               {/if}
 
@@ -1438,6 +1480,47 @@
                   class="w-5 h-5 accent-blue-600"
                 />
               </label>
+
+              <!-- Crop: clips the pattern to a rectangle in path units, centred on
+                   the origin. The engine has always supported this; nothing exposed it. -->
+              <div role="group" aria-labelledby="studio-crop-label" class="space-y-4">
+                <label
+                  class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl cursor-pointer hover:bg-gray-100"
+                >
+                  <span
+                    id="studio-crop-label"
+                    class="text-[9px] font-semibold uppercase tracking-widest">Crop To Region</span
+                  >
+                  <input
+                    type="checkbox"
+                    checked={$params.crop?.active ?? false}
+                    on:change={(e) => toggleCrop(e.currentTarget.checked)}
+                    class="w-5 h-5 accent-blue-600"
+                  />
+                </label>
+
+                {#if $params.crop?.active}
+                  <div class="grid grid-cols-2 gap-3" transition:slide={{ duration: 200 }}>
+                    {#each cropFields as field (field.key)}
+                      <div>
+                        <label
+                          for="crop-{field.key}"
+                          class="text-[9px] font-semibold uppercase tracking-widest text-gray-500"
+                          >{field.label}</label
+                        >
+                        <input
+                          id="crop-{field.key}"
+                          type="number"
+                          step="10"
+                          value={$params.crop?.[field.key] ?? 0}
+                          on:change={(e) => updateCropField(field.key, +e.currentTarget.value)}
+                          class="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-sm outline-none mt-1"
+                        />
+                      </div>
+                    {/each}
+                  </div>
+                {/if}
+              </div>
 
               <!-- Glow lives in the Style tab: it is a per-layer property, and a
                    global copy here could never win against the layer's own value. -->
