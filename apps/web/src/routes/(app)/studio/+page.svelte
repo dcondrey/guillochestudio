@@ -148,6 +148,16 @@
     return renderer?.getContext() ?? null;
   }
 
+  /**
+   * Dash lengths for a layer, matching the SVG renderer so the preview and the
+   * exported file agree. Returns undefined for a solid line.
+   */
+  function dashPattern(p: import('@guilloche/shared').PatternParams): number[] | undefined {
+    if (!p?.dashed) return undefined;
+    const stroke = p.lw || 1;
+    return [stroke * 8 * (p.dashRatio ?? 1), stroke * 8];
+  }
+
   function initRenderer() {
     if (!canvas || !browser) return;
     const ctx = canvas.getContext('2d');
@@ -191,7 +201,8 @@
           gradient: $params.useGradient ? [$params.startColor, $params.endColor] : undefined,
           opacity: comp.opacity,
           blendMode: comp.blendMode,
-          glow: $params.glow,
+          glow: comp.path.params.glow,
+          lineDash: dashPattern(comp.path.params),
         });
 
         if ($activeLayer?.params?.text?.active && comp.layerId === $activeLayerId) {
@@ -542,7 +553,9 @@
           backgroundColor: exportTransparent ? undefined : $params.bgColor,
           strokeColor: $activeLayer?.color || '#000000',
           gradient: $params.useGradient ? [$params.startColor, $params.endColor] : undefined,
-          glow: $params.glow,
+          glow: layerParams.glow,
+          dashed: layerParams.dashed,
+          dashRatio: layerParams.dashRatio,
         });
         downloadFile(svg, 'guilloche-pattern.svg', 'image/svg+xml');
       } else if (exportFormat === 'png') {
@@ -564,7 +577,8 @@
               gradient: $params.useGradient ? [$params.startColor, $params.endColor] : undefined,
               opacity: comp.opacity,
               blendMode: comp.blendMode,
-              glow: $params.glow,
+              glow: comp.path.params.glow,
+              lineDash: dashPattern(comp.path.params),
             });
           }
         }
@@ -1235,24 +1249,8 @@
                 />
               </label>
 
-              <!-- Glow -->
-              <div class="space-y-3">
-                <div class="flex justify-between items-center">
-                  <span class="text-[9px] font-semibold uppercase tracking-widest text-gray-500"
-                    >Glow Intensity</span
-                  >
-                  <span class="text-sm font-bold">{$params.glow}</span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="20"
-                  step="0.5"
-                  value={$params.glow}
-                  on:input={(e) => updateParams({ glow: +e.currentTarget.value })}
-                  class="w-full h-1.5 bg-gray-100 rounded-full appearance-none cursor-pointer accent-black"
-                />
-              </div>
+              <!-- Glow lives in the Style tab: it is a per-layer property, and a
+                   global copy here could never win against the layer's own value. -->
 
               <!-- Reset Button -->
               <button
