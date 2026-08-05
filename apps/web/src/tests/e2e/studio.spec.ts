@@ -127,19 +127,6 @@ test.describe('Studio Page', () => {
     await expect(page.getByLabel(/kaleidoscope/i)).toBeVisible();
   });
 
-  test('should apply the adaptive resolution toggle', async ({ page }) => {
-    const canvas = page.locator('canvas');
-    await page.getByRole('button', { name: 'geometry', exact: true }).click();
-    await page.getByRole('button', { name: /advanced/i }).click();
-
-    const adaptive = page.getByText(/adaptive resolution/i);
-    await expect(adaptive).toBeVisible();
-
-    const before = await settledFingerprint(page, canvas);
-    await adaptive.click();
-    await expect.poll(() => fingerprint(canvas), { timeout: 8000 }).not.toBe(before);
-  });
-
   test('should crop the pattern to a region and restore it', async ({ page }) => {
     const canvas = page.locator('canvas');
     await page.getByRole('button', { name: 'effects', exact: true }).click();

@@ -1269,21 +1269,6 @@
                       <span aria-hidden="true" class="text-[9px] font-semibold uppercase">◇ K</span>
                     </label>
                   </div>
-
-                  <label
-                    class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl cursor-pointer hover:bg-gray-100"
-                  >
-                    <span class="text-[9px] font-semibold uppercase tracking-widest"
-                      >Adaptive Resolution</span
-                    >
-                    <input
-                      type="checkbox"
-                      checked={$activeLayer.params.adaptiveSteps ?? true}
-                      on:change={(e) =>
-                        updateActiveLayerParam('adaptiveSteps', e.currentTarget.checked)}
-                      class="w-5 h-5 accent-blue-600"
-                    />
-                  </label>
                 </div>
               {/if}
 
