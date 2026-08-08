@@ -17,7 +17,7 @@ import {
 // Pro-only formats
 const PRO_FORMATS = ['pdf', 'dxf', 'gcode', 'hpgl'];
 
-export const POST: RequestHandler = async ({ request, locals }) => {
+export const POST: RequestHandler = async ({ request, locals, platform }) => {
   // 1. Auth check
   if (!locals.session?.user) {
     throw error(401, 'Authentication required');
@@ -43,7 +43,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   }
 
   const userId = session.user.id;
-  const { patternId, versionId, format, settings } = data;
+  const { patternId, versionId, format, settings, pngData } = data;
+
+  if (format === 'png' && !pngData) {
+    throw error(400, 'pngData is required for png exports');
+  }
 
   // 3. Check if user has access to pattern
   const { data: pattern } = await locals.supabase
@@ -147,27 +151,104 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     p_action: `exports_${format}`,
   });
 
-  // 9. Trigger background processing
-  // In production, this would be a Supabase Edge Function or external worker
-  // For now, we process inline for simple formats
-  if (format === 'svg' || format === 'png') {
-    // These can be processed quickly inline
-    // Mark as processing
-    await locals.supabase
-      .from('exports')
-      .update({ status: 'processing', started_at: new Date().toISOString() })
-      .eq('id', exportJob.id);
+  // 9. Trigger processing
+  let finalStatus: ExportResponse['status'] = 'queued';
 
-    // TODO: Actual export logic would go here
-    // For now, mark as done (the actual implementation would be in a service)
+  if (format === 'png' && pngData) {
+    await locals.supabase.rpc('update_export_status', {
+      p_export_id: exportJob.id,
+      p_status: 'processing',
+    });
+
+    finalStatus = await signAndStorePng({
+      pngData,
+      exportId: exportJob.id,
+      userId,
+      locals,
+      platform,
+    });
   }
 
   // 10. Return response
   const response: ExportResponse = {
     exportId: exportJob.id,
-    status: 'queued',
+    status: finalStatus,
     estimatedWaitSeconds: format === 'svg' ? 2 : format === 'png' ? 5 : 15,
   };
 
   return json(response, { status: 202 }); // 202 Accepted for async processing
 };
+
+// Never throws; a signing or upload failure is recorded as a 'failed' export status instead.
+async function signAndStorePng({
+  pngData,
+  exportId,
+  userId,
+  locals,
+  platform,
+}: {
+  pngData: string;
+  exportId: string;
+  userId: string;
+  locals: App.Locals;
+  platform: App.Platform | undefined;
+}): Promise<'done' | 'failed'> {
+  const fail = async (message: string) => {
+    console.error(`Export ${exportId} failed:`, message);
+    await locals.supabase.rpc('update_export_status', {
+      p_export_id: exportId,
+      p_status: 'failed',
+      p_error: message,
+    });
+    return 'failed' as const;
+  };
+
+  const signWorker = platform?.env?.SIGN_WORKER;
+  if (!signWorker) {
+    return fail('Signing service is not configured');
+  }
+
+  let pngBytes: Uint8Array<ArrayBuffer>;
+  try {
+    const binary = atob(pngData);
+    pngBytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      pngBytes[i] = binary.charCodeAt(i);
+    }
+  } catch {
+    return fail('pngData is not valid base64');
+  }
+
+  const signResponse = await signWorker.fetch(
+    new Request('https://sign-worker.internal/sign-png', {
+      method: 'POST',
+      headers: { 'X-Instance-Id': exportId, 'Content-Type': 'application/octet-stream' },
+      body: new Blob([pngBytes]),
+    })
+  );
+
+  if (!signResponse.ok) {
+    const errorBody = await signResponse.text().catch(() => '');
+    return fail(`Signing failed (${signResponse.status}): ${errorBody.slice(0, 500)}`);
+  }
+
+  const signedPng = new Uint8Array(await signResponse.arrayBuffer());
+  const filePath = `${userId}/${exportId}.png`;
+
+  const { error: uploadError } = await locals.supabase.storage
+    .from('exports')
+    .upload(filePath, signedPng, { contentType: 'image/png', upsert: false });
+
+  if (uploadError) {
+    return fail(`Upload failed: ${uploadError.message}`);
+  }
+
+  await locals.supabase.rpc('update_export_status', {
+    p_export_id: exportId,
+    p_status: 'done',
+    p_file_path: filePath,
+    p_file_size: signedPng.byteLength,
+  });
+
+  return 'done';
+}

@@ -194,6 +194,8 @@ export const exportRequestSchema = z.object({
       dpi: z.number().int().min(72).max(600).optional(),
     })
     .default({}),
+  // Base64 PNG bytes rendered client-side; required for format:'png', checked in the route handler.
+  pngData: z.string().optional(),
 });
 
 export type ExportRequest = z.infer<typeof exportRequestSchema>;
