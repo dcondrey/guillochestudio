@@ -19,7 +19,7 @@ importers:
         version: 6.9.1
       '@vitest/coverage-v8':
         specifier: ^4.0.18
-        version: 4.0.18(vitest@4.0.18(@types/node@25.2.3)(jsdom@24.1.3))
+        version: 4.0.18(vitest@4.0.18(@types/node@25.2.3)(jsdom@24.1.3(supports-color@7.2.0)))
       '@vitest/expect':
         specifier: ^4.0.18
         version: 4.0.18
@@ -34,7 +34,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^4.0.18
-        version: 4.0.18(@types/node@25.2.3)(jsdom@24.1.3)
+        version: 4.0.18(@types/node@25.2.3)(jsdom@24.1.3(supports-color@7.2.0))
       wrangler:
         specifier: ^3.28.0
         version: 3.114.17(@cloudflare/workers-types@4.20260213.0)
@@ -88,8 +88,8 @@ importers:
         version: 3.22.3
     devDependencies:
       '@cloudflare/workers-types':
-        specifier: ^4.20240314.0
-        version: 4.20260213.0
+        specifier: ^5.20260804.1
+        version: 5.20260804.1
       '@commitlint/cli':
         specifier: ^20.4.1
         version: 20.4.1(@types/node@25.2.3)(typescript@5.9.3)
@@ -104,7 +104,7 @@ importers:
         version: 1.58.2
       '@sveltejs/adapter-cloudflare':
         specifier: ^4.2.0
-        version: 4.9.0(@sveltejs/kit@2.51.0(@sveltejs/vite-plugin-svelte@3.1.2(supports-color@7.2.0)(svelte@4.2.20)(vite@5.4.21(@types/node@25.2.3)))(svelte@4.2.20)(typescript@5.9.3)(vite@5.4.21(@types/node@25.2.3)))(wrangler@3.114.17(@cloudflare/workers-types@4.20260213.0))
+        version: 4.9.0(@sveltejs/kit@2.51.0(@sveltejs/vite-plugin-svelte@3.1.2(supports-color@7.2.0)(svelte@4.2.20)(vite@5.4.21(@types/node@25.2.3)))(svelte@4.2.20)(typescript@5.9.3)(vite@5.4.21(@types/node@25.2.3)))(wrangler@3.114.17(@cloudflare/workers-types@5.20260804.1))
       '@sveltejs/kit':
         specifier: ^2.5.4
         version: 2.51.0(@sveltejs/vite-plugin-svelte@3.1.2(supports-color@7.2.0)(svelte@4.2.20)(vite@5.4.21(@types/node@25.2.3)))(svelte@4.2.20)(typescript@5.9.3)(vite@5.4.21(@types/node@25.2.3))
@@ -187,20 +187,20 @@ importers:
   apps/workers/ai:
     devDependencies:
       '@cloudflare/workers-types':
-        specifier: ^4.20240314.0
-        version: 4.20260213.0
+        specifier: ^5.20260804.1
+        version: 5.20260804.1
       typescript:
         specifier: ^5.4.0
         version: 5.9.3
       wrangler:
         specifier: ^3.57.0
-        version: 3.114.17(@cloudflare/workers-types@4.20260213.0)
+        version: 3.114.17(@cloudflare/workers-types@5.20260804.1)
 
   apps/workers/sign:
     devDependencies:
       '@cloudflare/workers-types':
-        specifier: ^4.20240314.0
-        version: 4.20260213.0
+        specifier: ^5.20260804.1
+        version: 5.20260804.1
       typescript:
         specifier: ^5.4.0
         version: 5.9.3
@@ -209,7 +209,7 @@ importers:
         version: 1.6.1(@types/node@25.2.3)(jsdom@24.1.3(supports-color@7.2.0))(supports-color@7.2.0)
       wrangler:
         specifier: ^3.57.0
-        version: 3.114.17(@cloudflare/workers-types@4.20260213.0)
+        version: 3.114.17(@cloudflare/workers-types@5.20260804.1)
 
   packages/guilloche-core:
     dependencies:
@@ -346,6 +346,9 @@ packages:
 
   '@cloudflare/workers-types@4.20260213.0':
     resolution: {integrity: sha512-dr905ft/1R0mnfdT9aun4vanLgIBN27ZyPxTCENKmhctSz6zNmBOvHbzDWAhGE0RBAKFf3X7ifMRcd0MkmBvgA==}
+
+  '@cloudflare/workers-types@5.20260804.1':
+    resolution: {integrity: sha512-B1dwxpN6e5RZXZkE5zpZj+ooNeNZ1mwavLIyHDYe10ojhlGTwDfe8sAl7R1mMXc1cyIsbr+jKVdvmMEyVcdTdg==}
 
   '@commitlint/cli@20.4.1':
     resolution: {integrity: sha512-uuFKKpc7OtQM+6SRqT+a4kV818o1pS+uvv/gsRhyX7g4x495jg+Q7P0+O9VNGyLXBYP0syksS7gMRDJKcekr6A==}
@@ -4560,6 +4563,8 @@ snapshots:
 
   '@cloudflare/workers-types@4.20260213.0': {}
 
+  '@cloudflare/workers-types@5.20260804.1': {}
+
   '@commitlint/cli@20.4.1(@types/node@25.2.3)(typescript@5.9.3)':
     dependencies:
       '@commitlint/format': 20.4.0
@@ -5534,13 +5539,13 @@ snapshots:
     dependencies:
       acorn: 8.15.0
 
-  '@sveltejs/adapter-cloudflare@4.9.0(@sveltejs/kit@2.51.0(@sveltejs/vite-plugin-svelte@3.1.2(supports-color@7.2.0)(svelte@4.2.20)(vite@5.4.21(@types/node@25.2.3)))(svelte@4.2.20)(typescript@5.9.3)(vite@5.4.21(@types/node@25.2.3)))(wrangler@3.114.17(@cloudflare/workers-types@4.20260213.0))':
+  '@sveltejs/adapter-cloudflare@4.9.0(@sveltejs/kit@2.51.0(@sveltejs/vite-plugin-svelte@3.1.2(supports-color@7.2.0)(svelte@4.2.20)(vite@5.4.21(@types/node@25.2.3)))(svelte@4.2.20)(typescript@5.9.3)(vite@5.4.21(@types/node@25.2.3)))(wrangler@3.114.17(@cloudflare/workers-types@5.20260804.1))':
     dependencies:
       '@cloudflare/workers-types': 4.20260213.0
       '@sveltejs/kit': 2.51.0(@sveltejs/vite-plugin-svelte@3.1.2(supports-color@7.2.0)(svelte@4.2.20)(vite@5.4.21(@types/node@25.2.3)))(svelte@4.2.20)(typescript@5.9.3)(vite@5.4.21(@types/node@25.2.3))
       esbuild: 0.24.2
       worktop: 0.8.0-next.18
-      wrangler: 3.114.17(@cloudflare/workers-types@4.20260213.0)
+      wrangler: 3.114.17(@cloudflare/workers-types@5.20260804.1)
 
   '@sveltejs/kit@2.51.0(@sveltejs/vite-plugin-svelte@3.1.2(supports-color@7.2.0)(svelte@4.2.20)(vite@5.4.21(@types/node@25.2.3)))(svelte@4.2.20)(typescript@5.9.3)(vite@5.4.21(@types/node@25.2.3))':
     dependencies:
@@ -5729,7 +5734,7 @@ snapshots:
 
   '@ungap/structured-clone@1.3.0': {}
 
-  '@vitest/coverage-v8@4.0.18(vitest@4.0.18(@types/node@25.2.3)(jsdom@24.1.3))':
+  '@vitest/coverage-v8@4.0.18(vitest@4.0.18(@types/node@25.2.3)(jsdom@24.1.3(supports-color@7.2.0)))':
     dependencies:
       '@bcoe/v8-coverage': 1.0.2
       '@vitest/utils': 4.0.18
@@ -5741,7 +5746,7 @@ snapshots:
       obug: 2.1.1
       std-env: 3.10.0
       tinyrainbow: 3.0.3
-      vitest: 4.0.18(@types/node@25.2.3)(jsdom@24.1.3)
+      vitest: 4.0.18(@types/node@25.2.3)(jsdom@24.1.3(supports-color@7.2.0))
 
   '@vitest/expect@1.6.1':
     dependencies:
@@ -8385,7 +8390,7 @@ snapshots:
       - supports-color
       - terser
 
-  vitest@4.0.18(@types/node@25.2.3)(jsdom@24.1.3):
+  vitest@4.0.18(@types/node@25.2.3)(jsdom@24.1.3(supports-color@7.2.0)):
     dependencies:
       '@vitest/expect': 4.0.18
       '@vitest/mocker': 4.0.18(vite@5.4.21(@types/node@25.2.3))
@@ -8515,6 +8520,26 @@ snapshots:
       workerd: 1.20250718.0
     optionalDependencies:
       '@cloudflare/workers-types': 4.20260213.0
+      fsevents: 2.3.3
+      sharp: 0.33.5
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
+  wrangler@3.114.17(@cloudflare/workers-types@5.20260804.1):
+    dependencies:
+      '@cloudflare/kv-asset-handler': 0.3.4
+      '@cloudflare/unenv-preset': 2.0.2(unenv@2.0.0-rc.14)(workerd@1.20250718.0)
+      '@esbuild-plugins/node-globals-polyfill': 0.2.3(esbuild@0.17.19)
+      '@esbuild-plugins/node-modules-polyfill': 0.2.2(esbuild@0.17.19)
+      blake3-wasm: 2.1.5
+      esbuild: 0.17.19
+      miniflare: 3.20250718.3
+      path-to-regexp: 6.3.0
+      unenv: 2.0.0-rc.14
+      workerd: 1.20250718.0
+    optionalDependencies:
+      '@cloudflare/workers-types': 5.20260804.1
       fsevents: 2.3.3
       sharp: 0.33.5
     transitivePeerDependencies:
