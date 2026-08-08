@@ -126,7 +126,7 @@ export default defineConfig(({ mode }): UserConfig => {
 
           // Asset file naming with content hash for cache busting
           assetFileNames: (assetInfo) => {
-            const info = assetInfo.name?.split('.') ?? [];
+            const info = assetInfo.names[0]?.split('.') ?? [];
             const ext = info[info.length - 1];
             if (/png|jpe?g|svg|gif|tiff|bmp|ico|webp|avif/i.test(ext)) {
               return `assets/images/[name]-[hash][extname]`;
