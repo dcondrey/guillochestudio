@@ -49,7 +49,11 @@ fn png_crc32(chunk_type: &[u8; 4], data: &[u8]) -> u32 {
     for &byte in chunk_type.iter().chain(data.iter()) {
         crc ^= byte as u32;
         for _ in 0..8 {
-            crc = if crc & 1 != 0 { (crc >> 1) ^ 0xEDB8_8320 } else { crc >> 1 };
+            crc = if crc & 1 != 0 {
+                (crc >> 1) ^ 0xEDB8_8320
+            } else {
+                crc >> 1
+            };
         }
     }
     crc ^ 0xFFFF_FFFF

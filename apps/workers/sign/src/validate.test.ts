@@ -4,7 +4,7 @@ import { MAX_PNG_BYTES, validateSignRequest } from './validate';
 const BASE = {
   method: 'POST',
   pathname: '/sign-png',
-  hasSigningKey: true,
+  signingConfigured: true,
   instanceId: 'xmp:iid:test',
   contentLength: 1024,
 };
@@ -25,8 +25,8 @@ describe('validateSignRequest', () => {
     expect(result).toEqual({ ok: false, status: 404, error: 'Not found' });
   });
 
-  it('rejects when the signing key is not provisioned', () => {
-    const result = validateSignRequest({ ...BASE, hasSigningKey: false });
+  it('rejects when signing is not fully configured', () => {
+    const result = validateSignRequest({ ...BASE, signingConfigured: false });
     expect(result).toEqual({ ok: false, status: 500, error: 'Signing is not configured' });
   });
 

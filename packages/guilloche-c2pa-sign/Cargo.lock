@@ -225,6 +225,7 @@ version = "0.1.0"
 dependencies = [
  "c2pa-text-binding",
  "ciborium",
+ "coset",
  "hex",
  "jumbf",
  "serde",

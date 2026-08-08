@@ -3,7 +3,7 @@ export const MAX_PNG_BYTES = 20 * 1024 * 1024;
 export interface SignRequestInput {
   method: string;
   pathname: string;
-  hasSigningKey: boolean;
+  signingConfigured: boolean;
   instanceId: string | null;
   contentLength: number;
 }
@@ -19,7 +19,7 @@ export function validateSignRequest(input: SignRequestInput): SignRequestValidat
   if (input.pathname !== '/sign-png') {
     return { ok: false, status: 404, error: 'Not found' };
   }
-  if (!input.hasSigningKey) {
+  if (!input.signingConfigured) {
     return { ok: false, status: 500, error: 'Signing is not configured' };
   }
   if (!input.instanceId) {

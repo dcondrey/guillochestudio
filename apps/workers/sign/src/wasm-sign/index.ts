@@ -21,5 +21,6 @@ export const sign_png: (
   generatorVersion: string,
   format: string,
   instanceId: string,
-  secretKeyHex: string
+  secretKeyHex: string,
+  certDer: Uint8Array
 ) => Uint8Array = imports.sign_png;

@@ -249,16 +249,19 @@ export function sign(payload, secret_hex) {
  * Signs a PNG's bytes with a minimal C2PA manifest (integrity-only: one
  * `c2pa.created` action, one hard-binding data hash, no ingredients) and
  * returns the signed PNG. `secret_key_hex` must be 64 hex chars (32-byte
- * Ed25519 secret key).
+ * Ed25519 secret key). `cert_der` is an X.509 cert (DER) for that key,
+ * embedded as the COSE_Sign1's x5chain; pass an empty slice to sign without
+ * one (structurally valid, but no C2PA validator will accept it).
  * @param {Uint8Array} png
  * @param {string} generator
  * @param {string} generator_version
  * @param {string} format
  * @param {string} instance_id
  * @param {string} secret_key_hex
+ * @param {Uint8Array} cert_der
  * @returns {Uint8Array}
  */
-export function sign_png(png, generator, generator_version, format, instance_id, secret_key_hex) {
+export function sign_png(png, generator, generator_version, format, instance_id, secret_key_hex, cert_der) {
     const ptr0 = passArray8ToWasm0(png, wasm.__wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;
     const ptr1 = passStringToWasm0(generator, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
@@ -271,13 +274,15 @@ export function sign_png(png, generator, generator_version, format, instance_id,
     const len4 = WASM_VECTOR_LEN;
     const ptr5 = passStringToWasm0(secret_key_hex, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len5 = WASM_VECTOR_LEN;
-    const ret = wasm.sign_png(ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3, ptr4, len4, ptr5, len5);
+    const ptr6 = passArray8ToWasm0(cert_der, wasm.__wbindgen_malloc);
+    const len6 = WASM_VECTOR_LEN;
+    const ret = wasm.sign_png(ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3, ptr4, len4, ptr5, len5, ptr6, len6);
     if (ret[3]) {
         throw takeFromExternrefTable0(ret[2]);
     }
-    var v7 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+    var v8 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
     wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
-    return v7;
+    return v8;
 }
 
 /**

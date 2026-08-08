@@ -9,7 +9,9 @@
 //! `cddl/data-hash.cddl`, `cddl/actions.cddl`, `cddl/hashed-uri.cddl`) —
 //! not reverse-engineered from an example.
 
-use jumbf::builder::{DataBoxBuilder, SuperBoxBuilder};
+use coset::cbor::value::Value as CborValue;
+use coset::{CoseSign1, Label, TaggedCborSerializable};
+use jumbf::builder::{DataBoxBuilder, SuperBoxBuilder, ToBox};
 use jumbf::BoxType;
 use serde::Serialize;
 use sha2::{Digest, Sha256};
@@ -98,6 +100,14 @@ fn cbor_bytes<T: Serialize>(value: &T) -> Vec<u8> {
 /// Builds a standalone assertion box (superbox: jumd desc + one cbor data
 /// box) and returns both its serialized bytes (for hashing into the claim)
 /// and the builder itself (for embedding into the assertion store).
+///
+/// The hash bytes are the box's *payload* (desc box + data box, each fully
+/// framed, but without this box's own outer length+type header) — matching
+/// c2pa-rs's `JUMBFSuperBox::write_box_payload`, which is what
+/// `Claim::calc_assertion_box_hash` hashes on the verifying side. Hashing the
+/// fully-framed box instead (this crate's original bug — confirmed against a
+/// real c2patool round trip 2026-08-08) produces an 8-byte-shifted hash that
+/// silently fails `assertion.hashedURI.mismatch` in every real validator.
 fn assertion_box(label: &str, cbor_payload: Vec<u8>) -> (Vec<u8>, SuperBoxBuilder<'_>) {
     let make = || {
         SuperBoxBuilder::new(&CAI_CBOR_ASSERTION_UUID)
@@ -107,13 +117,20 @@ fn assertion_box(label: &str, cbor_payload: Vec<u8>) -> (Vec<u8>, SuperBoxBuilde
                 cbor_payload.clone(),
             ))
     };
-    let bytes = write_box(&make());
+    let bytes = write_box_payload(&make());
     (bytes, make())
 }
 
 fn write_box(b: &SuperBoxBuilder) -> Vec<u8> {
     let mut out = Cursor::new(Vec::new());
     b.write_jumbf(&mut out)
+        .expect("in-memory JUMBF write cannot fail");
+    out.into_inner()
+}
+
+fn write_box_payload(b: &SuperBoxBuilder) -> Vec<u8> {
+    let mut out = Cursor::new(Vec::new());
+    b.write_payload(&mut out)
         .expect("in-memory JUMBF write cannot fail");
     out.into_inner()
 }
@@ -133,6 +150,10 @@ struct ManifestParams<'a> {
     format: &'a str,
     instance_id: &'a str,
     secret_key_hex: &'a str,
+    /// X.509 cert (DER) for `secret_key_hex`'s public key, embedded as the
+    /// COSE_Sign1's x5chain. `None` produces a structurally-valid but
+    /// non-conformant signature (no C2PA validator will accept it).
+    cert_der: Option<&'a [u8]>,
 }
 
 /// Builds the full manifest-store JUMBF tree given the already-computed data
@@ -149,6 +170,7 @@ fn build_and_sign(
         format,
         instance_id,
         secret_key_hex,
+        cert_der,
     } = *params;
 
     let actions_cbor = cbor_bytes(&ActionsMap {
@@ -204,6 +226,10 @@ fn build_and_sign(
 
     let cose = c2pa_text_binding::sign_cose(&claim_cbor, &*decode_secret_key(secret_key_hex)?)
         .map_err(|e| e.to_string())?;
+    let cose = match cert_der {
+        Some(der) => embed_x5chain(cose, der)?,
+        None => cose,
+    };
     let signature_box = SuperBoxBuilder::new(&CAI_SIGNATURE_UUID)
         .set_label(LABEL_SIGNATURE)
         .add_child_box(DataBoxBuilder::from_owned(CBOR_BOX_TYPE, cose));
@@ -222,6 +248,25 @@ fn build_and_sign(
     Ok(BuiltManifest {
         jumbf_bytes: write_box(&manifest_store),
     })
+}
+
+/// Adds an X.509 cert (DER) to a COSE_Sign1's *unprotected* header as
+/// `x5chain`, without touching the signature — x5chain isn't covered by the
+/// Sig_structure, so this is safe to do after `c2pa_text_binding::sign_cose`
+/// has already signed the payload. Must be the text label "x5chain", not the
+/// registered int label 33: c2pa-rs's unprotected-header lookup only
+/// recognizes the text form (kept for compatibility with older C2PA
+/// versions — see its `cert_chain_from_sign1`/`get_unprotected_header_certs`).
+fn embed_x5chain(cose_bytes: Vec<u8>, cert_der: &[u8]) -> Result<Vec<u8>, String> {
+    let mut sign1 = CoseSign1::from_tagged_slice(&cose_bytes)
+        .map_err(|e| format!("could not re-parse COSE_Sign1 to embed x5chain: {e}"))?;
+    sign1.unprotected.rest.push((
+        Label::Text("x5chain".to_string()),
+        CborValue::Bytes(cert_der.to_vec()),
+    ));
+    sign1
+        .to_tagged_vec()
+        .map_err(|e| format!("could not re-serialize COSE_Sign1 after embedding x5chain: {e}"))
 }
 
 fn decode_secret_key(secret_key_hex: &str) -> Result<Zeroizing<[u8; 32]>, String> {
@@ -253,6 +298,7 @@ pub fn sign_png(
     format: &str,
     instance_id: &str,
     secret_key_hex: &str,
+    cert_der: Option<&[u8]>,
 ) -> Result<Vec<u8>, String> {
     png::validate_ihdr(png_in)?;
     let exclusion_start = png::insertion_offset() as u64;
@@ -263,6 +309,7 @@ pub fn sign_png(
         format,
         instance_id,
         secret_key_hex,
+        cert_der,
     };
 
     let mut exclusion_length = 0u64;
@@ -344,6 +391,7 @@ mod tests {
             "image/png",
             "xmp:iid:test",
             SK_HEX,
+            None,
         )
         .unwrap();
         let off = png::insertion_offset();
@@ -358,7 +406,8 @@ mod tests {
             "1.0.0",
             "image/png",
             "id",
-            SK_HEX
+            SK_HEX,
+            None,
         )
         .is_err());
     }
@@ -372,6 +421,7 @@ mod tests {
             "image/png",
             "xmp:iid:test",
             SK_HEX,
+            None,
         )
         .unwrap();
         let off = png::insertion_offset();
@@ -382,5 +432,21 @@ mod tests {
         assert_eq!(&chunk_data[4..8], b"jumb");
         let outer_len = u32::from_be_bytes(chunk_data[0..4].try_into().unwrap()) as usize;
         assert_eq!(outer_len, chunk_data.len());
+    }
+
+    #[test]
+    fn embeds_x5chain_in_the_cose_unprotected_header_when_a_cert_is_given() {
+        let cert_der = b"not a real cert, just bytes to prove round-tripping";
+        let out = sign_png(
+            &minimal_png(),
+            "guilloche",
+            "1.0.0",
+            "image/png",
+            "xmp:iid:test",
+            SK_HEX,
+            Some(cert_der),
+        )
+        .unwrap();
+        assert!(out.windows(cert_der.len()).any(|w| w == cert_der));
     }
 }

@@ -1,7 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
-export const sign_png: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number) => [number, number, number, number];
+export const sign_png: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number, m: number, n: number) => [number, number, number, number];
 export const content_hash: (a: number, b: number) => [number, number];
 export const cross_check: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
 export const embed_watermark: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
