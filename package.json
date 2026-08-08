@@ -18,6 +18,7 @@
     "build:analyze": "pnpm --filter @guilloche/web build:analyze",
     "build:wasm": "cd packages/guilloche-wasm && wasm-pack build --target web --release",
     "build:wasm:dev": "cd packages/guilloche-wasm && wasm-pack build --target web --dev",
+    "build:wasm:sign": "cd packages/guilloche-c2pa-sign && wasm-pack build --target bundler --release && cp pkg/guilloche_c2pa_sign_bg.wasm pkg/guilloche_c2pa_sign_bg.js pkg/guilloche_c2pa_sign_bg.wasm.d.ts ../../apps/workers/sign/src/wasm-sign/",
     "preview": "pnpm --filter @guilloche/web preview",
     "check": "pnpm run build:packages && pnpm -r check",
     "typecheck": "pnpm run build:packages && pnpm -r typecheck",

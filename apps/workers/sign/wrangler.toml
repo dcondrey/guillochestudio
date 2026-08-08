@@ -1,0 +1,22 @@
+name = "guilloche-sign"
+main = "src/index.ts"
+compatibility_date = "2024-03-14"
+compatibility_flags = ["nodejs_compat"]
+
+# No public route and workers_dev disabled: this Worker holds the C2PA
+# signing key and is reachable only via the [[services]] binding from
+# apps/web's wrangler.toml (guilloche-ai, by contrast, is deliberately
+# public — do not merge this into that worker).
+workers_dev = false
+
+[vars]
+ENVIRONMENT = "production"
+
+# Secrets (set via `wrangler secret put`, never in this file):
+# EXPORT_SIGNING_KEY - 64 hex char Ed25519 secret key
+
+[env.development]
+vars = { ENVIRONMENT = "development" }
+
+[env.staging]
+vars = { ENVIRONMENT = "staging" }

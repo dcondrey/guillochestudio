@@ -48,6 +48,13 @@ binding = "PATTERN_ASSETS"
 bucket_name = "guilloche-assets"
 preview_bucket_name = "guilloche-assets-preview"
 
+# Service binding to the C2PA signing Worker (apps/workers/sign). It holds
+# the signing key and has no public route — this binding is the only way
+# to reach it, dispatched in-process by the Cloudflare edge.
+[[services]]
+binding = "SIGN_WORKER"
+service = "guilloche-sign"
+
 # Durable Objects for real-time collaboration
 # [[durable_objects.bindings]]
 # name = "COLLABORATION"

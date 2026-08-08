@@ -1,0 +1,21 @@
+{
+  "name": "@guilloche/sign-worker",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "pnpm --dir ../../.. run build:wasm:sign && wrangler deploy",
+    "tail": "wrangler tail",
+    "check": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240314.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.3.0",
+    "wrangler": "^3.57.0"
+  }
+}

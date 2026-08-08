@@ -172,6 +172,11 @@ interface R2Objects {
   delimitedPrefixes: string[];
 }
 
+// Cloudflare Worker-to-Worker service binding
+interface CloudflareServiceBinding {
+  fetch(request: Request): Promise<Response>;
+}
+
 declare global {
   namespace App {
     interface Locals {
@@ -223,6 +228,9 @@ declare global {
 
         // Cloudflare R2 - Asset storage
         PATTERN_ASSETS: CloudflareR2Bucket;
+
+        // Cloudflare service binding - C2PA PNG signing (apps/workers/sign)
+        SIGN_WORKER: CloudflareServiceBinding;
       };
       context?: {
         waitUntil(promise: Promise<unknown>): void;
