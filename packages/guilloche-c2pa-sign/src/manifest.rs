@@ -60,6 +60,7 @@ struct ClaimMap {
     format: String,
     #[serde(rename = "instanceID")]
     instance_id: String,
+    alg: String,
 }
 
 #[derive(Serialize)]
@@ -192,6 +193,7 @@ fn build_and_sign(
         ],
         format: format.to_string(),
         instance_id: instance_id.to_string(),
+        alg: "sha256".to_string(),
     });
     let claim_box = SuperBoxBuilder::new(&CAI_CLAIM_UUID)
         .set_label(LABEL_CLAIM)
