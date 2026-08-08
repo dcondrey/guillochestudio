@@ -44,7 +44,7 @@
     "prettier-plugin-svelte": "^3.4.1",
     "typescript": "^5.4.0",
     "vitest": "^4.0.18",
-    "wrangler": "^3.28.0",
+    "wrangler": "^4.118.0",
     "zod": "^3.22.3"
   },
   "engines": {
