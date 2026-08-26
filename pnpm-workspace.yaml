@@ -3,6 +3,17 @@ packages:
   - 'apps/workers/*'
   - 'packages/*'
 
+# clipper2-js (used by @guilloche/core for boolean path ops) declares
+# @angular/core and @angular/common as peerDependencies, but its published
+# bundle never imports them (verified: no @angular reference anywhere in
+# fesm2020/clipper2-js.mjs or index.d.ts). With pnpm's default
+# auto-install-peers, that phantom peer pulled an unmaintained, unpatchable
+# Angular 15.2.10 into the tree, producing a stack of Dependabot alerts with
+# no available fix (GHSA advisories 16/17/42/77/79/80/81/84/85/86/105/106).
+# Disabling auto-install for peers removes it; `pnpm peers check` confirms no
+# other workspace dependency relies on an auto-installed peer.
+autoInstallPeers: false
+
 allowBuilds:
   # Postinstall fetches the required platform-native binary; build fails without it.
   esbuild: true
@@ -18,3 +29,20 @@ overrides:
   svelte: ^4.2.12
   vite: ^5.1.6
   zod: ^3.22.0
+  # GHSA-pxg6-pf52-xh8x / CVE-2026: cookie <0.7.0 accepts out-of-bounds
+  # characters in name/path/domain. cookie@0.5.0 is pulled in at runtime by
+  # @supabase/ssr for the auth cookie flow; 0.6.0 comes from @sveltejs/kit.
+  # 0.7.2 is API-compatible with both callers.
+  cookie: ^0.7.2
+  # GHSA-mjcs-fgm7-x4rw: yaml <1.10.3 (1.x line) — transitive via
+  # postcss-load-config -> svelte-preprocess/eslint-plugin-svelte, dev-only.
+  yaml@>=1.0.0 <2.0.0: ^1.10.3
+  # GHSA-fjxv-7rqg-78g4: form-data 4.x boundary uses unsafe random function,
+  # fixed in 4.0.6. Pulled in by jsdom (test env only).
+  form-data: ^4.0.6
+  # GHSA-3h5v-q93c-6h6q: ws DoS via many HTTP headers, fixed in 8.17.1;
+  # jsdom (test env only, via vitest) pulls ws@8.19.0, below the 8.21.0
+  # threshold flagged by a later advisory. Scoped to jsdom's own dependency
+  # range so wrangler/miniflare's separately-pinned ws@8.18.0 (see report:
+  # blocked on the wrangler 3->4 major bump) is untouched.
+  ws@>=8.19.0 <8.20.0: ^8.21.0
