@@ -9,8 +9,7 @@ export interface SignRequestInput {
 }
 
 export type SignRequestValidation =
-  | { ok: true; instanceId: string }
-  | { ok: false; status: number; error: string };
+  { ok: true; instanceId: string } | { ok: false; status: number; error: string };
 
 export function validateSignRequest(input: SignRequestInput): SignRequestValidation {
   if (input.method !== 'POST') {

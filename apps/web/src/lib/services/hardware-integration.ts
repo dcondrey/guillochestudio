@@ -16,12 +16,7 @@ export type HardwareType = 'plotter' | 'cnc' | 'laser' | 'engraver' | 'printer' 
 export type ConnectionType = 'serial' | 'usb' | 'network' | 'bluetooth';
 
 export type ConnectionStatus =
-  | 'disconnected'
-  | 'connecting'
-  | 'connected'
-  | 'busy'
-  | 'paused'
-  | 'error';
+  'disconnected' | 'connecting' | 'connected' | 'busy' | 'paused' | 'error';
 
 export interface HardwareDevice {
   id: string;
@@ -84,13 +79,7 @@ export interface HardwareJob {
 }
 
 export type JobStatus =
-  | 'pending'
-  | 'preparing'
-  | 'running'
-  | 'paused'
-  | 'completed'
-  | 'cancelled'
-  | 'error';
+  'pending' | 'preparing' | 'running' | 'paused' | 'completed' | 'cancelled' | 'error';
 
 export interface JobStatistics {
   totalCommands: number;

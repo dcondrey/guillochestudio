@@ -24,6 +24,7 @@ test-results/
 
 # Generated / vendored assets
 static/fonts/
+apps/workers/sign/src/wasm-sign/
 *.min.js
 *.min.css
 
