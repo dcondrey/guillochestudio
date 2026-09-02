@@ -92,8 +92,8 @@ importers:
         version: 3.25.76
     devDependencies:
       '@cloudflare/workers-types':
-        specifier: ^4.20260702.1
-        version: 4.20260702.1
+        specifier: ^5.20260829.1
+        version: 5.20260829.1
       '@commitlint/cli':
         specifier: ^20.5.3
         version: 20.5.3(@types/node@26.3.0)(conventional-commits-parser@6.4.0)(typescript@5.9.3)
@@ -108,7 +108,7 @@ importers:
         version: 1.62.1
       '@sveltejs/adapter-cloudflare':
         specifier: ^4.9.0
-        version: 4.9.0(@sveltejs/kit@2.70.3(@sveltejs/vite-plugin-svelte@3.1.2(supports-color@7.2.0)(svelte@4.2.20)(vite@5.4.21(@types/node@26.3.0)))(svelte@4.2.20)(typescript@5.9.3)(vite@5.4.21(@types/node@26.3.0)))(wrangler@3.114.17(@cloudflare/workers-types@4.20260702.1))
+        version: 4.9.0(@sveltejs/kit@2.70.3(@sveltejs/vite-plugin-svelte@3.1.2(supports-color@7.2.0)(svelte@4.2.20)(vite@5.4.21(@types/node@26.3.0)))(svelte@4.2.20)(typescript@5.9.3)(vite@5.4.21(@types/node@26.3.0)))(wrangler@3.114.17(@cloudflare/workers-types@5.20260829.1))
       '@sveltejs/kit':
         specifier: ^2.70.3
         version: 2.70.3(@sveltejs/vite-plugin-svelte@3.1.2(supports-color@7.2.0)(svelte@4.2.20)(vite@5.4.21(@types/node@26.3.0)))(svelte@4.2.20)(typescript@5.9.3)(vite@5.4.21(@types/node@26.3.0))
@@ -191,20 +191,20 @@ importers:
   apps/workers/ai:
     devDependencies:
       '@cloudflare/workers-types':
-        specifier: ^4.20260702.1
-        version: 4.20260702.1
+        specifier: ^5.20260829.1
+        version: 5.20260829.1
       typescript:
         specifier: ^5.4.0
         version: 5.9.3
       wrangler:
         specifier: ^3.114.17
-        version: 3.114.17(@cloudflare/workers-types@4.20260702.1)
+        version: 3.114.17(@cloudflare/workers-types@5.20260829.1)
 
   apps/workers/sign:
     devDependencies:
       '@cloudflare/workers-types':
-        specifier: ^4.20260702.1
-        version: 4.20260702.1
+        specifier: ^5.20260829.1
+        version: 5.20260829.1
       typescript:
         specifier: ^5.4.0
         version: 5.9.3
@@ -213,7 +213,7 @@ importers:
         version: 1.6.1(@types/node@26.3.0)(jsdom@24.1.3(supports-color@7.2.0))(supports-color@7.2.0)
       wrangler:
         specifier: ^3.114.17
-        version: 3.114.17(@cloudflare/workers-types@4.20260702.1)
+        version: 3.114.17(@cloudflare/workers-types@5.20260829.1)
 
   packages/guilloche-core:
     dependencies:
@@ -336,6 +336,9 @@ packages:
 
   '@cloudflare/workers-types@4.20260702.1':
     resolution: {integrity: sha512-mOhf5TUEB1m2vPrxtqoIGfz0fUC9xyxRDx5gWHy5s+OCo6dcV+g7wI1R7gYCMFohhqF/2y2xeKVwMwCJjfn/WA==}
+
+  '@cloudflare/workers-types@5.20260829.1':
+    resolution: {integrity: sha512-SsH4G9+JePvrBmz+b5Dl67LQ9w2/ycoIpAPcAkfg2aEs2SEisQHk7/AY0TymSXEBbDbWgcBqoLe4hNcuY3CxWA==}
 
   '@commitlint/cli@20.5.3':
     resolution: {integrity: sha512-OJdL0EXWD5y9LPa0nr/geOwzaS8BsdaybKkcloB0JgsguGxNv2R+hC2FTPqrAcprg35zF33KOQerY0x8W1aesA==}
@@ -4529,6 +4532,8 @@ snapshots:
 
   '@cloudflare/workers-types@4.20260702.1': {}
 
+  '@cloudflare/workers-types@5.20260829.1': {}
+
   '@commitlint/cli@20.5.3(@types/node@26.3.0)(conventional-commits-parser@6.4.0)(typescript@5.9.3)':
     dependencies:
       '@commitlint/format': 20.5.0
@@ -5515,13 +5520,13 @@ snapshots:
     dependencies:
       acorn: 8.18.0
 
-  '@sveltejs/adapter-cloudflare@4.9.0(@sveltejs/kit@2.70.3(@sveltejs/vite-plugin-svelte@3.1.2(supports-color@7.2.0)(svelte@4.2.20)(vite@5.4.21(@types/node@26.3.0)))(svelte@4.2.20)(typescript@5.9.3)(vite@5.4.21(@types/node@26.3.0)))(wrangler@3.114.17(@cloudflare/workers-types@4.20260702.1))':
+  '@sveltejs/adapter-cloudflare@4.9.0(@sveltejs/kit@2.70.3(@sveltejs/vite-plugin-svelte@3.1.2(supports-color@7.2.0)(svelte@4.2.20)(vite@5.4.21(@types/node@26.3.0)))(svelte@4.2.20)(typescript@5.9.3)(vite@5.4.21(@types/node@26.3.0)))(wrangler@3.114.17(@cloudflare/workers-types@5.20260829.1))':
     dependencies:
       '@cloudflare/workers-types': 4.20260702.1
       '@sveltejs/kit': 2.70.3(@sveltejs/vite-plugin-svelte@3.1.2(supports-color@7.2.0)(svelte@4.2.20)(vite@5.4.21(@types/node@26.3.0)))(svelte@4.2.20)(typescript@5.9.3)(vite@5.4.21(@types/node@26.3.0))
       esbuild: 0.24.2
       worktop: 0.8.0-next.18
-      wrangler: 3.114.17(@cloudflare/workers-types@4.20260702.1)
+      wrangler: 3.114.17(@cloudflare/workers-types@5.20260829.1)
 
   '@sveltejs/kit@2.70.3(@sveltejs/vite-plugin-svelte@3.1.2(supports-color@7.2.0)(svelte@4.2.20)(vite@5.4.21(@types/node@26.3.0)))(svelte@4.2.20)(typescript@5.9.3)(vite@5.4.21(@types/node@26.3.0))':
     dependencies:
@@ -8467,6 +8472,26 @@ snapshots:
       workerd: 1.20250718.0
     optionalDependencies:
       '@cloudflare/workers-types': 4.20260702.1
+      fsevents: 2.3.3
+      sharp: 0.33.5
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
+  wrangler@3.114.17(@cloudflare/workers-types@5.20260829.1):
+    dependencies:
+      '@cloudflare/kv-asset-handler': 0.3.4
+      '@cloudflare/unenv-preset': 2.0.2(unenv@2.0.0-rc.14)(workerd@1.20250718.0)
+      '@esbuild-plugins/node-globals-polyfill': 0.2.3(esbuild@0.17.19)
+      '@esbuild-plugins/node-modules-polyfill': 0.2.2(esbuild@0.17.19)
+      blake3-wasm: 2.1.5
+      esbuild: 0.17.19
+      miniflare: 3.20250718.3
+      path-to-regexp: 6.3.0
+      unenv: 2.0.0-rc.14
+      workerd: 1.20250718.0
+    optionalDependencies:
+      '@cloudflare/workers-types': 5.20260829.1
       fsevents: 2.3.3
       sharp: 0.33.5
     transitivePeerDependencies:
