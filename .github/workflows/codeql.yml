@@ -34,7 +34,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: javascript-typescript
           config-file: .github/codeql/codeql-config.yml
@@ -69,10 +69,13 @@ jobs:
           STRIPE_PRICE_ENTERPRISE_YEARLY: price_placeholder
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
         with:
           category: '/language:javascript-typescript'
-          upload: true
+          # This private repository does not currently have GitHub Advanced
+          # Security code-scanning uploads enabled. Run the analysis as a CI
+          # check without making the upload itself a configuration failure.
+          upload: never
 
   # Analyze Rust code (for WASM package)
   analyze-rust:
@@ -172,7 +175,6 @@ jobs:
         with:
           fail-on-severity: high
           allow-licenses: MIT, Apache-2.0, ISC, BSD-2-Clause, BSD-3-Clause, 0BSD, CC0-1.0, Unlicense
-          deny-licenses: GPL-3.0, AGPL-3.0
 
   # Summary job
   security-summary:
