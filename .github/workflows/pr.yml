@@ -33,7 +33,7 @@ jobs:
       deps: ${{ steps.changes.outputs.deps }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Detect changes
         uses: dorny/paths-filter@v3
@@ -60,7 +60,7 @@ jobs:
     if: needs.changes.outputs.src == 'true' || needs.changes.outputs.deps == 'true'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -216,7 +216,7 @@ jobs:
     if: needs.changes.outputs.src == 'true' || needs.changes.outputs.deps == 'true'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -333,7 +333,7 @@ jobs:
     if: needs.changes.outputs.rust == 'true'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -373,7 +373,7 @@ jobs:
     if: needs.changes.outputs.src == 'true' || needs.changes.outputs.deps == 'true'
     steps:
       - name: Checkout PR
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -422,7 +422,7 @@ jobs:
           echo "size_hr=$PR_SIZE_HR" >> $GITHUB_OUTPUT
 
       - name: Checkout base branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.base_ref }}
           path: base
@@ -553,7 +553,7 @@ jobs:
     if: false # Enable when Playwright is configured
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4

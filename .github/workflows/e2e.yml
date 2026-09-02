@@ -34,7 +34,7 @@ jobs:
     if: github.actor != 'dependabot[bot]'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -83,7 +83,7 @@ jobs:
     if: ${{ github.event.inputs.browsers == 'all' || github.event.inputs.browsers == 'chromium' || github.event.inputs.browsers == '' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -151,7 +151,7 @@ jobs:
     if: ${{ github.event.inputs.browsers == 'all' || github.event.inputs.browsers == 'firefox' || github.event.inputs.browsers == '' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -219,7 +219,7 @@ jobs:
     if: ${{ github.event.inputs.browsers == 'all' || github.event.inputs.browsers == 'webkit' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -287,7 +287,7 @@ jobs:
     if: ${{ github.event_name == 'schedule' || github.event.inputs.browsers == 'all' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
