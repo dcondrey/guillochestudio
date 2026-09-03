@@ -4,11 +4,7 @@ export type AccountStatus = 'active' | 'suspended' | 'banned' | 'under_review';
 export type PeriodType = 'hourly' | 'daily' | 'monthly';
 export type SecurityEventSeverity = 'low' | 'medium' | 'high' | 'critical';
 export type AccountLinkType =
-  | 'device_fingerprint'
-  | 'ip_address'
-  | 'payment_method'
-  | 'email_pattern'
-  | 'behavioral';
+  'device_fingerprint' | 'ip_address' | 'payment_method' | 'email_pattern' | 'behavioral';
 
 export interface Database {
   public: {
@@ -1304,11 +1300,7 @@ export interface Database {
       period_type: 'hourly' | 'daily' | 'monthly';
       security_event_severity: 'low' | 'medium' | 'high' | 'critical';
       account_link_type:
-        | 'device_fingerprint'
-        | 'ip_address'
-        | 'payment_method'
-        | 'email_pattern'
-        | 'behavioral';
+        'device_fingerprint' | 'ip_address' | 'payment_method' | 'email_pattern' | 'behavioral';
     };
     CompositeTypes: {
       [_ in never]: never;
