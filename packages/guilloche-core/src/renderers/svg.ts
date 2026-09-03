@@ -51,6 +51,20 @@ export interface SVGRenderOptions {
   copyright?: string;
 }
 
+/** One layer of a composition, as `renderLayers` consumes it. */
+export interface SVGLayer {
+  path: GeneratedPath;
+  color: string;
+  opacity: number;
+  blendMode?: string;
+  /** Per-layer translation in path space, matching the canvas preview. */
+  offsetX?: number;
+  offsetY?: number;
+  glow?: number;
+  dashed?: boolean;
+  dashRatio?: number;
+}
+
 export class SVGRenderer {
   /**
    * Render a generated path to optimized SVG string
@@ -340,13 +354,22 @@ export class SVGRenderer {
   }
 
   /**
-   * Render multiple layers to SVG with groups
+   * Render multiple layers to SVG with groups.
+   *
+   * Layer offsets are translations in path space: generated paths are centred on
+   * the origin, so the canvas preview's per-layer `translate` maps directly onto a
+   * group transform here. The offsets have to enter the bounds too, or a moved
+   * layer falls outside the viewBox and is clipped out of the export.
    */
-  renderLayers(
-    layers: { path: GeneratedPath; color: string; opacity: number; blendMode?: string }[],
-    options: SVGRenderOptions = {}
-  ): string {
-    const { backgroundColor, includeMetadata = true, optimized = true, precision = 3 } = options;
+  renderLayers(layers: SVGLayer[], options: SVGRenderOptions = {}): string {
+    const {
+      backgroundColor,
+      includeMetadata = true,
+      optimized = true,
+      precision = 3,
+      gradient,
+      radialGradient = false,
+    } = options;
 
     // Calculate combined bounds
     let minX = Infinity,
@@ -355,10 +378,20 @@ export class SVGRenderer {
       maxY = -Infinity;
     for (const layer of layers) {
       const b = layer.path.bounds;
-      if (b.minX < minX) minX = b.minX;
-      if (b.minY < minY) minY = b.minY;
-      if (b.maxX > maxX) maxX = b.maxX;
-      if (b.maxY > maxY) maxY = b.maxY;
+      const dx = layer.offsetX ?? 0;
+      const dy = layer.offsetY ?? 0;
+      if (b.minX + dx < minX) minX = b.minX + dx;
+      if (b.minY + dy < minY) minY = b.minY + dy;
+      if (b.maxX + dx > maxX) maxX = b.maxX + dx;
+      if (b.maxY + dy > maxY) maxY = b.maxY + dy;
+    }
+
+    // No layers, or layers whose paths are all empty, leave the bounds unset.
+    if (!Number.isFinite(minX) || !Number.isFinite(minY)) {
+      minX = 0;
+      minY = 0;
+      maxX = 0;
+      maxY = 0;
     }
 
     const paddingX = (maxX - minX) * 0.05;
@@ -385,20 +418,77 @@ export class SVGRenderer {
       svg += this.buildMetadata(layers[0].path.params);
     }
 
+    // A single shared gradient, plus one glow filter per layer that asks for one:
+    // the filter floods with the layer's own stroke colour, so it cannot be shared.
+    const glowLayers = layers
+      .map((layer, index) => ({ layer, index }))
+      .filter(({ layer }) => (layer.glow ?? 0) > 0);
+
+    if (gradient || glowLayers.length > 0) {
+      svg += '\n  <defs>';
+
+      if (gradient) {
+        if (radialGradient) {
+          svg += `
+    <radialGradient id="strokeGradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="0%" stop-color="${gradient[0]}"/>
+      <stop offset="100%" stop-color="${gradient[1]}"/>
+    </radialGradient>`;
+        } else {
+          svg += `
+    <linearGradient id="strokeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="${gradient[0]}"/>
+      <stop offset="100%" stop-color="${gradient[1]}"/>
+    </linearGradient>`;
+        }
+      }
+
+      for (const { layer, index } of glowLayers) {
+        svg += `
+    <filter id="glow-${index}" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="${layer.glow}" result="blur"/>
+      <feFlood flood-color="${layer.color}" result="glowColor"/>
+      <feComposite in="glowColor" in2="blur" operator="in" result="softGlow"/>
+      <feMerge>
+        <feMergeNode in="softGlow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>`;
+      }
+
+      svg += '\n  </defs>';
+    }
+
     // Render each layer as a group
     layers.forEach((layer, index) => {
       const pathData = optimized
         ? this.buildOptimizedPathData(layer.path.segments, 1.0, 0.5, precision)
         : this.buildPathData(layer.path.segments, precision);
 
+      const dx = layer.offsetX ?? 0;
+      const dy = layer.offsetY ?? 0;
+      const transform =
+        dx || dy ? ` transform="translate(${dx.toFixed(precision)} ${dy.toFixed(precision)})"` : '';
+
       svg += `
-  <g id="layer-${index}" opacity="${layer.opacity}"${layer.blendMode ? ` style="mix-blend-mode:${layer.blendMode}"` : ''}>
+  <g id="layer-${index}" opacity="${layer.opacity}"${layer.blendMode ? ` style="mix-blend-mode:${layer.blendMode}"` : ''}${transform}>
     <path d="${pathData}"
-          stroke="${layer.color}"
+          stroke="${gradient ? 'url(#strokeGradient)' : layer.color}"
           stroke-width="${layer.path.params.lw}"
           fill="none"
           stroke-linecap="round"
-          stroke-linejoin="round"/>
+          stroke-linejoin="round"`;
+
+      if (layer.dashed) {
+        const stroke = layer.path.params.lw || 1;
+        svg += `\n          stroke-dasharray="${stroke * 8 * (layer.dashRatio ?? 1)} ${stroke * 8}"`;
+      }
+
+      if ((layer.glow ?? 0) > 0) {
+        svg += `\n          filter="url(#glow-${index})"`;
+      }
+
+      svg += `/>
   </g>`;
     });
 

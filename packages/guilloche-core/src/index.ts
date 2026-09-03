@@ -1,6 +1,7 @@
 export { GuillocheEngine } from './engine.js';
 export type { Point, PathSegment, GeneratedPath } from './engine.js';
 export { SVGRenderer } from './renderers/svg.js';
+export type { SVGLayer, SVGRenderOptions } from './renderers/svg.js';
 export { CanvasRenderer } from './renderers/canvas.js';
 export { EPSRenderer } from './renderers/eps.js';
 export type { EPSRenderOptions } from './renderers/eps.js';
