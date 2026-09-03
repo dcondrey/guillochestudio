@@ -10,7 +10,7 @@
  * - Offscreen buffer compositing
  */
 
-import type { PatternParams, BlendMode } from '@guilloche/shared';
+import type { BlendMode } from '@guilloche/shared';
 import type { GeneratedPath, PathSegment, Point } from '../engine.js';
 import { fitCurve, type BezierSegment } from '../utils/curve-fit.js';
 import { simplifyCombined } from '../utils/simplify.js';
@@ -63,30 +63,11 @@ export class CanvasRenderer {
   private height: number;
   private pathCache: Map<string, PathCache> = new Map();
   private maxCacheSize = 50;
-  private offscreenCanvas: OffscreenCanvas | null = null;
-  private offscreenCtx: OffscreenCanvasRenderingContext2D | null = null;
 
   constructor(ctx: CanvasRenderingContext2D, width: number, height: number) {
     this.ctx = ctx;
     this.width = width;
     this.height = height;
-    this.initOffscreenBuffer();
-  }
-
-  /**
-   * Initialize offscreen buffer for compositing
-   */
-  private initOffscreenBuffer(): void {
-    if (typeof OffscreenCanvas !== 'undefined') {
-      try {
-        this.offscreenCanvas = new OffscreenCanvas(this.width, this.height);
-        this.offscreenCtx = this.offscreenCanvas.getContext('2d');
-      } catch {
-        // OffscreenCanvas not supported, will render directly
-        this.offscreenCanvas = null;
-        this.offscreenCtx = null;
-      }
-    }
   }
 
   getContext(): CanvasRenderingContext2D {
@@ -96,9 +77,9 @@ export class CanvasRenderer {
   clear(backgroundColor = '#ffffff'): void {
     this.ctx.save();
     this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-    this.ctx.clearRect(0, 0, this.width, this.height);
+    this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     this.ctx.fillStyle = backgroundColor;
-    this.ctx.fillRect(0, 0, this.width, this.height);
+    this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     this.ctx.restore();
   }
 
@@ -582,9 +563,10 @@ export class CanvasRenderer {
    * Apply vignette effect
    */
   applyVignette(intensity = 0.1): void {
-    const cx = this.width / 2;
-    const cy = this.height / 2;
-    const radius = Math.min(this.width, this.height);
+    const { width, height } = this.ctx.canvas;
+    const cx = width / 2;
+    const cy = height / 2;
+    const radius = Math.min(width, height);
 
     this.ctx.save();
     this.ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -592,7 +574,7 @@ export class CanvasRenderer {
     gradient.addColorStop(0, 'rgba(0,0,0,0)');
     gradient.addColorStop(1, `rgba(0,0,0,${intensity})`);
     this.ctx.fillStyle = gradient;
-    this.ctx.fillRect(0, 0, this.width, this.height);
+    this.ctx.fillRect(0, 0, width, height);
     this.ctx.restore();
   }
 
@@ -600,7 +582,7 @@ export class CanvasRenderer {
    * Apply grain texture
    */
   applyGrain(intensity = 0.05): void {
-    const imageData = this.ctx.getImageData(0, 0, this.width, this.height);
+    const imageData = this.ctx.getImageData(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     const data = imageData.data;
     const grainAmount = intensity * 255;
 
@@ -623,8 +605,8 @@ export class CanvasRenderer {
 
     // Create temporary canvas
     const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = this.width;
-    tempCanvas.height = this.height;
+    tempCanvas.width = this.ctx.canvas.width;
+    tempCanvas.height = this.ctx.canvas.height;
     const tempCtx = tempCanvas.getContext('2d')!;
 
     tempCtx.drawImage(this.ctx.canvas, 0, 0);
@@ -678,12 +660,6 @@ export class CanvasRenderer {
     this.width = width;
     this.height = height;
     this.clearCache(); // Clear cache on resize
-
-    // Resize offscreen buffer
-    if (this.offscreenCanvas) {
-      this.offscreenCanvas.width = width;
-      this.offscreenCanvas.height = height;
-    }
   }
 
   /**

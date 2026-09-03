@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { browser } from '$app/environment';
-  import { CanvasRenderer, SVGRenderer, GuillocheEngine } from '@guilloche/core';
+  import { CanvasRenderer, SVGRenderer } from '@guilloche/core';
   import {
     CURVE_FAMILIES,
     PATTERN_MODES,
@@ -14,7 +14,7 @@
     DEFAULT_GRID_CONFIG,
   } from '@guilloche/shared';
   import type { ExportFormat } from '@guilloche/shared';
-  import { exportPDF, downloadPDF } from '$lib/services/pdf-export';
+  import { exportLayersPDF, downloadPDF } from '$lib/services/pdf-export';
   import {
     params,
     layers,
@@ -661,29 +661,52 @@
     render();
   }
 
+  /**
+   * Every format exports the whole visible composition, not just the active layer:
+   * the canvas preview draws all of `$renderedComposition`, and an export that
+   * drops the other layers is not the picture the user is looking at.
+   */
+  function vectorLayers() {
+    return ($renderedComposition || [])
+      .filter((comp) => comp.type === 'vector')
+      .map((comp) => ({
+        path: comp.path,
+        color: comp.color,
+        opacity: comp.opacity,
+        blendMode: comp.blendMode,
+        offsetX: comp.offsetX ?? 0,
+        offsetY: comp.offsetY ?? 0,
+        glow: comp.path.params.glow,
+        dashed: comp.path.params.dashed,
+        dashRatio: comp.path.params.dashRatio,
+      }));
+  }
+
+  function exportFilename(extension: string) {
+    // Distinct per export: repeated exports otherwise collide and the browser
+    // silently renames them to "guilloche-pattern (1).svg".
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    return `guilloche-${$params.family}-${stamp}.${extension}`;
+  }
+
   async function handleExport() {
     if (!renderer || exporting) return;
     exporting = true;
     exportError = null;
 
     try {
-      const engine = new GuillocheEngine();
+      const layers = vectorLayers();
+      if (layers.length === 0) {
+        throw new Error('Nothing to export — add or unhide a layer first.');
+      }
 
       if (exportFormat === 'svg') {
         const svgRenderer = new SVGRenderer();
-        // Get current layer params
-        const layerParams = { ...$params, ...($activeLayer?.params || {}) };
-        engine.setParams(layerParams);
-        const path = engine.computePath();
-        const svg = svgRenderer.render(path, {
+        const svg = svgRenderer.renderLayers(layers, {
           backgroundColor: exportTransparent ? undefined : $params.bgColor,
-          strokeColor: $activeLayer?.color || '#000000',
           gradient: $params.useGradient ? [$params.startColor, $params.endColor] : undefined,
-          glow: layerParams.glow,
-          dashed: layerParams.dashed,
-          dashRatio: layerParams.dashRatio,
         });
-        downloadFile(svg, 'guilloche-pattern.svg', 'image/svg+xml');
+        downloadFile(svg, exportFilename('svg'), 'image/svg+xml');
       } else if (exportFormat === 'png') {
         // Create offscreen canvas at export size
         const offCanvas = document.createElement('canvas');
@@ -695,8 +718,11 @@
         const offRenderer = new CanvasRenderer(offCtx, exportSize, exportSize);
         offRenderer.clear(exportTransparent ? 'transparent' : $params.bgColor);
 
-        // Render all layers
-        for (const comp of $renderedComposition) {
+        // Mirrors render(): per-layer offset, then the layer, image layers included.
+        for (const comp of $renderedComposition || []) {
+          offCtx.save();
+          offCtx.translate(comp.offsetX ?? 0, comp.offsetY ?? 0);
+
           if (comp.type === 'vector') {
             offRenderer.renderPath(comp.path, {
               strokeColor: $params.useGradient ? undefined : comp.color,
@@ -706,7 +732,16 @@
               glow: comp.path.params.glow,
               lineDash: dashPattern(comp.path.params),
             });
+          } else if (comp.type === 'image') {
+            offRenderer.renderImage(comp.image, {
+              opacity: comp.opacity,
+              blendMode: comp.blendMode,
+              brightness: comp.brightness,
+              contrast: comp.contrast,
+            });
           }
+
+          offCtx.restore();
         }
 
         if ($params.vignette) {
@@ -714,19 +749,15 @@
         }
 
         const dataUrl = offCanvas.toDataURL('image/png');
-        downloadFile(dataUrl, 'guilloche-pattern.png', 'image/png', true);
+        downloadFile(dataUrl, exportFilename('png'), 'image/png', true);
       } else if (exportFormat === 'pdf') {
-        const layerParams = { ...$params, ...($activeLayer?.params || {}) };
-        engine.setParams(layerParams);
-        const path = engine.computePath();
-
         downloadPDF(
-          exportPDF(path, {
+          exportLayersPDF(layers, {
             pageSize: 'a4',
             orientation: 'portrait',
             margin: 10,
-            strokeColor: $activeLayer?.color || '#000000',
-          })
+          }),
+          exportFilename('pdf')
         );
       }
 
@@ -740,18 +771,20 @@
 
   function downloadFile(content: string, filename: string, mimeType: string, isDataUrl = false) {
     const a = document.createElement('a');
+    let objectUrl: string | null = null;
     if (isDataUrl) {
       a.href = content;
     } else {
-      const blob = new Blob([content], { type: mimeType });
-      a.href = URL.createObjectURL(blob);
+      objectUrl = URL.createObjectURL(new Blob([content], { type: mimeType }));
+      a.href = objectUrl;
     }
     a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    if (!isDataUrl) {
-      URL.revokeObjectURL(a.href);
+    if (objectUrl) {
+      // Revoking in the same task can cancel a download the browser has only queued.
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
     }
   }
 
@@ -851,6 +884,7 @@
           <h3 class="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Layers</h3>
           <button
             on:click={() => addLayer()}
+            aria-label="Add layer"
             class="text-blue-600 font-bold text-lg hover:scale-110 transition-transform">+</button
           >
         </div>
@@ -1666,16 +1700,22 @@
   >
     <div
       class="bg-white w-full max-w-lg rounded-[3rem] shadow-2xl overflow-hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="studio-export-title"
       transition:fly={{ y: 20, duration: 200 }}
     >
       <div class="p-10 space-y-8">
         <div class="flex justify-between items-start">
           <div>
-            <h2 class="text-2xl font-bold text-gray-900 mb-2">Export Pattern</h2>
+            <h2 id="studio-export-title" class="text-2xl font-bold text-gray-900 mb-2">
+              Export Pattern
+            </h2>
             <p class="text-sm text-gray-400">Choose format and size for your guilloche design.</p>
           </div>
           <button
             on:click={() => (showExportPanel = false)}
+            aria-label="Close export panel"
             class="text-2xl text-gray-300 hover:text-black">×</button
           >
         </div>
@@ -1688,8 +1728,11 @@
           >
           <div class="grid grid-cols-3 gap-3">
             {#each exportFormats as fmt}
+              <!-- aria-pressed carries the selected format: without it the only cue
+                   is the inverted colour, which a screen reader never sees. -->
               <button
                 on:click={() => (exportFormat = fmt.value)}
+                aria-pressed={exportFormat === fmt.value}
                 class="p-4 rounded-2xl border-2 text-center transition-all {exportFormat ===
                 fmt.value
                   ? 'border-black bg-black text-white'

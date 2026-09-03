@@ -44,6 +44,16 @@ export interface PDFExportOptions {
   includeMetadata?: boolean;
 }
 
+/** One layer of a composition, as `exportLayersPDF` consumes it. */
+export interface PDFLayer {
+  path: GeneratedPath;
+  color: string;
+  opacity: number;
+  /** Per-layer translation in path space, matching the canvas preview. */
+  offsetX?: number;
+  offsetY?: number;
+}
+
 /**
  * Convert hex color to RGB values
  */
@@ -127,7 +137,12 @@ export function exportPDF(path: GeneratedPath, options: PDFExportOptions): Blob 
   const { minX, minY, maxX, maxY } = path.bounds;
   const patternWidth = maxX - minX;
   const patternHeight = maxY - minY;
-  const scale = Math.min(drawableWidth / patternWidth, drawableHeight / patternHeight) * 0.95; // 5% margin for safety
+  // Degenerate bounds (empty path, single point) would divide by zero and write
+  // NaN coordinates into the PDF.
+  const scale =
+    patternWidth > 0 && patternHeight > 0
+      ? Math.min(drawableWidth / patternWidth, drawableHeight / patternHeight) * 0.95 // 5% margin for safety
+      : 1;
 
   // Calculate offset to center the pattern
   const offsetX = margin + (drawableWidth - patternWidth * scale) / 2 - minX * scale;
@@ -288,10 +303,7 @@ function addPatternMetadata(doc: jsPDF, params: PatternParams): void {
 /**
  * Export multiple layers to a single PDF
  */
-export function exportLayersPDF(
-  layers: { path: GeneratedPath; color: string; opacity: number }[],
-  options: PDFExportOptions
-): Blob {
+export function exportLayersPDF(layers: PDFLayer[], options: PDFExportOptions): Blob {
   const {
     pageSize = 'a4',
     orientation = 'portrait',
@@ -308,25 +320,34 @@ export function exportLayersPDF(
   const drawableWidth = pageWidth - 2 * margin;
   const drawableHeight = pageHeight - 2 * margin;
 
-  // Calculate combined bounds
+  // Calculate combined bounds. Per-layer offsets are translations in path space
+  // (paths are origin-centred), so they belong in the bounds too — otherwise a
+  // moved layer skews the fit-to-page scale or lands off the page.
   let minX = Infinity,
     minY = Infinity,
     maxX = -Infinity,
     maxY = -Infinity;
   for (const layer of layers) {
     const b = layer.path.bounds;
-    if (b.minX < minX) minX = b.minX;
-    if (b.minY < minY) minY = b.minY;
-    if (b.maxX > maxX) maxX = b.maxX;
-    if (b.maxY > maxY) maxY = b.maxY;
+    const dx = layer.offsetX ?? 0;
+    const dy = layer.offsetY ?? 0;
+    if (b.minX + dx < minX) minX = b.minX + dx;
+    if (b.minY + dy < minY) minY = b.minY + dy;
+    if (b.maxX + dx > maxX) maxX = b.maxX + dx;
+    if (b.maxY + dy > maxY) maxY = b.maxY + dy;
   }
 
   const patternWidth = maxX - minX;
   const patternHeight = maxY - minY;
-  const scale = Math.min(drawableWidth / patternWidth, drawableHeight / patternHeight) * 0.95;
+  // A single point, an empty composition, or degenerate bounds would divide by
+  // zero and put NaN coordinates into the PDF.
+  const scale =
+    patternWidth > 0 && patternHeight > 0
+      ? Math.min(drawableWidth / patternWidth, drawableHeight / patternHeight) * 0.95
+      : 1;
 
-  const offsetX = margin + (drawableWidth - patternWidth * scale) / 2 - minX * scale;
-  const offsetY = margin + (drawableHeight - patternHeight * scale) / 2 - minY * scale;
+  const originX = margin + (drawableWidth - patternWidth * scale) / 2 - minX * scale;
+  const originY = margin + (drawableHeight - patternHeight * scale) / 2 - minY * scale;
 
   // Create PDF document
   const doc = new jsPDF({
@@ -343,6 +364,9 @@ export function exportLayersPDF(
     const [r, g, b] = hexToRgb(layer.color);
     doc.setDrawColor(r, g, b);
     // Note: jsPDF doesn't support opacity for strokes directly
+
+    const offsetX = originX + (layer.offsetX ?? 0) * scale;
+    const offsetY = originY + (layer.offsetY ?? 0) * scale;
 
     for (const segment of layer.path.segments) {
       if (segment.points.length < 2) continue;
@@ -373,5 +397,6 @@ export function downloadPDF(blob: Blob, filename: string = 'guilloche-pattern.pd
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  // Revoking in the same task can cancel a download the browser has only queued.
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }
