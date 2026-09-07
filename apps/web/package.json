@@ -56,7 +56,7 @@
     "@playwright/test": "^1.62.1",
     "@sveltejs/adapter-cloudflare": "^4.9.0",
     "@sveltejs/kit": "^2.70.3",
-    "@sveltejs/vite-plugin-svelte": "^3.1.2",
+    "@sveltejs/vite-plugin-svelte": "^7.3.0",
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/svelte": "^4.2.3",
     "autoprefixer": "^10.5.4",
