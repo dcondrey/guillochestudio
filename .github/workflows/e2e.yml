@@ -128,11 +128,11 @@ jobs:
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
-        if: always()
+        if: failure()
         with:
           name: playwright-report-chromium
           path: apps/web/playwright-report/
-          retention-days: 30
+          retention-days: 7
 
       - name: Upload test artifacts
         uses: actions/upload-artifact@v4
@@ -141,7 +141,7 @@ jobs:
           name: test-artifacts-chromium
           path: |
             apps/web/test-results/
-          retention-days: 7
+          retention-days: 3
 
   # Run E2E tests on Firefox
   e2e-firefox:
@@ -196,11 +196,11 @@ jobs:
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
-        if: always()
+        if: failure()
         with:
           name: playwright-report-firefox
           path: apps/web/playwright-report/
-          retention-days: 30
+          retention-days: 7
 
       - name: Upload test artifacts
         uses: actions/upload-artifact@v4
@@ -209,7 +209,7 @@ jobs:
           name: test-artifacts-firefox
           path: |
             apps/web/test-results/
-          retention-days: 7
+          retention-days: 3
 
   # Run E2E tests on WebKit
   e2e-webkit:
@@ -264,11 +264,11 @@ jobs:
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
-        if: always()
+        if: failure()
         with:
           name: playwright-report-webkit
           path: apps/web/playwright-report/
-          retention-days: 30
+          retention-days: 7
 
       - name: Upload test artifacts
         uses: actions/upload-artifact@v4
@@ -277,7 +277,7 @@ jobs:
           name: test-artifacts-webkit
           path: |
             apps/web/test-results/
-          retention-days: 7
+          retention-days: 3
 
   # Mobile browser tests
   e2e-mobile:
@@ -333,11 +333,11 @@ jobs:
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
-        if: always()
+        if: failure()
         with:
           name: playwright-report-mobile
           path: apps/web/playwright-report/
-          retention-days: 30
+          retention-days: 7
 
       - name: Upload test artifacts
         uses: actions/upload-artifact@v4
@@ -346,7 +346,7 @@ jobs:
           name: test-artifacts-mobile
           path: |
             apps/web/test-results/
-          retention-days: 7
+          retention-days: 3
 
   # Summary job that reports overall status
   e2e-summary:
