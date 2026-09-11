@@ -164,7 +164,7 @@ jobs:
         run: wasm-pack build --target web --release
 
       - name: Upload WASM artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wasm-build
           path: packages/guilloche-wasm/pkg/
@@ -234,7 +234,7 @@ jobs:
           STRIPE_PRICE_ENTERPRISE_YEARLY: ${{ secrets.STRIPE_PRICE_ENTERPRISE_YEARLY }}
 
       - name: Upload web build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: web-build
           path: apps/web/.svelte-kit/cloudflare/
