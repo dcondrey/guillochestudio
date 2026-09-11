@@ -117,6 +117,12 @@ updates:
     labels:
       - 'dependencies'
       - 'github-actions'
+    ignore:
+      # This action's tags select a Rust toolchain rather than an action
+      # version, so dependabot reads "@stable"/"@1.96.0" as a version to bump
+      # and proposes releases of Rust that do not exist. One such bump landed
+      # as @1.120.0 and broke the Rust analysis job.
+      - dependency-name: 'dtolnay/rust-toolchain'
     groups:
       # Group all GitHub Actions updates
       actions:

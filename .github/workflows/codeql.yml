@@ -87,7 +87,8 @@ jobs:
 
       - name: Setup Rust
         # Keep Clippy aligned with the pull-request workflow; update deliberately.
-        uses: dtolnay/rust-toolchain@1.120.0
+        # The tag on this action names a Rust toolchain, not an action version.
+        uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
 
