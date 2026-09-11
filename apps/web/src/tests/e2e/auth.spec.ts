@@ -40,6 +40,14 @@ test.describe('Authentication Flow', () => {
     });
 
     test('should show error for invalid credentials', async ({ page }) => {
+      // Typing before hydration is lost: bind:value writes the component's
+      // empty initial state onto the input during hydrate, so the submit sees
+      // blank fields and reports "enter both email and password" over visibly
+      // filled ones. That regex ("error") matched that message, so this test
+      // passed for the wrong reason when it raced and failed when it lost.
+      // Wait for hydration so it exercises credential rejection, as named.
+      await page.waitForLoadState('networkidle');
+
       // Fill in invalid credentials
       await page.getByLabel(/email/i).fill('invalid@example.com');
       await page.getByLabel(/password/i).fill('wrongpassword');
