@@ -1,6 +1,6 @@
 <img src="./apps/web/static/guillochestudio.png" alt="Guilloché Studio Pro" width="120" align="left">
 
-<h1>Guilloché Studio Pro</h1>
+<h3>Guilloché Studio Pro</h3>
 <p><strong>Mathematical guilloché pattern generation — engraving-grade ornamental geometry in the browser, exported as signed SVG, EPS, and PNG.</strong></p>
 
 <br clear="left">
