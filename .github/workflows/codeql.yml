@@ -186,7 +186,7 @@ jobs:
       # Dependency review for PRs
       - name: Dependency Review
         if: github.event_name == 'pull_request'
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@v5
         # Private repositories without GitHub Advanced Security do not expose
         # the dependency-review API. Keep the supported scanners authoritative.
         continue-on-error: true
