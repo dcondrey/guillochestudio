@@ -76,9 +76,11 @@ test.describe('Authentication Flow', () => {
     });
 
     test('should display the signup page correctly', async ({ page }) => {
-      // Check for signup form elements
+      // Signup has both Password and Confirm Password, so /password/i is ambiguous
+      // under strict mode. Match the accessible names exactly instead.
       await expect(page.getByLabel(/email/i)).toBeVisible();
-      await expect(page.getByLabel(/password/i)).toBeVisible();
+      await expect(page.getByLabel(/^Password\s*\*?$/)).toBeVisible();
+      await expect(page.getByLabel(/^Confirm Password\s*\*?$/)).toBeVisible();
     });
 
     test('should display OAuth buttons', async ({ page }) => {
@@ -115,11 +117,14 @@ test.describe('Authentication Flow', () => {
       expect(currentUrl.includes('/auth/login') || currentUrl.includes('/patterns')).toBe(true);
     });
 
-    test('should show login button in studio for unauthenticated users', async ({ page }) => {
+    test('studio stays reachable for unauthenticated users', async ({ page }) => {
       await page.goto('/studio');
 
-      // Should show sign in button for unauthenticated users
-      await expect(page.getByRole('link', { name: /sign in/i })).toBeVisible();
+      // The app layout hides its header inside Studio by design, so there is no
+      // nav sign-in link to assert on here. What matters is that an anonymous
+      // visitor is not bounced to /auth/login and gets a working canvas.
+      await expect(page).toHaveURL(/\/studio/);
+      await expect(page.locator('canvas').first()).toBeVisible();
     });
   });
 

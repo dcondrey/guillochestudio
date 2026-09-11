@@ -7,6 +7,10 @@ import * as path from 'path';
  * format buttons inside it only *select* a format, and a single submit button
  * performs the download. Selectors are scoped to the dialog because the header
  * button and the submit button share the word "Export".
+ *
+ * Format regexes are anchored (/^png\b/i, not /png/i): the chooser is named
+ * "PNG Raster image" but the submit button is "Export PNG", so an unanchored
+ * format regex matches both and trips strict mode.
  */
 function dialog(page: Page) {
   return page.getByRole('dialog');
@@ -54,44 +58,44 @@ test.describe('Export Functionality', () => {
   test('should offer every supported export format', async ({ page }) => {
     await openExportPanel(page);
 
-    await expect(dialog(page).getByRole('button', { name: /svg/i })).toBeVisible();
-    await expect(dialog(page).getByRole('button', { name: /png/i })).toBeVisible();
-    await expect(dialog(page).getByRole('button', { name: /pdf/i })).toBeVisible();
+    await expect(dialog(page).getByRole('button', { name: /^svg\b/i })).toBeVisible();
+    await expect(dialog(page).getByRole('button', { name: /^png\b/i })).toBeVisible();
+    await expect(dialog(page).getByRole('button', { name: /^pdf\b/i })).toBeVisible();
   });
 
   test('should mark the selected format for assistive technology', async ({ page }) => {
     await openExportPanel(page);
 
     // PNG is the default selection.
-    await expect(dialog(page).getByRole('button', { name: /png/i })).toHaveAttribute(
+    await expect(dialog(page).getByRole('button', { name: /^png\b/i })).toHaveAttribute(
       'aria-pressed',
       'true'
     );
 
-    await chooseFormat(page, /svg/i);
-    await expect(dialog(page).getByRole('button', { name: /svg/i })).toHaveAttribute(
+    await chooseFormat(page, /^svg\b/i);
+    await expect(dialog(page).getByRole('button', { name: /^svg\b/i })).toHaveAttribute(
       'aria-pressed',
       'true'
     );
-    await expect(dialog(page).getByRole('button', { name: /png/i })).toHaveAttribute(
+    await expect(dialog(page).getByRole('button', { name: /^png\b/i })).toHaveAttribute(
       'aria-pressed',
       'false'
     );
   });
 
   test('should close the export panel after a successful export', async ({ page }) => {
-    await exportAs(page, /svg/i);
+    await exportAs(page, /^svg\b/i);
     await expect(dialog(page)).toBeHidden();
   });
 
   test.describe('SVG Export', () => {
     test('should trigger SVG download', async ({ page }) => {
-      const download = await exportAs(page, /svg/i);
+      const download = await exportAs(page, /^svg\b/i);
       expect(download.suggestedFilename()).toMatch(/\.svg$/);
     });
 
     test('should export valid SVG content', async ({ page }) => {
-      const { target } = await saveDownload(page, /svg/i, 'pattern.svg');
+      const { target } = await saveDownload(page, /^svg\b/i, 'pattern.svg');
       const content = fs.readFileSync(target, 'utf-8');
 
       expect(content).toContain('<svg');
@@ -99,7 +103,7 @@ test.describe('Export Functionality', () => {
     });
 
     test('should include pattern geometry in SVG export', async ({ page }) => {
-      const { target } = await saveDownload(page, /svg/i, 'geometry.svg');
+      const { target } = await saveDownload(page, /^svg\b/i, 'geometry.svg');
       const content = fs.readFileSync(target, 'utf-8');
 
       expect(content).toMatch(/<path|<circle|<line/);
@@ -108,38 +112,38 @@ test.describe('Export Functionality', () => {
     });
 
     test('should export a group per visible layer', async ({ page }) => {
-      const { target: single } = await saveDownload(page, /svg/i, 'one-layer.svg');
+      const { target: single } = await saveDownload(page, /^svg\b/i, 'one-layer.svg');
       expect(fs.readFileSync(single, 'utf-8').match(/<g id="layer-/g)).toHaveLength(1);
 
       // Add a second layer; the export must contain both, not just the active one.
       await page.getByRole('button', { name: 'Add layer' }).click();
       await page.waitForTimeout(500);
 
-      const { target: both } = await saveDownload(page, /svg/i, 'two-layers.svg');
+      const { target: both } = await saveDownload(page, /^svg\b/i, 'two-layers.svg');
       expect(fs.readFileSync(both, 'utf-8').match(/<g id="layer-/g)).toHaveLength(2);
     });
   });
 
   test.describe('PNG Export', () => {
     test('should trigger PNG download', async ({ page }) => {
-      const download = await exportAs(page, /png/i);
+      const download = await exportAs(page, /^png\b/i);
       expect(download.suggestedFilename()).toMatch(/\.png$/);
     });
 
     test('should export a non-trivial PNG', async ({ page }) => {
-      const { target } = await saveDownload(page, /png/i, 'pattern.png');
+      const { target } = await saveDownload(page, /^png\b/i, 'pattern.png');
       expect(fs.statSync(target).size).toBeGreaterThan(1000);
     });
   });
 
   test.describe('PDF Export', () => {
     test('should trigger PDF download', async ({ page }) => {
-      const download = await exportAs(page, /pdf/i);
+      const download = await exportAs(page, /^pdf\b/i);
       expect(download.suggestedFilename()).toMatch(/\.pdf$/);
     });
 
     test('should export a valid PDF', async ({ page }) => {
-      const { target } = await saveDownload(page, /pdf/i, 'pattern.pdf');
+      const { target } = await saveDownload(page, /^pdf\b/i, 'pattern.pdf');
       const buffer = fs.readFileSync(target);
 
       expect(buffer.subarray(0, 5).toString()).toBe('%PDF-');
@@ -150,16 +154,16 @@ test.describe('Export Functionality', () => {
 
   test.describe('Export Filename', () => {
     test('should name the file after the pattern', async ({ page }) => {
-      const download = await exportAs(page, /svg/i);
+      const download = await exportAs(page, /^svg\b/i);
       expect(download.suggestedFilename()).toMatch(/^guilloche-/i);
     });
 
     test('should make each export filename unique', async ({ page }) => {
-      const first = await exportAs(page, /svg/i);
+      const first = await exportAs(page, /^svg\b/i);
       // The timestamp has second resolution, so two exports inside one second
       // would legitimately collide.
       await page.waitForTimeout(1100);
-      const second = await exportAs(page, /svg/i);
+      const second = await exportAs(page, /^svg\b/i);
 
       expect(first.suggestedFilename()).toMatch(/\d/);
       expect(second.suggestedFilename()).not.toEqual(first.suggestedFilename());
@@ -168,7 +172,7 @@ test.describe('Export Functionality', () => {
 
   test.describe('Export with Different Patterns', () => {
     test('should export different results for different patterns', async ({ page }) => {
-      const { target: first } = await saveDownload(page, /svg/i, 'pattern1.svg');
+      const { target: first } = await saveDownload(page, /^svg\b/i, 'pattern1.svg');
 
       // Nudge a geometry slider; the exported path must follow the parameter.
       const slider = page.locator('input[type="range"]').first();
@@ -176,7 +180,7 @@ test.describe('Export Functionality', () => {
       for (let i = 0; i < 8; i++) await slider.press('ArrowRight');
       await page.waitForTimeout(800);
 
-      const { target: second } = await saveDownload(page, /svg/i, 'pattern2.svg');
+      const { target: second } = await saveDownload(page, /^svg\b/i, 'pattern2.svg');
 
       expect(fs.readFileSync(first, 'utf-8')).not.toEqual(fs.readFileSync(second, 'utf-8'));
     });
