@@ -173,6 +173,9 @@ test.describe('Pattern Saving and Loading', () => {
       // intermittently timed out after 30s. Wait for the control itself.
       const curveButton = page.getByRole('button', { name: /curve/i });
       await expect(curveButton).toBeVisible();
+      // Studio remounts the canvas while it initialises, so a locator resolved
+      // too early screenshots a detached element. Let loading settle first.
+      await page.waitForLoadState('networkidle');
       const initialScreenshot = await page.locator('canvas').first().screenshot();
 
       // Change a parameter

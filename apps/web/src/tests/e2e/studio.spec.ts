@@ -9,18 +9,46 @@ import { test, expect } from '@playwright/test';
  * Waiting for actual pixels is what makes the first assertion of a test reliable.
  */
 async function waitForStudioReady(page: import('@playwright/test').Page) {
+  // First paint is not readiness: studio remounts its canvas during init, so a
+  // test that starts at first paint can sample a detached, unsized or repainting
+  // element. Require the SAME canvas, at the same size, painted, across several
+  // consecutive polls before handing control back.
   await page.waitForFunction(
     () => {
+      type Seen = { el: HTMLCanvasElement; w: number; h: number; hits: number };
+      const store = window as unknown as { __studioSettled?: Seen };
       const canvas = document.querySelector('canvas');
-      if (!canvas || (canvas.width === 300 && canvas.height === 150)) return false;
+      if (!canvas || (canvas.width === 300 && canvas.height === 150)) {
+        store.__studioSettled = undefined;
+        return false;
+      }
       const ctx = canvas.getContext('2d');
-      if (!ctx) return false;
+      if (!ctx) {
+        store.__studioSettled = undefined;
+        return false;
+      }
       const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      for (let i = 3; i < data.length; i += 4) if (data[i] !== 0) return true;
+      let painted = false;
+      for (let i = 3; i < data.length; i += 4) {
+        if (data[i] !== 0) {
+          painted = true;
+          break;
+        }
+      }
+      if (!painted) {
+        store.__studioSettled = undefined;
+        return false;
+      }
+      const seen = store.__studioSettled;
+      if (seen && seen.el === canvas && seen.w === canvas.width && seen.h === canvas.height) {
+        seen.hits += 1;
+        return seen.hits >= 3;
+      }
+      store.__studioSettled = { el: canvas, w: canvas.width, h: canvas.height, hits: 1 };
       return false;
     },
     null,
-    { timeout: 15000 }
+    { timeout: 20000, polling: 100 }
   );
 }
 
@@ -30,9 +58,21 @@ async function waitForStudioReady(page: import('@playwright/test').Page) {
  * diff, which takes minutes; comparing short digests fails fast instead.
  */
 async function fingerprint(locator: import('@playwright/test').Locator): Promise<string> {
-  const buffer = await locator.screenshot();
-  const { createHash } = await import('crypto');
-  return createHash('sha1').update(buffer).digest('hex');
+  // Studio remounts its canvas while initialising, so a screenshot can land on
+  // an element that has just been replaced ("not attached to the DOM"). Retry:
+  // the next attempt resolves whatever element is current.
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      const buffer = await locator.screenshot();
+      const { createHash } = await import('crypto');
+      return createHash('sha1').update(buffer).digest('hex');
+    } catch (error) {
+      lastError = error;
+      await locator.page().waitForTimeout(100);
+    }
+  }
+  throw lastError;
 }
 
 /**
@@ -64,9 +104,14 @@ test.describe('Studio Page', () => {
     const canvas = page.locator('canvas');
     await expect(canvas).toBeVisible();
 
-    const boundingBox = await canvas.boundingBox();
-    expect(boundingBox?.width).toBeGreaterThan(100);
-    expect(boundingBox?.height).toBeGreaterThan(100);
+    // The canvas can remount just after it first paints, so a single sample can
+    // catch it unsized. Poll instead of sampling once.
+    await expect
+      .poll(async () => (await canvas.boundingBox())?.width ?? 0, { timeout: 8000 })
+      .toBeGreaterThan(100);
+    await expect
+      .poll(async () => (await canvas.boundingBox())?.height ?? 0, { timeout: 8000 })
+      .toBeGreaterThan(100);
   });
 
   test('should draw the pattern rather than leaving the canvas blank', async ({ page }) => {
