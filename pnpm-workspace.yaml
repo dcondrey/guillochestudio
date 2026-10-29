@@ -48,3 +48,7 @@ overrides:
   # range so wrangler/miniflare's separately-pinned ws@8.18.0 (see report:
   # blocked on the wrangler 3->4 major bump) is untouched.
   ws@>=8.19.0 <8.20.0: ^8.21.0
+  # GHSA (8 advisories, 2026-10-29): undici 7.x < 7.30.1. Pinned exactly at
+  # 7.29.1 by miniflare 5.20261019 (wrangler 4.152, dev-only); 7.30.1 is the
+  # version the next miniflare pins, so the override is API-compatible.
+  undici@>=7.0.0 <7.30.1: 7.30.1
