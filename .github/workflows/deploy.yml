@@ -238,6 +238,7 @@ jobs:
         with:
           name: web-build
           path: apps/web/.svelte-kit/
+          include-hidden-files: true
           retention-days: 1
 
   # Deploy to staging
