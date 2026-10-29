@@ -176,5 +176,4 @@ archiving, not documentation. Read `DEPLOYMENT.md` for anything operational.
 
 ## License
 
-No license file is present in this repository. Until one is added, treat this as
-all-rights-reserved proprietary source.
+MIT; see [`LICENSE`](LICENSE).
