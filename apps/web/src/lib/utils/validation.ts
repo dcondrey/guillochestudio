@@ -167,7 +167,7 @@ export function validate<T>(schema: z.ZodSchema<T>, data: unknown): ValidationRe
 
   return {
     success: false,
-    errors: result.error.errors.map((err) => ({
+    errors: result.error.issues.map((err) => ({
       path: err.path.join('.'),
       message: err.message,
     })),
@@ -212,7 +212,7 @@ export function createValidator<T>(schema: z.ZodSchema<T>) {
       return { valid: true, data: result.data };
     }
 
-    const errorMessage = result.error.errors
+    const errorMessage = result.error.issues
       .map((e) => `${e.path.join('.')}: ${e.message}`)
       .join(', ');
 

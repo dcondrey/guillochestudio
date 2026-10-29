@@ -96,14 +96,14 @@ export const optionalEnvSchema = z.object({
     .string()
     .transform((val) => val === 'true' || val === '1')
     .optional()
-    .default('false'),
+    .prefault('false'),
 
   // Rate limiting
   RATE_LIMIT_ENABLED: z
     .string()
     .transform((val) => val === 'true' || val === '1')
     .optional()
-    .default('true'),
+    .prefault('true'),
 
   // Sentry DSN for error tracking
   SENTRY_DSN: z.string().url().optional(),
@@ -135,7 +135,7 @@ export interface EnvValidationResult<T> {
  * Format Zod errors into human-readable messages
  */
 function formatZodErrors(error: z.ZodError): string[] {
-  return error.errors.map((err) => {
+  return error.issues.map((err) => {
     const path = err.path.join('.');
     return `  - ${path}: ${err.message}`;
   });

@@ -193,7 +193,7 @@ export const exportRequestSchema = z.object({
       colorProfile: z.enum(['srgb', 'cmyk']).optional(),
       dpi: z.number().int().min(72).max(600).optional(),
     })
-    .default({}),
+    .prefault({}),
   // Base64 PNG bytes rendered client-side; required for format:'png', checked in the route handler.
   pngData: z.string().optional(),
 });
@@ -408,7 +408,7 @@ export const apiErrorSchema = z.object({
   error: z.object({
     code: z.string(),
     message: z.string(),
-    details: z.record(z.unknown()).optional(),
+    details: z.record(z.string(), z.unknown()).optional(),
   }),
 });
 
@@ -437,7 +437,7 @@ export class ValidationError extends Error {
   public readonly details: z.ZodError;
 
   constructor(zodError: z.ZodError) {
-    const message = zodError.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ');
+    const message = zodError.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ');
     super(`Validation failed: ${message}`);
     this.name = 'ValidationError';
     this.details = zodError;
@@ -450,7 +450,7 @@ export class ValidationError extends Error {
         code: this.code,
         message: this.message,
         details: {
-          issues: this.details.errors.map((e) => ({
+          issues: this.details.issues.map((e) => ({
             path: e.path,
             message: e.message,
             code: e.code,
