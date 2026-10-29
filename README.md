@@ -38,9 +38,14 @@ passports, watch dials, and share certificates. Guilloché Studio Pro generates 
 parametric curve families, edits it live on canvas, and exports print-ready vector art
 whose provenance is cryptographically signed at the moment of export.
 
+> [!IMPORTANT]
+> **Archived.** Development stopped in October 2026. The repository is read-only and kept for
+> reference; the live deployment, if any, is no longer maintained. Issues and pull requests are
+> closed.
+
 > [!NOTE]
-> This is a private product repository, not a public library. The packages under
-> `packages/` are workspace-internal (`@guilloche/*`) and are not published to npm.
+> This is a product repository, not a library. The packages under `packages/` are
+> workspace-internal (`@guilloche/*`) and are not published to npm.
 
 ## Quickstart
 
@@ -166,9 +171,8 @@ and Worker secrets: **[DEPLOYMENT.md](./DEPLOYMENT.md)**.
 
 ## Working notes
 
-`FEATURE_ROADMAP.md`, `todo.md`, `error_inventory.md`, and
-`mission_validation_report.md` at the repository root are in-progress working files,
-not documentation. Read `DEPLOYMENT.md` for anything operational.
+`FEATURE_ROADMAP.md` and `todo.md` at the repository root are working files frozen at the
+time of archiving, not documentation. Read `DEPLOYMENT.md` for anything operational.
 
 ## License
 

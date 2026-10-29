@@ -133,20 +133,6 @@ updates:
           - 'patch'
 
   # Docker (if applicable)
-  - package-ecosystem: 'docker'
-    directory: '/'
-    schedule:
-      interval: 'weekly'
-      day: 'monday'
-      time: '09:00'
-      timezone: 'America/Los_Angeles'
-    open-pull-requests-limit: 2
-    commit-message:
-      prefix: 'deps(docker)'
-    labels:
-      - 'dependencies'
-      - 'docker'
-
 # Registries for private packages (uncomment if needed)
 # registries:
 #   npm-github:
