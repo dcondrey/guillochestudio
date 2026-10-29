@@ -237,7 +237,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: web-build
-          path: apps/web/.svelte-kit/cloudflare/
+          path: apps/web/.svelte-kit/
           retention-days: 1
 
   # Deploy to staging
@@ -257,7 +257,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: web-build
-          path: apps/web/.svelte-kit/cloudflare/
+          path: apps/web/.svelte-kit/
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
@@ -298,7 +298,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: web-build
-          path: apps/web/.svelte-kit/cloudflare/
+          path: apps/web/.svelte-kit/
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
