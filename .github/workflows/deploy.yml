@@ -273,7 +273,8 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/web/.svelte-kit/cloudflare --project-name=guillochestudio --branch=staging
+          workingDirectory: apps/web
+          command: pages deploy .svelte-kit/cloudflare --project-name=guillochestudio --branch=staging
 
       - name: Post deployment summary
         run: |
@@ -314,7 +315,8 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/web/.svelte-kit/cloudflare --project-name=guillochestudio --branch=main
+          workingDirectory: apps/web
+          command: pages deploy .svelte-kit/cloudflare --project-name=guillochestudio --branch=main
 
       - name: Purge Cloudflare Cache
         run: |

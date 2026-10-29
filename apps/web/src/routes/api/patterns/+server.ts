@@ -19,7 +19,7 @@
 
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { createHash } from 'crypto';
+import { createHash } from 'node:crypto';
 import { CreatePatternSchema, validate } from '$lib/utils/validation';
 import { getCacheHeaders } from '$lib/utils/cache';
 import { SecurityMiddleware, createSecurityErrorResponse } from '$lib/services/security-middleware';
