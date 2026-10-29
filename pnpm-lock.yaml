@@ -30,11 +30,11 @@ importers:
         specifier: ^3.2.6
         version: 3.2.7
       prettier:
-        specifier: ^3.9.6
-        version: 3.9.6
+        specifier: ^3.9.10
+        version: 3.9.10
       prettier-plugin-svelte:
         specifier: ^3.5.2
-        version: 3.5.2(prettier@3.9.6)(svelte@4.2.20)
+        version: 3.5.2(prettier@3.9.10)(svelte@4.2.20)
       typescript:
         specifier: ^5.4.0
         version: 5.9.3
@@ -151,11 +151,11 @@ importers:
         specifier: ^8.5.31
         version: 8.5.31
       prettier:
-        specifier: ^3.9.6
-        version: 3.9.6
+        specifier: ^3.9.10
+        version: 3.9.10
       prettier-plugin-svelte:
         specifier: ^3.5.2
-        version: 3.5.2(prettier@3.9.6)(svelte@4.2.20)
+        version: 3.5.2(prettier@3.9.10)(svelte@4.2.20)
       rollup-plugin-visualizer:
         specifier: ^7.1.1
         version: 7.1.1(rollup@4.63.0)
@@ -2951,8 +2951,8 @@ packages:
       prettier: ^3.0.0
       svelte: ^4.2.12
 
-  prettier@3.9.6:
-    resolution: {integrity: sha512-OpN0zzVdiaiAhxpuuj5efpIS4sY9j7bY6uR5mnj5yPzGkdkjNKSJeUThPb60Jw29QuAZgA4o+/iB49kFiaBX6g==}
+  prettier@3.9.10:
+    resolution: {integrity: sha512-skGHTH1Yb9QvaTC4hWnRTzEYtCpApF0UMBPz+t/0ZPzP8ihefo/btKd+QA7pUE0fEwA1SbS/NmhyEcstdXOIdA==}
     engines: {node: '>=14'}
     hasBin: true
 
@@ -6457,12 +6457,12 @@ snapshots:
 
   prelude-ls@1.2.1: {}
 
-  prettier-plugin-svelte@3.5.2(prettier@3.9.6)(svelte@4.2.20):
+  prettier-plugin-svelte@3.5.2(prettier@3.9.10)(svelte@4.2.20):
     dependencies:
-      prettier: 3.9.6
+      prettier: 3.9.10
       svelte: 4.2.20
 
-  prettier@3.9.6: {}
+  prettier@3.9.10: {}
 
   pretty-format@27.5.1:
     dependencies:
