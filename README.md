@@ -171,8 +171,8 @@ and Worker secrets: **[DEPLOYMENT.md](./DEPLOYMENT.md)**.
 
 ## Working notes
 
-`FEATURE_ROADMAP.md` and `todo.md` at the repository root are working files frozen at the
-time of archiving, not documentation. Read `DEPLOYMENT.md` for anything operational.
+`FEATURE_ROADMAP.md` at the repository root is a working file frozen at the time of
+archiving, not documentation. Read `DEPLOYMENT.md` for anything operational.
 
 ## License
 
